@@ -48,11 +48,19 @@ export default {
 <style scoped>
 .out-border {
     /* border: 1px solid red; */
-    width: 90%;
-    min-height: 50px;
+    width: 100%;
+    min-height: 86px;
     position: relative;
-    border-bottom: 2px solid var(--theme-mode-contrast);
-    margin-bottom: 10px;
+    border-bottom: var(--border-soft);
+    margin-bottom: 0;
+    padding: 22px 0;
+    background: transparent;
+    box-shadow: none;
+    transition: .2s ease;
+}
+.out-border:hover {
+    border-color: #c9c9c9;
+    transform: none;
 }
 .out-border-full {
   /* border: 1px solid red; */
@@ -61,17 +69,26 @@ export default {
 }
 .title {
     font-size: 20px;
+    line-height: 1.35;
+    font-weight: 650;
     color: var(--theme-mode-very-high-contrast);
     display: inline-block;
     cursor: pointer;
 }
 .title:hover {
-  text-decoration: underline;
+  color: var(--theme-mode-very-high-contrast);
+  text-decoration: none;
 }
 
 .profile {
     font-size: 14px;
-    color: var(--theme-mode-very-high-contrast);
+    color: var(--theme-mode-high-contrast);
+    display: inline-block;
+    margin-top: 12px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    font-weight: 600;
 }
 .profile:not(:first-of-type) {
   margin-left: 10px;

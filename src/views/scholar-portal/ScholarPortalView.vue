@@ -1,8 +1,5 @@
 <template>
-  <div class="main-part">
-    <new-loading-bar :display="displayMainLoading" :progress="mainProgress" @stop-display="displayMainLoading = false"
-      :accelerate="mainAccelerate" :isReal="isReal"></new-loading-bar>
-    <div class="info-tag-list">
+  <div class="main-part">    <div class="info-tag-list">
       <div class="personal-info">
         <!-- <div class="personal-image">
               <img :src="authorInfo.avatarUrl" alt="Personal Image">
@@ -85,10 +82,7 @@
               <h3>{{ $t('scholar_portal_articles') }}</h3>
             </div>
           </div>
-          <div class="favorites-list">
-            <new-loading-bar :display="displayPageLoading" :progress="pageProgress"
-              @stop-display="displayPageLoading = false" :accelerate="pageAccelerate" :isReal="isReal"></new-loading-bar>
-            <Pagination :itemsPerPage="this.paginationInfo.itemsPerPage" :currentPage="this.paginationInfo.currentPage"
+          <div class="favorites-list">            <Pagination :itemsPerPage="this.paginationInfo.itemsPerPage" :currentPage="this.paginationInfo.currentPage"
               :totalPages="this.paginationInfo.totalPages" @change-page="handleChangePage"
               @change-item-per-page="handleChangePerPage">
               <SearchResultListItem v-for="(info, index) in infoItems" :key="index" :infoItem="info">
@@ -100,15 +94,8 @@
       </div>
     </div>
   </div>
-  <ScholarGraphCite :info="authorInfo.counts_by_year">
-    <new-loading-bar :display="displayMainLoading" :progress="mainProgress" @stop-display="displayMainLoading = false"
-      :accelerate="mainAccelerate" :isReal="isReal">
-    </new-loading-bar>
-  </ScholarGraphCite>
-  <div class="relation-network">
-    <new-loading-bar :display="displayMainLoading" :progress="mainProgress" @stop-display="displayMainLoading = false"
-      :accelerate="mainAccelerate" :isReal="isReal"></new-loading-bar>
-    <h3>{{ $t('scholar_portal_net') }}</h3>
+  <ScholarGraphCite :info="authorInfo.counts_by_year">  </ScholarGraphCite>
+  <div class="relation-network">    <h3>{{ $t('scholar_portal_net') }}</h3>
     <AuthorRelationGraph :relationList="relationList"></AuthorRelationGraph>
 
   </div>
@@ -132,7 +119,6 @@ import FollowList from '../../components/follow-list/FollowList.vue'
 import ScholarGraphCite from '../../components/graphs/ScholarGraphCite.vue'
 // import EchartGraph from '../../components/relation-graph/EchartGraph.vue'
 import { User } from '../../api/users'
-import NewLoadingBar from '../../components/loading-bar/NewLoadingBar.vue'
 export default {
   components: {
     FavouriteListItem,
@@ -147,7 +133,6 @@ export default {
     // EchartGraph,
     i18n,
     ScholarGraphCite,
-    NewLoadingBar
   },
   data() {
     return {

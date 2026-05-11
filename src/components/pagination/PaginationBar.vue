@@ -120,64 +120,84 @@ export default {
   font-weight: 700;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin: 0 auto;
+  gap: 10px;
+  padding: 18px 0;
+  background: transparent;
+  border-top: var(--border-soft);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .pagination div {
-  color: var(--theme-color);
+  color: var(--theme-mode-high-contrast);
+  font-size: 14px;
 }
 
 button {
   width: fit-content;
-  padding: 0 10px;
+  min-width: 42px;
+  height: 40px;
+  padding: 0 14px;
   background: var(--theme-mode-like);
-  color: var(--theme-color);
-  font-weight: 700;
-  margin: 10px 5px;
+  color: var(--theme-mode-very-high-contrast);
+  font-weight: 600;
+  margin: 0;
+  border: 1px solid #111111;
+  border-radius: 999px;
 }
 
 button:hover {
-  background: var(--theme-mode-contrast);
+  background: #f2f2f2;
+  border-color: #111111;
 }
 
 button.active {
-  background: var(--theme-color);
-  color: rgb(243, 243, 243);
+  background: #111111;
+  color: #fff;
+  border-color: #111111;
 }
 
 button.disabled {
-  background: rgba(#777, 0.3);
-  color: var(--theme-color-50);
+  background: var(--theme-mode-like);
+  border-color: #d9d9d9;
+  color: var(--theme-mode-high-contrast);
   cursor: not-allowed;
 }
 
 select {
-  background: var(--theme-mode);
-  color: var(--theme-color);
-  border-radius: 5px;
+  height: 40px;
+  background: var(--theme-mode-like);
+  color: var(--theme-mode-very-high-contrast);
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  padding: 0 14px;
   cursor: pointer;
 }
 
 select option {
-  color: var(--theme-color);
+  color: var(--theme-mode-very-high-contrast);
   transition: all linear 0.5s;
 }
 
 .jump_page_number {
-  color: var(--theme-color);
+  color: var(--theme-mode-very-high-contrast);
   background: var(--theme-mode-like);
-  border: 1px solid var(--theme-mode-contrast);
-  border-radius: 5px;
-  padding: 5px;
-  max-width: 40px;
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  padding: 0 12px;
+  max-width: 58px;
+  height: 40px;
   margin: 0 !important;
+  text-align: center;
 }
 
 .flatten {
   display: inline-block;
   white-space: nowrap;
-  margin: auto 10px;
+  margin: auto 4px;
+  font-size: 14px;
 }
 </style>

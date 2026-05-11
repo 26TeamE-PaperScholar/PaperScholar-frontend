@@ -14,6 +14,7 @@ import AuditDetailView from '../views/admin/AuditDetailView.vue'
 import InstitutionView from '../views/institution/InstitutionView.vue'
 import TagDetailView from '../views/tags/TagDetailView.vue'
 import PasswordReset from '../views/password-reset/PasswordReset.vue'
+import AuthView from '../views/auth/AuthView.vue'
 
 import store from '../store'
 
@@ -35,6 +36,18 @@ const router = createRouter({
     {
       path: '/search',
       component: SearchView
+    },
+    {
+      path: '/auth',
+      component: AuthView
+    },
+    {
+      path: '/login',
+      redirect: { path: '/auth', query: { mode: 'login' } }
+    },
+    {
+      path: '/register',
+      redirect: { path: '/auth', query: { mode: 'register' } }
     },
     {
       path: '/message',

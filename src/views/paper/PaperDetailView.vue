@@ -1,7 +1,4 @@
-<template>
-  <new-loading-bar :display="displayLoading" :accelerate="accelerate" :isReal="isReal" :progress="progress"
-    @stop-display="displayLoading = false"></new-loading-bar>
-  <div class="paper-area">
+<template>  <div class="paper-area">
     <div>
       <div class="paper-header">
         <div>{{ $t('public_date') }}{{ this.date }}</div>
@@ -109,7 +106,6 @@
 <script>
 import { useRouter } from 'vue-router'
 import { Search } from "../../api/search";
-import NewLoadingBar from '../../components/loading-bar/NewLoadingBar.vue';
 import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue';
 import CiteModal from '../../components/modals/CiteModal.vue';
 
@@ -122,7 +118,6 @@ export default {
   components: {
     ChooseFavoriteModal,
     CiteModal,
-    NewLoadingBar
   },
   watch: {
     '$route.params.id': {

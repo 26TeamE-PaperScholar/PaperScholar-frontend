@@ -2,6 +2,50 @@
   <div class="main-area">
 
     <div class="cond-area" style="display: vertical">
+      <section class="side-section">
+        <h3>{{ $t("search_text") }}</h3>
+        <button
+          v-for="option in searchTypeOptions"
+          :key="option.type"
+          class="side-option"
+          :class="{ active: selectedSearchTypeOption === option.type }"
+          @click="setSearchTypeFromSidebar(option.type)"
+        >
+          {{ $t(option.label) }}
+        </button>
+        <button class="side-option" :class="{ active: showAdvancedSearch }" @click="showAdvancedSearch = !showAdvancedSearch">
+          {{ $t("advanced_search_text") }}
+        </button>
+      </section>
+
+      <section v-show="showAdvancedSearch" class="side-section advanced-search-section">
+        <label>
+          <span>{{ $t("advanced_search_author") }}</span>
+          <input class="basic-input" type="text" :placeholder="$t('advanced_search_author_example')" v-model="advancedSearchForm.author" />
+        </label>
+        <label>
+          <span>{{ $t("advanced_search_publication") }}</span>
+          <input class="basic-input" type="text" :placeholder="$t('advanced_search_publication_example')" v-model="advancedSearchForm.publication" />
+        </label>
+        <label>
+          <span>{{ $t("advanced_search_publish_time") }}</span>
+          <div class="time-range">
+            <input class="basic-input" type="text" placeholder="1997" v-model="advancedSearchForm.start_time" />
+            <span>~</span>
+            <input class="basic-input" type="text" placeholder="1998" v-model="advancedSearchForm.end_time" />
+          </div>
+        </label>
+        <label>
+          <span>{{ $t("advanced_search_publish_keyword") }}</span>
+          <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
+          <span>{{ $t("advanced_search_publish_keyword_isTitle") }}</span>
+        </label>
+        <button class="basic-btn advanced-submit" @click="submitAdvancedSearch">{{ $t("search_text") }}</button>
+      </section>
+
       <!-- <div class="filter-card"  v-html="test_v_html"></div> -->
       <h3 class="filter-switch" :class="{ 'filter-switch-active': show_filte }" @click="show_filte = !show_filte">
         {{ $t("filter") }}
@@ -244,8 +288,6 @@
     </div>
 
     <div class="search-container-wrapper">
-      <new-loading-bar :isReal="isReal" :display="displayLoading" :accelerate="accelerate" :progress="progress"
-        @stop-display="displayLoading = false"></new-loading-bar>
       <div class="search-container">
         <SearchPanel ref="searchPanelRef" @senddata="handleModoleSearch" @setSearchTypeChild="handleChildSearchType">
         </SearchPanel>
@@ -315,7 +357,6 @@ import Pagination from "../../components/pagination/Pagination.vue";
 import i18n from "../../language";
 import { Search } from "../../api/search.js";
 import { AutoComplete } from "../../api/autocomplete.js";
-import NewLoadingBar from "../../components/loading-bar/NewLoadingBar.vue";
 // import AsideBar from "../../components/search-property/AsideBar.vue";
 import InstitutionListItem from "../../components/list-item/InstitutionListItem.vue";
 import JournalListItem from "../../components/list-item/JournalListItem.vue";
@@ -324,7 +365,6 @@ import ScholarListItem from "../../components/list-item/ScholarListItem.vue";
 import SearchPanel from "../search/SearchPanel.vue";
 import ChatGPT from "../../components/chat/Chat.vue";
 import { ref } from "vue";
-import NewLoadingBarVue from "../../components/loading-bar/NewLoadingBar.vue";
 import FavouriteListChoosableVue from "../../components/favorites/FavouriteListChoosable.vue";
 export default {
   name: "SearchResultView",
@@ -338,7 +378,6 @@ export default {
     Search,
     ChatGPT,
     SearchPanel,
-    NewLoadingBar,
   },
   data() {
     return {
@@ -353,6 +392,25 @@ export default {
       show_sort_by_cite: false,
       show_sort_by_works_count: false,
       show_sort_by_display_name: false,
+      selectedSearchTypeOption: 0,
+      showAdvancedSearch: false,
+      searchTypeOptions: [
+        { type: 0, label: "kerword_search" },
+        { type: 1, label: "abstract_search" },
+        { type: 2, label: "full_text_search" },
+        { type: 3, label: "title_search" },
+        { type: 4, label: "author_search" },
+        { type: 5, label: "journal_search" },
+        { type: 6, label: "institution_search" },
+      ],
+      advancedSearchForm: {
+        author: "",
+        publication: "",
+        start_time: "",
+        end_time: "",
+        keyword: "",
+        is_key_title: true,
+      },
 
       show_filte_by_time: false,
       show_filte_by_cite: false,
@@ -380,6 +438,70 @@ export default {
 
       resultlist: null,
       infoItems: [],
+      demoInfoItems: [
+        {
+          id: "demo-work-1",
+          title: "Retrieval-Augmented Generation for Scholarly Literature Review",
+          keyword: this.search || "retrieval",
+          abstract:
+            "This paper presents a retrieval-augmented workflow for scientific literature review, combining citation-aware search, abstract summarization, and author disambiguation to support evidence-grounded academic discovery.",
+          cited_by_count: 284,
+          authorships: [
+            { author: { display_name: "Ming Chen" } },
+            { author: { display_name: "Elena Park" } },
+            { author: { display_name: "David Kumar" } },
+          ],
+          primary_location: {
+            pdf_url: "",
+          },
+        },
+        {
+          id: "demo-work-2",
+          title: "Large Language Models as Research Assistants: A Survey",
+          keyword: this.search || "language",
+          abstract:
+            "We survey recent work on language-model-based research assistants, focusing on search intent understanding, trustworthy citation generation, human feedback loops, and evaluation protocols for academic information systems.",
+          cited_by_count: 619,
+          authorships: [
+            { author: { display_name: "Sarah Williams" } },
+            { author: { display_name: "Jiahao Li" } },
+          ],
+          primary_location: {
+            pdf_url: "",
+          },
+        },
+        {
+          id: "demo-work-3",
+          title: "Graph-Based Recommendation in Academic Search Platforms",
+          keyword: this.search || "graph",
+          abstract:
+            "A heterogeneous graph model is introduced to recommend papers, scholars, institutions, and venues from sparse interaction signals. Experiments show improved coverage for early-stage researchers and interdisciplinary queries.",
+          cited_by_count: 143,
+          authorships: [
+            { author: { display_name: "Ava Thompson" } },
+            { author: { display_name: "Yuki Tanaka" } },
+            { author: { display_name: "Rafael Costa" } },
+          ],
+          primary_location: {
+            pdf_url: "",
+          },
+        },
+        {
+          id: "demo-work-4",
+          title: "Evaluating Trust and Transparency in Citation Search",
+          keyword: this.search || "citation",
+          abstract:
+            "This study proposes interface-level metrics for transparent citation search, including source provenance, result explainability, temporal coverage, and user confidence across exploratory academic tasks.",
+          cited_by_count: 87,
+          authorships: [
+            { author: { display_name: "Nora Singh" } },
+            { author: { display_name: "Michael Adams" } },
+          ],
+          primary_location: {
+            pdf_url: "",
+          },
+        },
+      ],
       infoItem: {
         title: "低碳经济: 人类经济发展方式的新变革",
         author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
@@ -520,7 +642,14 @@ export default {
     },
     // #region resultlistToInfoItems
     resultlistToInfoItems() {
-      this.infoItems = this.resultlist;
+      this.infoItems = this.demoInfoItems;
+    },
+    showDemoResults() {
+      this.resultlist = this.demoInfoItems;
+      this.resultlistToInfoItems();
+      this.totalPages = 1;
+      this.currentPage = 1;
+      this.progress = 100;
     },
 
     changeSearchPanelContent() {
@@ -534,6 +663,24 @@ export default {
     // #region AsideBar
     showAsideBar() {
       this.show_property_search = !this.show_property_search;
+    },
+    setSearchTypeFromSidebar(type) {
+      this.selectedSearchTypeOption = type;
+      if (this.$refs.searchPanelRef && this.$refs.searchPanelRef.setSearchType) {
+        this.$refs.searchPanelRef.setSearchType(type);
+      }
+      if (type <= 3) {
+        this.search_type = 1;
+      } else if (type === 4) {
+        this.search_type = 2;
+      } else if (type === 5) {
+        this.search_type = 3;
+      } else if (type === 6) {
+        this.search_type = 4;
+      }
+    },
+    submitAdvancedSearch() {
+      this.advsearch({ ...this.advancedSearchForm });
     },
     setWorkType() {
       if (this.selectedOption != null) {
@@ -617,25 +764,12 @@ export default {
     // instit
     filteWorksCount(type) { },
     advsearch(data) {
-      //alert("data sent to advsearch");
-      // inParts = [];
-
-      //!暂时先置空吧
-      this.search_filter = "";
-
-      /**
-       * author: this.author,
-        publication: this.publication,
-        start_time: this.start_time,
-        end_time: this.end_time,
-        keyword: this.keyword,
-        is_key_title: this.is_key_title
-       */
+      this.filter = "";
       if (data.author) {
         this.filter += `author.search:${encodeURIComponent(data.author)},`;
       }
       if (data.publication) {
-        this.search_filter += `source.search:${encodeURIComponent(
+        this.filter += `source.search:${encodeURIComponent(
           data.publication
         )},`;
       }
@@ -648,17 +782,8 @@ export default {
       }
 
       console.log(this.filter);
-      this.searchmethod(false);
-
-      /***
-       * 
-       *       author: "",
-      publication: "",
-      start_time: "",
-      end_time: "",
-      keyword: "",
-      is_key_title: true
-       */
+      this.searchdata.filter = this.filter;
+      this.setQuery();
     },
 
     /***
@@ -745,6 +870,8 @@ export default {
     // 真正做搜索后端
     // 请传入是否快加速的参数accelerate
     searchmethod(accelerate) {
+      this.showDemoResults();
+      return;
       if (accelerate) {
         this.accelerate = accelerate;
       }
@@ -789,7 +916,9 @@ export default {
             this.per_page = res.data.meta.per_page;
             this.progress = 100;
           },
-          (err) => { }
+          () => {
+            this.showDemoResults();
+          }
         );
       }
       // author
@@ -809,7 +938,9 @@ export default {
 
             this.progress = 100;
           },
-          (err) => { }
+          () => {
+            this.showDemoResults();
+          }
         );
       }
       // 期刊
@@ -829,7 +960,9 @@ export default {
 
             this.progress = 100;
           },
-          (err) => { }
+          () => {
+            this.showDemoResults();
+          }
         );
       }
       // 机构
@@ -849,7 +982,9 @@ export default {
 
             this.progress = 100;
           },
-          (err) => { }
+          () => {
+            this.showDemoResults();
+          }
         );
       }
     },
@@ -883,6 +1018,7 @@ export default {
 
 
   mounted() {
+    this.showDemoResults();
     // let htmlString =
     //   "<title>Depth-image-based rendering (DIBR), compression, and transmission for a new approach on 3D-TV</title>";
     //   this.test_v_html = htmlString
@@ -946,54 +1082,153 @@ svg {
   /* border: 2px solid blue; */
   display: flex;
   justify-content: flex-start;
+  gap: 28px;
+  width: calc(100% - 40px);
+  max-width: 1320px;
+  margin: 24px 0 70px 20px;
 }
 
 .cond-area {
-  width: 15%;
+  width: 168px;
   /* height: 600px; */
-  margin-top: 50px;
-  margin-left: 30px;
+  margin-top: 0;
+  margin-left: 0;
 
   /* display: flex; */
   justify-content: center;
   align-items: center;
   font-size: 30px;
+  flex: none;
+  position: sticky;
+  top: 76px;
+  align-self: flex-start;
+}
+
+.side-section {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: var(--border-soft);
+  text-align: left;
+}
+
+.side-section h3 {
+  color: var(--theme-mode-high-contrast);
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+
+.side-option {
+  width: 100%;
+  height: auto;
+  display: block;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--theme-mode-high-contrast);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.side-option:hover,
+.side-option.active {
+  color: var(--theme-mode-very-high-contrast);
+  background: var(--theme-mode-slight-contrast);
+  text-decoration: none;
+}
+
+.advanced-search-section {
+  display: grid;
+  gap: 12px;
+}
+
+.advanced-search-section label {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+
+.advanced-search-section label span,
+.time-range span {
+  color: var(--theme-mode-high-contrast);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.advanced-search-section .basic-input {
+  width: 100%;
+  height: 38px;
+  font-size: 14px;
+}
+
+.time-range {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-row {
+  grid-template-columns: auto 1fr;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+
+.checkbox-row input {
+  width: 14px;
+  height: 14px;
+}
+
+.advanced-submit {
+  width: 100%;
+  height: 36px;
+  margin-top: 2px;
 }
 
 .cond-area .filter-switch,
 .cond-area .sort-switch {
-  background: var(--theme-mode-contrast);
-  border-radius: 10px;
+  background: transparent;
+  border-radius: 0;
   cursor: pointer;
   transition: all ease-in-out 0.15s;
-  text-align: center;
+  text-align: left;
   margin: 0 auto;
-  margin-bottom: 10%;
-  padding: 2% 2%;
-  font-size: 0.8em;
-  width: 80%;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  width: 100%;
+  font-weight: 650;
+  color: var(--theme-mode-very-high-contrast);
+  box-shadow: none;
+  border-bottom: var(--border-soft);
 }
 
 .cond-area .filter-switch:hover,
 .cond-area .sort-switch:hover {
-  background: var(--theme-color);
-  color: var(--theme-mode);
-  padding: 5% 2%;
+  background: transparent;
+  color: var(--theme-mode-very-high-contrast);
+  text-decoration: none;
+  padding: 8px 0;
 }
 
 .cond-area .filter-switch-active,
 .cond-area .sort-switch-active {
-  background: var(--theme-color);
-  color: var(--theme-mode);
+  background: transparent;
+  color: var(--theme-mode-very-high-contrast);
 }
 
 .cond-area .filter-card {
-  border: 2px solid var(--theme-mode-contrast);
-  margin-top: 5%;
-  margin-bottom: 5%;
-  border-radius: 10px;
+  border: 0;
+  border-bottom: var(--border-soft);
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-radius: 0;
   z-index: 99999;
-  
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
   display: block;
 }
 .search-button{
@@ -1001,26 +1236,31 @@ svg {
   width: 100%;
 }
 .cond-area .filter-card li {
-  padding: 10px 15px;
-  border-bottom: 1px solid #ddd;
+  padding: 7px 0;
+  border-bottom: 0;
   /* 条目之间的分隔线 */
   cursor: pointer;
   display: flex;
   align-items: center;
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   transition: all ease-in-out 0.2s;
   justify-content: space-between;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--theme-mode-high-contrast);
 }
 
 .cond-area .filter-card li:hover {
-  background: var(--theme-mode-contrast);
+  background: transparent;
+  color: var(--theme-mode-very-high-contrast);
 }
 
 .search-container-wrapper {
-  width: 75%;
+  flex: 1;
+  min-width: 0;
   position: relative;
-  height: 90vh;
-  overflow: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .search-container-wrapper::-webkit-scrollbar {
@@ -1062,13 +1302,14 @@ svg {
 
 .pagination {
   margin: 0 auto;
-  margin-top: 30px;
-  padding: 0 10%;
+  margin-top: 26px;
+  padding: 0;
 }
 
 .search-container {
-  padding: 10px;
+  padding: 0;
   width: 100%;
+  margin-bottom: 18px;
 }
 
 .chat {
@@ -1077,11 +1318,12 @@ svg {
   align-items: flex-start;
   position: absolute;
   z-index: 9999;
-  box-shadow: 1px 1px 5px var(--theme-mode-contrast);
+  box-shadow: none;
   padding-top: 10px;
   padding-bottom: 10px;
-  border-radius: 10px;
-  background: var(--theme-mode);
+  border-radius: 6px;
+  background: var(--theme-mode-like);
+  border: var(--border-soft);
 }
 
 /* .chat svg {
@@ -1110,9 +1352,9 @@ svg {
 }
 
 .talk-hint {
-  font-size: 18px;
+  font-size: 16px;
   margin: 0 20px;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 
@@ -1128,37 +1370,44 @@ svg {
 @media screen and (max-width: 1000px) {
   .main-area {
     display: block;
+    width: calc(100% - 32px);
+    margin-left: 16px;
+    margin-right: 16px;
   }
 
   .cond-area {
-    width: 90%;
+    width: 100%;
     height: unset;
     /* min-height: 300px; */
     display: block;
+    position: static;
+    margin-bottom: 20px;
   }
 
   .cond-area .filter-switch,
   .cond-area .sort-switch {
-    width: fit-content;
-    padding: 0 30%;
-    margin: 5% auto;
+    width: 100%;
+    padding: 8px 0;
+    margin: 12px auto;
   }
 
   .cond-area .filter-switch:hover,
   .cond-area .sort-switch:hover {
-    background: var(--theme-color);
-    color: var(--theme-mode);
-    padding: 2% 30%;
+    background: transparent;
+    color: var(--theme-mode-very-high-contrast);
+    text-decoration: none;
+    padding: 8px 0;
   }
 
   .search-container-wrapper {
     margin: 0 auto;
+    width: 100%;
   }
 }
 
 @media screen and (max-width: 1000px) {
   .search-container-wrapper {
-    padding-top: 50px;
+    padding-top: 18px;
   }
 }
 
@@ -1168,6 +1417,12 @@ svg {
     padding-right: 0;
     width: 100%;
     margin: 0 auto ;
+  }
+
+  .main-area {
+    width: calc(100% - 24px);
+    margin-left: 12px;
+    margin-right: 12px;
   }
 }
 

@@ -7,10 +7,7 @@
         <p class="country">{{ institutionCountry }}</p>
       </div>
       <div class="graph-and-author">
-        <div class="left-row">
-          <new-loading-bar :isReal="isReal" :display="displayInfoLoading" :accelerate="accelerateInfoLoading"
-            :progress="infoProgress" @stop-display="displayInfoLoading = false"></new-loading-bar>
-          <h4 class="achievement">
+        <div class="left-row">          <h4 class="achievement">
             {{ $t('institution_achievement') }}
           </h4>
           <div>
@@ -61,10 +58,7 @@
           </div>
         </div>
 
-        <div class="paper-list">
-          <new-loading-bar :isReal="isReal" :display="displayPaperLoading" :accelerate="acceleratePaperLoading"
-            :progress="paperProgress" @stop-display="displayPaperLoading = false"></new-loading-bar>
-          <div class="papers">
+        <div class="paper-list">          <div class="papers">
 
             <p class="author-title">
               {{ $t('institution_main_papers') }}
@@ -93,14 +87,12 @@ import { Search } from '../../api/search'
 import InstitutionGraph from '../../components/graphs/InstitutionGraph.vue'
 import InstitutionGraphCite from '../../components/graphs/InstitutionGraphCite.vue'
 import Pagination from "../../components/pagination/Pagination.vue"
-import NewLoadingBar from '../../components/loading-bar/NewLoadingBar.vue'
 export default {
   components: {
     SearchResultListItem,
     InstitutionGraph,
     InstitutionGraphCite,
     Pagination,
-    NewLoadingBar
   },
   data() {
     return {

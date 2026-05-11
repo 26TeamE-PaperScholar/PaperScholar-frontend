@@ -18,12 +18,25 @@
 <path d="M4691 7179 c-52 -48 -51 -120 1 -164 27 -23 39 -26 75 -22 51 5 71&#10;20 90 66 19 44 9 84 -29 116 -39 33 -104 35 -137 4z"/>
 </g>
       </svg>
-      <!-- <h1>iPaper<span>{{ $t('web_name_text') }}</span></h1> -->
+      <button class="brand-name" @click="backToSearch">PaperScholar</button>
     </section>
+    <form class="nav-search" @submit.prevent="searchFromNav">
+      <input
+        v-model="navSearchKeyword"
+        class="basic-input nav-search-input"
+        type="text"
+        :placeholder="$t('huge_input_placeholder')"
+      />
+      <button class="nav-search-btn" type="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.75 4.5a6.25 6.25 0 1 0 0 12.5 6.25 6.25 0 0 0 0-12.5Zm-7.75 6.25a7.75 7.75 0 1 1 13.72 4.94l3.04 3.05a.75.75 0 0 1-1.06 1.06l-3.05-3.04A7.75 7.75 0 0 1 3 10.75Z"></path>
+        </svg>
+      </button>
+    </form>
     <section>
-      <!-- <button >{{ $t('language') }}</button> -->
-      <svg @click="tShouldShow=true" t="1703582666161" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5393" width="200" height="200"><path d="M578.077439 516.374634c42.958394-21.671579 96.395444-48.649 96.395444-121.723296 0-83.250052-71.785953-141.397381-174.600597-141.397381-74.789357 0-140.688229 42.880623-163.963329 106.702184-5.362124 14.70798-9.982352 39.135322-5.408173 59.629075 2.771113 12.368702 15.108093 20.12434 27.435862 17.407462 12.384052-2.771113 20.166295-15.052834 17.408485-27.434839-1.861394-8.345062-0.26913-22.903639 3.723811-33.865295 13.887288-38.078247 56.622602-76.493162 120.80232-76.493162 75.758428 0 128.659265 39.245839 128.659265 95.452979 0 42.643216-27.03575 58.45125-71.139224 80.71123-38.406728 19.386536-86.210477 43.514049-86.210477 103.133915l0 56.841589c0 12.691043 10.275018 22.982434 22.972201 22.982434 12.69616 0 22.970154-10.29139 22.970154-22.982434l0-56.841589C517.125229 548.601616 539.158035 536.02723 578.077439 516.374634z"  p-id="5394"></path><path d="M459.701378 734.025723c0 19.034519 15.426341 34.458813 34.458813 34.458813 19.028379 0 34.458813-15.424294 34.458813-34.458813 0-19.028379-15.430434-34.45779-34.458813-34.45779C475.127719 699.567933 459.701378 714.997344 459.701378 734.025723z"  p-id="5395"></path><path d="M946.428785 511.4863c0-241.053078-195.409528-436.46363-436.485119-436.46363C268.885472 75.000158 73.476967 270.406616 73.476967 511.4863c0 241.059218 195.410552 436.467723 436.485119 436.467723 98.950639 0 189.598172-33.67189 262.800381-89.152483 3.01159-3.402493 4.989641-7.768941 4.989641-12.666484 0-10.688433-8.66945-19.35072-19.351744-19.35072-5.564739 0-10.508331 2.204202-14.000875 5.931083l-0.273223 0c-65.50797 48.216141-146.156778 77.086679-233.725182 77.086679-218.279399 0-395.254066-177.00025-395.254066-395.280672 0-218.301911 176.974667-395.253042 395.254066-395.253042 218.302935 0 395.254066 176.951131 395.254066 395.253042 0 66.680678-15.626909 129.421628-44.794206 184.559413l0 0.324388c-0.525979 1.833765-1.12666 3.629667-1.12666 5.607718 0 10.688433 8.66638 19.352767 19.354813 19.352767 8.292873 0 15.260565-5.335519 17.992793-12.71151l0 0.1361C928.110581 651.735531 946.428785 583.771627 946.428785 511.4863z"  p-id="5396"></path></svg>
-      <svg @click="translate" t="1700014496111" class="icon" viewBox="0 0 1024 1024" version="1.1"
+      <div class="nav-tools">
+        <ColorSetter />
+        <svg @click="translate" t="1700014496111" class="icon" viewBox="0 0 1024 1024" version="1.1"
         xmlns="http://www.w3.org/2000/svg" p-id="4957" width="200" height="200">
         <path
           d="M360.228571 505.234286c-8.594286 0-12.8-4.388571-12.8-13.165715v-74.24h-76.068571c-5.12 0-9.325714-1.645714-12.617143-4.937142s-4.754286-7.68-4.754286-12.982858v-81.005714c0-5.302857 1.645714-9.691429 4.754286-12.982857s7.497143-4.937143 12.617143-4.937143H347.428571v-34.742857c0-8.777143 4.205714-13.165714 12.8-13.165714s12.8 4.388571 12.8 13.165714v34.742857h77.165715c5.12 0 9.325714 1.645714 12.617143 4.937143s4.754286 7.68 4.754285 12.982857v81.005714c0 5.302857-1.645714 9.691429-4.754285 12.982858s-7.497143 4.937143-12.617143 4.937142H373.028571v74.24c0 8.777143-4.205714 13.165714-12.8 13.165715z m-75.337142-112.64H347.428571v-66.56h-62.537142c-4.205714 0-6.4 2.194286-6.4 6.582857v53.394286c0 4.388571 2.194286 6.582857 6.4 6.582857z m88.137142 0h62.537143c4.205714 0 6.4-2.194286 6.4-6.582857v-53.394286c0-4.388571-2.194286-6.582857-6.4-6.582857H373.028571v66.56zM704.548571 694.674286h-78.445714l-15.908571 50.285714c-2.011429 0.914286-4.022857 1.645714-6.217143 2.011429-2.194286 0.548571-4.754286 0.731429-7.68 0.731428-5.302857 0-9.691429-1.28-13.165714-3.657143-3.474286-2.377143-5.12-6.034286-5.12-10.971428 0-2.377143 0.365714-4.754286 0.914285-6.948572 0.548571-2.377143 1.462857-4.937143 2.56-7.862857 2.925714-9.142857 6.765714-21.028571 11.702857-35.84s10.422857-30.171429 16.091429-46.445714c5.668571-16.274286 11.52-32.182857 17.371429-48.091429s10.788571-29.257143 15.177142-40.411428c2.194286-1.28 5.485714-2.56 9.874286-3.84s8.96-2.011429 13.714286-2.011429c6.217143 0 11.885714 0.914286 16.822857 2.742857 4.937143 1.828571 8.228571 4.937143 10.057143 9.325715 4.571429 12.434286 9.874286 26.697143 15.36 42.605714 5.668571 15.908571 11.154286 32.365714 16.822857 49.371428 5.485714 17.005714 10.971429 33.645714 16.091429 49.737143 5.12 16.274286 9.874286 30.902857 13.897142 44.251429-2.011429 2.194286-4.571429 4.022857-7.68 5.485714-3.108571 1.462857-6.765714 2.194286-11.154285 2.194286-5.668571 0-9.874286-1.097143-12.434286-3.474286s-4.754286-6.217143-6.582857-11.702857l-12.068572-37.485714z m-39.497142-121.965715c-2.194286 5.851429-4.571429 12.617143-7.131429 20.114286-2.56 7.497143-5.302857 15.36-8.045714 23.588572-2.742857 8.228571-5.485714 16.64-8.228572 25.051428-2.742857 8.411429-5.485714 16.64-7.862857 24.685714h63.268572c-2.925714-8.777143-5.668571-17.737143-8.594286-26.697142-2.925714-8.96-5.668571-17.554286-8.228572-25.6s-5.12-15.725714-7.497142-22.857143c-2.377143-7.131429-4.205714-13.348571-5.851429-18.468572h-1.828571z"
@@ -34,14 +47,15 @@
         <path
           d="M834.56 886.491429H503.04a65.097143 65.097143 0 0 1-65.097143-64.914286V587.885714c0-10.057143 8.228571-18.285714 18.285714-18.285714h64.914286c15.725714 0 28.342857-12.8 28.342857-28.342857v-105.142857c0-10.057143 8.228571-18.285714 18.285715-18.285715h266.788571c35.84 0 64.914286 29.257143 64.914286 65.097143v338.651429a64.914286 64.914286 0 0 1-64.914286 64.914286zM474.514286 606.171429v215.405714c0 15.725714 12.8 28.342857 28.525714 28.342857h331.52c15.725714 0 28.342857-12.8 28.342857-28.342857V482.925714c0-15.725714-12.8-28.525714-28.342857-28.525714H586.057143v86.857143a64.914286 64.914286 0 0 1-64.914286 64.914286h-46.628571z"
           p-id="4960"></path>
-      </svg>
+        </svg>
+      </div>
       <template v-if="!isLoggedIn">
-        <button class="basic-btn" @click="loginModalShouldShow = true">{{ $t('login_text') }}</button>
-        <button class="basic-btn-outline" @click="registerModalShouldShow = true">{{ $t('register_text') }}</button>
+        <button class="basic-btn" @click="jumpToAuth('login')">{{ $t('login_text') }}</button>
+        <button class="basic-btn-outline" @click="jumpToAuth('register')">{{ $t('register_text') }}</button>
         <div class="dropdown-icon">
           <ul class="dropdown-list">
-            <li @click="loginModalShouldShow = true">{{ $t('login_text') }}</li>
-            <li @click="registerModalShouldShow = true">{{ $t('register_text') }}</li>
+            <li @click="jumpToAuth('login')">{{ $t('login_text') }}</li>
+            <li @click="jumpToAuth('register')">{{ $t('register_text') }}</li>
           </ul>
         </div>
       </template>
@@ -66,17 +80,7 @@
       </template>
     </section>
   </header>
-  <LoginModal :show="loginModalShouldShow" @close="loginModalShouldShow = false"
-    @jumpToRigister="registerModalShouldShow = true" @jumpToRetrievePassword="retrievePasswordModalShouldShow = true" />
-
-  <RegisterModal :show="registerModalShouldShow" @close="registerModalShouldShow = false"
-    @jumpToLogin="loginModalShouldShow = true" />
-
-  <RetrievePasswordModal :show="retrievePasswordModalShouldShow" @close="retrievePasswordModalShouldShow = false" />
-
   <ChangePasswordModal :show="changePasswordModalShow" @close="changePasswordModalShow = false" />
-
-  <tutorial-view v-if="tShouldShow" :display="tShouldShow" @hide="tShouldShow = false"/>
 
 </template>
 
@@ -85,39 +89,30 @@ import { mapState, mapMutations } from 'vuex'
 
 
 
-import LoginModal from '../modals/LoginModal.vue'
-import RegisterModal from '../modals/RegisterModal.vue'
-import RetrievePasswordModal from '../modals/RetrievePasswordModal.vue'
 import MailIcon from '../svg/MailIcon.vue'
 import UnreadMailIcon from '../svg/UnreadMailIcon.vue'
 import ChangePasswordModal from '../modals/ChangePasswordModal.vue'
+import ColorSetter from '../color/ColorSetter.vue'
 
 import { Account } from '../../api/accounts.js'
 import { User } from '../../api/users.js'
 
 import i18n from '../../language'
-import TutorialView from '../../views/tutorialView/TutorialView.vue'
 export default {
   name: 'NavBar',
   components: {
-    LoginModal,
-    RegisterModal,
-    RetrievePasswordModal,
     ChangePasswordModal,
+    ColorSetter,
     i18n,
     MailIcon,
-    UnreadMailIcon,
-    TutorialView
+    UnreadMailIcon
   },
   data() {
     return {
-      tShouldShow: false,
       hasUnreadMessage: false,
-      loginModalShouldShow: false,
-      registerModalShouldShow: false,
-      retrievePasswordModalShouldShow: false,
       changePasswordModalShow: false,
-      currentUsername: ''
+      currentUsername: '',
+      navSearchKeyword: ''
     }
   },
   computed: {
@@ -182,6 +177,25 @@ export default {
     jumpToPersonalHomepage() {
       this.$router.push('/personal_homepage')
     },
+    jumpToAuth(mode) {
+      this.$router.push({ path: '/auth', query: { mode } })
+    },
+    searchFromNav() {
+      const keyword = this.navSearchKeyword.trim()
+      if (!keyword) return
+      this.$router.push({
+        path: '/search_result',
+        query: {
+          filter: '',
+          search: keyword,
+          sort: '',
+          per_page: '10',
+          page: '1',
+          cursor: '',
+          search_type: 1,
+        },
+      })
+    },
     handleLogout() {
       Account.logout().then(
         (response) => {
@@ -208,12 +222,19 @@ export default {
 
 <style scoped>
 svg.logo-svg {
-  width: 200px;
-  height: 140px;
+  display: none;
+}
+
+.brand-name {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  color: var(--theme-mode-very-high-contrast);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0;
   cursor: pointer;
-  translate: 0 -40px;
-  fill: var(--theme-color) !important;
-  /* margin-right: 500px; */
 }
 
 .click-svg {
@@ -230,19 +251,70 @@ svg.logo-svg {
 header {
   position: sticky;
   top: 0;
-  width: 98.5%;
-  height: 60px;
-  background: var(--theme-mode);
+  width: 100%;
+  height: 56px;
+  background: var(--theme-mode-translucent);
+  backdrop-filter: blur(18px);
+  border-bottom: var(--border-soft);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 20px;
   z-index: 999;
+  box-sizing: border-box;
+  box-shadow: none;
 }
 
 header>section {
   display: flex;
   align-items: center;
+  flex: none;
+}
+
+.nav-search {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 12px 0 24px;
+  box-sizing: border-box;
+  position: relative;
+  max-width: 360px;
+  margin-left: auto;
+}
+
+.nav-search-input {
+  width: 260px;
+  height: 36px;
+  font-size: 14px;
+  padding-right: 44px;
+}
+
+.nav-search-btn {
+  position: absolute;
+  right: 18px;
+  width: 28px;
+  height: 28px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: #111;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-search-btn:hover {
+  background: #2a2a2a;
+}
+
+.nav-search-btn svg {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  fill: #fff;
 }
 
 header h1,
@@ -265,7 +337,28 @@ header h1 {
 }
 
 header button {
-  margin: 0 10px;
+  margin: 0 6px;
+  height: 36px;
+}
+
+header .basic-btn,
+header .basic-btn-outline {
+  width: auto;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+header .brand-name {
+  margin: 0;
+  height: auto;
+}
+
+.nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
 }
 
 .dropdown-icon {
@@ -283,22 +376,24 @@ header button {
   position: absolute;
   top: calc(100%);
   right: -10px;
-  padding: 10px;
+  padding: 8px;
   background: var(--theme-mode-like);
-  border-radius: 5px;
+  border: var(--border-soft);
+  border-radius: 6px;
   display: none;
+  box-shadow: none;
 }
 
 .dropdown-list li {
-  width: 100px;
+  width: 132px;
   display: flex;
   justify-content: center;
-  background: var(--theme-mode-contrast);
-  color: var(--theme-mode-high-contrast);
-  font-size: 16px;
-  font-weight: bold;
-  padding: 5px;
-  border-radius: 5px;
+  background: transparent;
+  color: var(--theme-mode-very-high-contrast);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 8px;
+  border-radius: 4px;
   transition: .3s cubic-bezier(0.075, 0.82, 0.165, 1);
   text-align: center;
 }
@@ -308,26 +403,30 @@ header button {
 }
 
 .dropdown-list li:hover {
-  scale: 1.05;
+  background: var(--theme-mode-slight-contrast);
+  color: var(--theme-mode-very-high-contrast);
 }
 
 .icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-size: cover;
   cursor: pointer;
-  transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
-  fill: #666;
+  transition: .25s ease;
+  fill: var(--theme-mode-high-contrast);
   vertical-align: middle;
+  padding: 8px;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .icon:hover {
-  scale: 1.2;
-  fill: var(--theme-color);
+  background: var(--theme-mode-slight-contrast);
+  fill: var(--theme-mode-very-high-contrast);
 }
 
 header svg {
-  margin: 0 10px;
+  margin: 0 6px;
 }
 
 .homepage-link {
@@ -336,11 +435,15 @@ header svg {
 }
 
 .homepage-link div {
-  font-size: 18px;
-  color: var(--theme-color);
+  font-size: 15px;
+  color: var(--theme-mode-very-high-contrast);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
+  padding: 9px 10px;
+  border-radius: 6px;
+  background: transparent;
 }
 
 .homepage-link:hover .dropdown-list {
@@ -357,12 +460,24 @@ header svg {
 
 @media screen and (max-width: 850px) {
   .icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 }
 
 @media screen and (max-width: 768px) {
+  header {
+    padding: 0 16px;
+  }
+
+  .nav-search {
+    display: none;
+  }
+
+  svg.logo-svg {
+    display: none;
+  }
+
   .dropdown-icon {
     display: block;
   }

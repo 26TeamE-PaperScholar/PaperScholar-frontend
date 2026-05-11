@@ -12,10 +12,7 @@
                 <option :value="2">{{ $t('not_access') }}</option>
                 <option :value="3">{{ $t('not_confirmed') }}</option>
             </select>
-        </div>
-        <new-loading-bar :display="displayLoading" :progress="progress" @stop-display="displayLoading = false"
-            :accelerate="accelerate" :isReal="isReal"></new-loading-bar>
-        <div class="audit-list">
+        </div>        <div class="audit-list">
 
             <ul>
                 <li v-if="auditDatas.length === 0" class="no-result-tip">{{ $t('no_audit_results') }}</li>
@@ -36,7 +33,6 @@ import { Application } from '../../api/applications';
 import Pagination from '../../components/pagination/Pagination.vue';
 import AuditDetailView from './AuditDetailView.vue';
 import TutorialView from '../tutorialView/TutorialView.vue';
-import NewLoadingBar from '../../components/loading-bar/NewLoadingBar.vue';
 export default {
     name: 'AdminView',
     components: {
@@ -44,7 +40,6 @@ export default {
         AuditDetailView,
         i18n,
         TutorialView,
-        NewLoadingBar
     },
     data() {
         return {

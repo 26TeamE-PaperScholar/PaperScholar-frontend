@@ -118,8 +118,20 @@ export default {
 .out-border {
   /* border: 1px solid red; */
   width: 100%;
-  min-height: 80px;
+  min-height: 112px;
   position: relative;
+  padding: 22px 0;
+  margin-bottom: 0;
+  border-bottom: var(--border-soft);
+  background: transparent;
+  box-shadow: none;
+  transition: .2s ease;
+  text-align: left;
+}
+
+.out-border:hover {
+  border-color: #c9c9c9;
+  transform: none;
 }
 
 .out-border-full {
@@ -130,7 +142,8 @@ export default {
 
 .title {
   font-size: 20px;
-  font-weight: bold;
+  line-height: 1.35;
+  font-weight: 650;
   color: var(--theme-mode-very-high-contrast);
   /* display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -142,7 +155,8 @@ export default {
 }
 
 .title:hover {
-  text-decoration: underline;
+  color: var(--theme-mode-very-high-contrast);
+  text-decoration: none;
 
 }
 
@@ -157,14 +171,22 @@ export default {
 }
 
 .author span {
-  font-size: 16px;
-  color: var(--theme-color);
-  margin-right: 10px;
+  font-size: 14px;
+  color: var(--theme-mode-high-contrast);
+  margin-right: 12px;
+  font-weight: 600;
+  line-height: 1.65;
+  cursor: pointer;
 }
 
 .excerpt {
   font-size: 14px;
   color: var(--theme-mode-high-contrast);
+  line-height: 1.7;
+  margin-top: 8px;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: 760px;
   /* display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -181,8 +203,12 @@ export default {
 
 .info {
   display: flex;
-  margin-bottom: 20px;
-  color: blue;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 0;
+  color: var(--theme-color);
 }
 
 .download {
@@ -192,9 +218,26 @@ export default {
 }
 
 .collect {
-  margin-right: 10px;
+  margin-right: 0;
   font-size: 15px;
-  cursor: pointer;
+  cursor: default;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: transparent;
+  border: var(--border-soft);
+  transition: .2s ease;
+}
+
+.collect:hover {
+  background: var(--theme-mode-slight-contrast);
+}
+
+.collect:hover svg.icon {
+  fill: var(--theme-mode-very-high-contrast) !important;
 }
 
 svg.icon {
@@ -202,9 +245,13 @@ svg.icon {
 }
 
 .time-cited {
-  margin-right: 10px;
-  color: var(--article-list-item-icon-color);
-  font-size: 15px;
+  margin-right: 0;
+  color: var(--theme-mode-high-contrast);
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 
 /* .related {
@@ -224,8 +271,8 @@ svg.icon {
 
 .icon {
   /* border: 2px red solid; */
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   /* cursor: pointer; */
 }
 
@@ -263,7 +310,7 @@ svg.icon {
 
 @media screen and (max-width: 1000px) {
   .out-border {
-    width: 90%;
+    width: 100%;
   }
 
   .more {

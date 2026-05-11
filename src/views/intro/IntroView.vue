@@ -1,5 +1,4 @@
 <template>
-  <!-- <LoadingBar style="position: fixed;width: 1000px;z-index: -1;" :progress="progress"></LoadingBar> -->
   <main>
     <div>
       <h2>{{ $t("frontpage_intro") }}</h2>
@@ -39,14 +38,12 @@
 </template>
 
 <script>
-import LoadingBar from "../../components/loading-bar/LoadingBar.vue";
 import i18n from "../../language";
 import { AutoComplete } from '../../api/autocomplete.js';
 
 export default {
   name: "IntroView",
   components: {
-    LoadingBar,
     i18n,
   },
   data() {
@@ -167,47 +164,61 @@ export default {
 <style scoped>
 main {
   height: calc(100vh - 80px);
-  min-height: 400px;
+  min-height: 520px;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 32px 20px 72px;
+  box-sizing: border-box;
 }
 
 main > div {
   display: flex;
-  max-width: 900px;
-  flex-wrap: wrap;
+  max-width: 980px;
+  width: 100%;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+main > div::before {
+  content: none;
 }
 
 main h2 {
-  font-size: 80px;
-  color: var(--theme-color);
-  font-weight: bold;
-  padding-bottom: 50px;
-
+  font-size: 58px;
+  color: var(--theme-mode-very-high-contrast);
+  font-weight: 650;
+  padding-bottom: 30px;
+  line-height: 1.1;
+  text-align: center;
   transition-property: font-size;
   transition: 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .icon {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   background-size: cover;
   cursor: pointer;
-  transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
-  fill: #666;
+  transition: .2s ease;
+  fill: var(--theme-mode-very-high-contrast);
+  padding: 10px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: transparent;
 }
 
 .icon:hover {
-  scale: 1.2;
-  fill: var(--theme-color);
+  background: var(--theme-mode-slight-contrast);
+  fill: var(--theme-mode-very-high-contrast);
 }
 
 .search-icon {
   position: absolute;
   right: 15px;
-  z-index: 10;
+  z-index: 2;
 }
 
 @media screen and (max-width: 850px) {
@@ -216,19 +227,19 @@ main h2 {
     height: 40px;
   }
   main h2 {
-    font-size: 50px;
+    font-size: 48px;
   }
 }
 
 @media screen and (max-width: 600px) {
   main h2 {
-    font-size: 40px;
+    font-size: 38px;
   }
 }
 
 @media screen and (max-width: 450px) {
   main h2 {
-    font-size: 35px;
+    font-size: 32px;
   }
 }
 

@@ -7,10 +7,7 @@
       {{ tagNameZh }}
     </div>
     <div class="main-area">
-      <div class="left-row">
-        <new-loading-bar :isReal="infoReal" :display="displayInfoLoading" :accelerate="infoAccelerate"
-          :progress="infoProgress" @stop-display="displayInfoLoading = false"></new-loading-bar>
-        <div>
+      <div class="left-row">        <div>
           <p class="tags">
             {{ $t('tag_detail_wiki') }}
           </p>
@@ -71,10 +68,7 @@
         <TagDetailGraphScholarVue :authorList="authors"></TagDetailGraphScholarVue>
       </div>
 
-      <div class="right-row">
-        <new-loading-bar :isReal="pageReal" :display="displayPageLoading" :accelerate="pageAccelerate"
-          :progress="pageProgress" @stop-display="displayPageLoading = false"></new-loading-bar>
-        <div>
+      <div class="right-row">        <div>
           <p class="tags-right">
             {{ $t('tag_detail_paper') }}
           </p>
@@ -97,7 +91,6 @@ import SearchResultListItem from '../../components/search-result-list/SearchResu
 import i18n from '../../language'
 import Pagination from "../../components/pagination/Pagination.vue"
 import TagDetailGraphScholarVue from '../../components/graphs/TagDetailGraphScholar.vue'
-import NewLoadingBar from '../../components/loading-bar/NewLoadingBar.vue'
 
 export default {
   components: {
@@ -105,7 +98,6 @@ export default {
     i18n,
     Pagination,
     TagDetailGraphScholarVue,
-    NewLoadingBar
   },
   watch: {
     '$route.params.id': {

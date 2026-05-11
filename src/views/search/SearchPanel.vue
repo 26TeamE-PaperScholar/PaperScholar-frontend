@@ -21,20 +21,17 @@
         </svg>
       </button>
     </div>
-    <AsideBar style="z-index: 9999;" @setSearchType="setSearchType" @advsearch="advsearch"></AsideBar>
   </div>
 </template>
 
 <script>
 import { AutoComplete } from "../../api/autocomplete.js";
-import AsideBar from "../../components/search-property/AsideBar.vue";
 import i18n from "../../language";
 export default {
   emits: ["senddata", "setSearchTypeChild"],
   props: ["searchContent"],
   components: {
     i18n,
-    AsideBar,
     AutoComplete,
   },
 
@@ -329,6 +326,7 @@ export default {
   top: 0;
   z-index: 99;
   margin: 0 auto;
+  align-items: center;
 }
 
 .search-area div {
@@ -338,15 +336,20 @@ export default {
 
 .search-input {
   width: 100%;
-  border-color: var(--theme-mode-contrast);
-  border-width: 2px;
+  height: 48px;
+  border-color: #d9d9d9;
+  background: var(--theme-mode-like);
+  box-shadow: none;
+  font-size: 16px;
 }
 
 .search-btn {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   margin: 0;
-  margin-left: 10px;
+  margin-left: 12px;
+  border-radius: 999px;
+  flex: none;
 }
 
 .search-btn svg {
@@ -359,13 +362,15 @@ export default {
   position: absolute;
   left: 0;
   right: 0;
-  top: 60px;
+  top: 56px;
   /* max-width: 640px; */
   width: 100%;
   background: var(--theme-mode-like);
+  border: var(--border-soft);
   box-sizing: border-box;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: none;
 }
 
 .search-area ul li {
@@ -374,18 +379,29 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   box-sizing: border-box;
-  padding: 2px 5px;
-  border-radius: 5px;
+  padding: 9px 10px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
 .search-area ul li:not(:last-of-type) {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .suggestion-active {
-  background: var(--theme-mode-contrast);
-  font-weight: bold;
+  background: var(--theme-mode-slight-contrast);
+  color: var(--theme-mode-very-high-contrast);
+  font-weight: 700;
+}
+
+@media screen and (max-width: 600px) {
+  .search-area div {
+    width: 100%;
+  }
+
+  .search-btn {
+    width: 50px;
+  }
 }
 
 @media screen and (max-width: 450px) {

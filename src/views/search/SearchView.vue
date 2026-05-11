@@ -67,17 +67,18 @@ export default {
   /* overflow: hidden; */
 }
 .container {
-  width: 80%;
+  width: min(1180px, calc(100% - 48px));
   /* height: calc(100vh - 80px); */
-  margin: 0 auto;
+  margin: 0 auto 72px;
 }
 
 .search-panel h2 {
-  color: var(--theme-color);
+  color: var(--theme-mode-very-high-contrast);
   text-align: center;
-  padding: 50px 0;
-  font-size: 50px;
-  font-weight: bold;
+  padding: 54px 0 34px;
+  font-size: 48px;
+  font-weight: 650;
+  line-height: 1.15;
   position: relative;
   z-index: 10;
 }
@@ -88,18 +89,23 @@ export default {
 }
 
 .recommendation {
-  width: 95%;
+  width: 100%;
   margin: 0 auto;
 }
 
 .recommendation h3 {
-  color: var(--theme-color);
-  font-size: 30px;
-  font-weight: bold;
+  color: var(--theme-mode-very-high-contrast);
+  font-size: 26px;
+  font-weight: 650;
+  line-height: 1.2;
+  padding-left: 0;
+  border-left: 0;
+  padding-bottom: 12px;
+  border-bottom: var(--border-soft);
 }
 
 .recommendation div:nth-of-type(2) {
-  margin-top: 20px;
+  margin-top: 34px;
 }
 
 .recommendation div {
@@ -107,21 +113,31 @@ export default {
 }
 
 .recommendation svg {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   position: absolute;
   right: 0;
   top: 0;
   /* margin-right: 15%; */
-  margin-top: 10px;
-  fill: var(--theme-color);
+  margin-top: 2px;
+  fill: var(--theme-mode-very-high-contrast);
   cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  background: transparent;
+  box-sizing: border-box;
+  transition: .2s ease;
+}
+
+.recommendation svg:hover {
+  background: var(--theme-mode-slight-contrast);
+  fill: var(--theme-mode-very-high-contrast);
 }
 
 .search-container {
-  width: 60%;
+  width: min(760px, 100%);
   margin: 0 auto;
-  margin-bottom: 50px;
+  margin-bottom: 58px;
   /* display: flex;
   justify-content: center; */
 }
@@ -134,11 +150,15 @@ export default {
 
 @media screen and (max-width: 450px) {
   .search-panel h2 {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .recommendation {
     width: 100%;
+  }
+
+  .container {
+    width: min(100% - 28px, 1180px);
   }
 }
 

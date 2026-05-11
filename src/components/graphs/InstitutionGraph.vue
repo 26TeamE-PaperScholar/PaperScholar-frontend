@@ -1,13 +1,5 @@
 <template>
-  <div>
-    <new-loading-bar
-      :isReal="isReal"
-      :display="displayLoading"
-      :accelerate="accelerateLoading"
-      :progress="progress"
-      @stop-display="displayLoading = false"
-    ></new-loading-bar>
-    <div id="graph-count" style="width: 100%; height: 400px"></div>
+  <div>    <div id="graph-count" style="width: 100%; height: 400px"></div>
   </div>
 </template>
   
@@ -16,11 +8,9 @@ import * as echarts from "echarts/core";
 import { TooltipComponent, GridComponent } from "echarts/components";
 import { BarChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
-import NewLoadingBar from "../loading-bar/NewLoadingBar.vue";
 export default {
   props: ["info"],
   components: {
-    NewLoadingBar,
   },
   mounted() {
     this.progress = 0;

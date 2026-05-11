@@ -43,23 +43,32 @@ export default {
 
 <style scoped>
 ul {
-  width: 80%;
+  width: min(920px, 100%);
 }
 
 li {
-  padding: 20px 0;
+  padding: 22px 0;
   box-sizing: border-box;
-  border-bottom: 1px solid var(--theme-mode-contrast);
+  border-bottom: var(--border-soft);
+  background: transparent;
+  box-shadow: none;
+  transition: .2s ease;
 }
 
-li:last-of-type {
-  border-bottom: 0;
+li:not(:last-of-type) {
+  margin-bottom: 0;
+}
+
+li:hover {
+  border-color: #c9c9c9;
+  transform: none;
 }
 
 li h3 {
-  color: var(--defaut-text-color);
-  font-size: 22px;
-  font-weight: bold;
+  color: var(--theme-mode-very-high-contrast);
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -68,15 +77,18 @@ li:hover h3 {
 }
 
 .abstract {
-  color: var(--theme-mode-very-high-contrast);
+  color: var(--theme-mode-high-contrast);
   font-size: 14px;
+  line-height: 1.65;
+  margin: 8px 0;
 }
 
 .author,
 .journal {
   font-size: 14px;
-  font-weight: bold;
-  color: var(--defaut-text-color);
+  font-weight: 600;
+  color: var(--theme-mode-high-contrast);
+  margin-right: 12px;
 }
 
 @media screen and (max-width: 960px) {
