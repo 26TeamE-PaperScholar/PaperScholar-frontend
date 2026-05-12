@@ -1,393 +1,443 @@
 <template>
-  <div class="container">
-    <div v-if="this.$i18n.locale == 'en'" class="title">
-      {{ tagName }}
-    </div>
-    <div v-else class="title">
-      {{ tagNameZh }}
-    </div>
-    <div class="main-area">
-      <div class="left-row">        <div>
-          <p class="tags">
-            {{ $t('tag_detail_wiki') }}
-          </p>
+  <div class="ps-tag">
+    <AppGradientHero variant="dark" class="ps-tag__hero">
+      <AppBreadcrumb :items="breadcrumbs" class="ps-tag__crumbs" />
+      <div class="ps-tag__hero-grid">
+        <div class="ps-tag__hero-main">
+          <p class="ps-tag__eyebrow">学科主题 · CONCEPT</p>
+          <h1 class="ps-tag__name">
+            {{ tag.name_zh || tag.name }}
+          </h1>
+          <p v-if="tag.name && tag.name_zh" class="ps-tag__alt">{{ tag.name }}</p>
+          <p class="ps-tag__desc">{{ tag.description || '在 PaperScholar 上探索该主题的核心论文与代表学者。' }}</p>
 
-          <a :href="this.wikiURL">{{ this.wikiURL }}</a>
-        </div>
-
-        <div v-if="institutions != ''">
-          <p class="tags">
-            {{ $t('tag_detail_institution') }}
-          </p>
-          <div class="relevant-institution-list">
-            <div v-for="(institution, idx) in institutions" :key="idx" class="relevant-institution"
-              @click="gotoRelevantInstitution(institution)">
-              <p v-if="this.$i18n.locale == 'en'">
-                {{ institution.display_name }}
-              </p>
-              <p v-else>
-                {{ institution.display_name_zh }}
-              </p>
-            </div>
+          <div class="ps-tag__hero-actions">
+            <button class="ps-tag__follow-btn" @click="toggleSubscribe">
+              <AppIcon :name="subscribed ? 'Bookmark' : 'Add'" :size="14" />
+              {{ subscribed ? '已订阅' : '订阅主题' }}
+            </button>
+            <button class="ps-tag__action-secondary" @click="goSearch">
+              <AppIcon name="Search" :size="14" />
+              检索该主题
+            </button>
           </div>
         </div>
 
-        <div>
-          <p class="tags">
-            {{ $t('tag_detail_tags') }}
-          </p>
-          <div class="relevant-institution-list">
-            <div v-for="(tag, idx) in relatedTags" :key="idx" class="relevant-institution" @click="gotoTag(tag)">
-              <p v-if="this.$i18n.locale == 'en'">
-                {{ tag.display_name }}
-              </p>
-              <p v-else>
-                {{ tag.display_name_zh }}
-              </p>
-            </div>
+        <aside class="ps-tag__hero-stats">
+          <div class="ps-tag__stat">
+            <span class="ps-tag__stat-num">{{ formatNumber(tag.works_count) }}</span>
+            <span class="ps-tag__stat-label">收录论文</span>
           </div>
-        </div>
-
-        <div>
-          <p class="tags">
-            {{ $t('tag_detail_author') }}
-          </p>
-          <div class="author-list">
-            <div v-for="(author, idx) in authors" :key="idx" @click="gotoAuthor(author)" class="author-name">
-              {{ author.display_name }}
-              &ensp;&ensp;
-              {{ $t('institution_author_achievement') }}
-              {{ author.works_count }}
-              <!-- <span v-for="(tag, idx) in author.x_concepts" :key="idx" class="author-tag-item" @click="gotoTag(tag)">
-              {{ tag.display_name }}
-            </span> -->
-            </div>
+          <div class="ps-tag__stat">
+            <span class="ps-tag__stat-num">{{ topAuthors.length }}</span>
+            <span class="ps-tag__stat-label">活跃学者</span>
           </div>
-        </div>
-
-        <TagDetailGraphScholarVue :authorList="authors"></TagDetailGraphScholarVue>
+          <div class="ps-tag__stat">
+            <span class="ps-tag__stat-num">L{{ tag.level !== undefined ? tag.level : '—' }}</span>
+            <span class="ps-tag__stat-label">学科层级</span>
+          </div>
+        </aside>
       </div>
+    </AppGradientHero>
 
-      <div class="right-row">        <div>
-          <p class="tags-right">
-            {{ $t('tag_detail_paper') }}
-          </p>
-          <Pagination :itemsPerPage="this.paginationInfo.itemsPerPage" :currentPage="this.paginationInfo.currentPage"
-            :totalPages="this.paginationInfo.totalPages" @change-page="handleChangePage"
-            @change-item-per-page="handleChangePerPage">
-            <SearchResultListItem v-for="(info, index) in infoItems" :key="index" :infoItem="info"></SearchResultListItem>
-          </Pagination>
-
+    <section class="ps-tag__section ps-tag__charts">
+      <AppCard>
+        <AppSectionHeader title="主题热度趋势" subtitle="近 6 年关注度分布" tag="h2" />
+        <div class="ps-tag__trend">
+          <div
+            v-for="(t, idx) in tag.trend || []"
+            :key="idx"
+            class="ps-tag__trend-bar"
+            :style="{ height: barHeight(t.score) + 'px' }"
+            :title="t.year + '：' + t.score + ' / 100'"
+          >
+            <span class="ps-tag__trend-label">{{ t.year }}</span>
+          </div>
         </div>
-      </div>
-    </div>
+      </AppCard>
+      <AppCard>
+        <AppSectionHeader title="活跃学者 Top 5" subtitle="按该方向发表数加权" tag="h2" />
+        <!-- 恢复原 ECharts 饼图 -->
+        <TagDetailGraphScholar :authorList="topAuthors" class="ps-tag__pie" />
+        <AppEmptyState v-if="!topAuthors.length" title="暂无学者数据" />
+      </AppCard>
+    </section>
 
+    <div class="ps-tag__grid">
+      <section>
+        <AppSectionHeader title="代表论文" subtitle="按引用与热度精选" tag="h2" />
+        <SearchResultListItem
+          v-for="(info, idx) in infoItems"
+          :key="info.id || idx"
+          :infoItem="info"
+          :index="idx"
+        />
+        <AppEmptyState v-if="!infoItems.length" title="暂无代表论文" />
+      </section>
+
+      <aside class="ps-tag__sidebar">
+        <AppCard accent="gold">
+          <AppSectionHeader title="活跃学者" tag="h3" />
+          <ul class="ps-tag__author-list">
+            <li
+              v-for="a in topAuthors"
+              :key="a.id"
+              @click="gotoAuthor(a)"
+            >
+              <AppAvatar :id="a.id" :name="a.display_name" size="sm" />
+              <div>
+                <h4>{{ a.display_name }}</h4>
+                <p>{{ a.last_known_institution && a.last_known_institution.display_name }}</p>
+              </div>
+              <AppMetricBadge :value="a.h_index" label="h" tone="gold" />
+            </li>
+          </ul>
+        </AppCard>
+
+        <AppCard>
+          <AppSectionHeader title="相关主题" tag="h3" />
+          <div class="ps-tag__related">
+            <AppTagChip
+              v-for="t in relatedTags"
+              :key="t.id"
+              clickable
+              variant="subtle"
+              size="md"
+              @click="gotoTag(t)"
+            >{{ t.name_zh || t.name }}</AppTagChip>
+          </div>
+        </AppCard>
+      </aside>
+    </div>
   </div>
 </template>
 
 <script>
-import { Search } from '../../api/search'
 import SearchResultListItem from '../../components/search-result-list/SearchResultListItem.vue'
-import i18n from '../../language'
-import Pagination from "../../components/pagination/Pagination.vue"
-import TagDetailGraphScholarVue from '../../components/graphs/TagDetailGraphScholar.vue'
+import TagDetailGraphScholar from '../../components/graphs/TagDetailGraphScholar.vue'
+import { Search } from '../../api/search.js'
+import { mockTags } from '../../mock/tags'
+import { mockAuthors } from '../../mock/authors'
+import { findPaper } from '../../mock/papers'
+import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppEmptyState, AppMetricBadge, AppAvatar, AppBreadcrumb } from '../../components/ui'
 
 export default {
+  name: 'TagDetailView',
   components: {
     SearchResultListItem,
-    i18n,
-    Pagination,
-    TagDetailGraphScholarVue,
+    TagDetailGraphScholar,
+    AppCard,
+    AppIcon,
+    AppTagChip,
+    AppSectionHeader,
+    AppGradientHero,
+    AppEmptyState,
+    AppMetricBadge,
+    AppAvatar,
+    AppBreadcrumb
+  },
+  data() {
+    return {
+      tag: { id: '', name: '', name_zh: '', level: 0, works_count: 0, description: '', trend: [], related_paper_ids: [], top_author_ids: [] },
+      infoItems: [],
+      subscribed: false
+    }
+  },
+  computed: {
+    breadcrumbs() {
+      return [
+        { label: '首页', to: '/' },
+        { label: '主题', to: '/search_result?search_type=1' },
+        { label: this.tag.name_zh || this.tag.name || '主题详情' }
+      ]
+    },
+    topAuthors() {
+      const ids = this.tag.top_author_ids || []
+      return mockAuthors.filter((a) => ids.includes(a.id))
+    },
+    relatedTags() {
+      return mockTags.filter((t) => t.id !== this.tag.id).slice(0, 5)
+    }
   },
   watch: {
     '$route.params.id': {
       immediate: true,
-      handler(newVal, oldVal) {
-        this.getTagDetail()
-      },
-    },
-  },
-  data() {
-    return {
-      infoReal: true,
-      displayInfoLoading: false,
-      infoProgress: 0,
-      infoSegment: 0,
-      infoAccelerate: false,
-
-      pageReal: false,
-      displayPageLoading: false,
-      pageProgress: 0,
-      pageAccelerate: false,
-
-      tagName: '',
-      tagNameZh: '',
-      wikiURL: '',
-      relatedTagsURL: '',
-      relatedTags: [],
-      institutionURL: '',
-      institutions: [],
-      authorsURL: '',
-      authors: [],
-      papersURL: '',
-      infoItems: [],
-      paginationInfo: {
-        itemsPerPage: 5,
-        currentPage: 1,
-        totalPages: 3,
-      },
+      handler() { this.load() }
     }
   },
-  created() {
-    this.getTagDetail()
-  },
   methods: {
-    getTagDetail() {
-      this.infoSegment = 0
-      this.displayInfoLoading = true
-      this.pageProgress = 0
-      this.displayPageLoading = true
-      let tagId = this.$route.params.id
-      if (tagId) {
-        Search.conceptRetrieve(tagId).then(
-          (response) => {
-            console.log(response.data)
-            this.tagName = response.data.display_name
-            this.tagNameZh = response.data.display_name_zh
-            this.wikiURL = response.data.wikidata
-            this.relatedTagsURL = response.data.related_concepts_api_url
-            this.getTags(this.relatedTagsURL)
-            this.institutionURL = response.data.institutions_api_url
-            this.getInstitutions(this.institutionURL)
-            this.authorsURL = response.data.authors_api_url
-            this.getAuthors(this.authorsURL)
-            this.papersURL = response.data.works_api_url
-
-            const param = {
-              per_page: this.paginationInfo.itemsPerPage,
-              page: this.paginationInfo.currentPage
-            }
-            this.getPapers(this.papersURL, param)
-          }
-        )
-      }
+    load() {
+      const id = this.$route.params.id
+      Search.conceptRetrieve(id).then((res) => {
+        this.tag = (res && res.data) || this.tag
+        const ids = this.tag.related_paper_ids || []
+        this.infoItems = ids.map((pid) => findPaper(pid)).filter(Boolean).map((p) => ({ ...p, keyword: '' }))
+      })
     },
-    getTags(url) {
-      Search.getEntities(url).then(
-        (response) => {
-          this.relatedTags = response.data.results
-          this.infoSegment++
-        }
-      )
+    barHeight(score) {
+      return Math.max(8, (Number(score) || 0) * 1.2)
     },
-    getInstitutions(url) {
-      Search.getEntities(url).then(
-        (response) => {
-          console.log("institutions" + response.data.results)
-          this.institutions = []
-          if (response.data.results.length >= 10) {
-            for (let i = 0; i < 10; i++) {
-              this.institutions.push(response.data.results[i])
-            }
-          }
-          else {
-            for (let i = 0; i < response.data.results.length; i++) {
-              this.institutions.push(response.data.results[i])
-            }
-          }
-          // this.institutions = response.data.results
-          // console.log(this.institutions)
-          this.infoSegment++
-        }
-      )
+    formatNumber(n) {
+      if (typeof n !== 'number') return n || 0
+      if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+      if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1) + 'K'
+      if (Math.abs(n) >= 1_000) return n.toLocaleString('en-US')
+      return n.toString()
     },
-    getAuthors(url) {
-      Search.getEntities(url).then(
-        (response) => {
-          // console.log( "author"+response.data.results )
-          this.authors = []
-          if (response.data.results.length >= 10) {
-            for (let i = 0; i < 10; i++) {
-              this.authors.push(response.data.results[i])
-            }
-          }
-          else {
-            for (let i = 0; i < response.data.results.length; i++) {
-              this.authors.push(response.data.results[i])
-            }
-          }
-          this.infoSegment++
-        }
-      )
+    toggleSubscribe() {
+      this.subscribed = !this.subscribed
+      this.$bus.emit('message', { title: this.subscribed ? '订阅成功' : '已取消订阅', content: this.tag.name_zh || this.tag.name, time: 1500 })
     },
-    getPapers(url, param) {
-      this.pageProgress = 0
-      this.displayPageLoading = true
-      console.log(this.papersURL)
-      // Search.getEntities(url).then(
-      Search.getPagnationEntities(this.papersURL, param).then(
-        (response) => {
-          // console.log(11224123123)
-          // console.log(this.paginationInfo)
-          // console.log(response)
-          this.infoItems = []
-          this.paginationInfo.totalPages = Math.ceil(response.data.meta.count / response.data.meta.per_page)
-          // console.log(this.paginationInfo.totalPages)
-          this.infoItems = response.data.results
-          // console.log(this.infoItems)
-          this.pageProgress = 100
-        }
-      )
+    goSearch() {
+      this.$router.push({
+        path: '/search_result',
+        query: { search: this.tag.name_zh || this.tag.name, search_type: 1, per_page: '10', page: '1' }
+      })
     },
-    gotoTag(tag) {
-      //路由跳转到领域详情页 
-      this.$router.push('/tag_detail/' + tag.id)
+    gotoAuthor(a) {
+      this.$router.push('/scholar_portal/' + a.id)
     },
-    gotoRelevantInstitution(institution) {
-      this.$router.push('/institution_detail/' + institution.id)
-      // location.reload()
-    },
-    gotoAuthor(author) {
-      this.$router.push('/scholar_portal/' + author.id)
-      //路由跳转到学者详情页
-    },
-    handleChangePage(page) {
-      this.pageAccelerate = true
-      this.paginationInfo.currentPage = page
-      const param = {
-        per_page: this.paginationInfo.itemsPerPage,
-        page: this.paginationInfo.currentPage
-      }
-      this.getPapers(this.paperURL, param)
-    },
-    handleChangePerPage(perPage) {
-      this.pageAccelerate = true
-      this.paginationInfo.itemsPerPage = perPage
-      const param = {
-        per_page: this.paginationInfo.itemsPerPage,
-        page: 1
-      }
-      this.getPapers(this.paperURL, param)
-    },
-  },
-  watch: {
-    infoSegment(value) {
-      this.infoProgress = value * 33 + 1
+    gotoTag(t) {
+      this.$router.push('/tag_detail/' + t.id)
     }
   }
 }
 </script>
+
 <style scoped>
-.container {
-  width: 80%;
+.ps-tag {
+  max-width: var(--ps-content-max);
   margin: 0 auto;
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
 }
 
-.title {
-  font-size: 35px;
-  font-weight: bold;
-  margin: 0 auto;
-  text-align: center;
-  /* border: 2px red solid; */
-  width: 80%;
-  margin-bottom: 20px;
+.ps-tag__hero { margin-bottom: var(--ps-space-7); }
+.ps-tag__crumbs { margin-bottom: var(--ps-space-5); }
+.ps-tag__crumbs :deep(.ps-breadcrumb a),
+.ps-tag__crumbs :deep(.ps-breadcrumb__current),
+.ps-tag__crumbs :deep(.ps-breadcrumb__sep) { color: rgba(255, 255, 255, 0.7); }
+.ps-tag__crumbs :deep(.ps-breadcrumb__current) { color: var(--ps-color-accent); }
+
+.ps-tag__hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--ps-space-7);
 }
 
-.main-area {
+.ps-tag__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ps-color-accent);
+  font-weight: 700;
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-tag__name {
+  font-family: var(--ps-font-display);
+  font-size: clamp(34px, 4.5vw, 56px);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.05;
+}
+
+.ps-tag__alt {
+  font-family: var(--ps-font-display);
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--ps-fs-lg);
+  margin-top: 4px;
+}
+
+.ps-tag__desc {
+  margin-top: var(--ps-space-4);
+  max-width: 600px;
+  font-size: var(--ps-fs-md);
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+}
+
+.ps-tag__hero-actions {
+  margin-top: var(--ps-space-5);
   display: flex;
-  margin: 0 auto;
+  gap: var(--ps-space-2);
 }
 
-.left-row {
-  width: 50%;
-  height: 85vh;
-  overflow: auto;
-}
-
-.right-row {
-  width: 50%;
-  height: 85vh;
-  overflow: auto;
-  padding-left: 30px;
-  border-left: 2px solid var(--theme-mode-contrast);
-}
-
-.left-row::-webkit-scrollbar,
-.right-row::-webkit-scrollbar {
-  display: none;
-}
-
-.tags {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-.tags-right {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.tags+a {
-  margin-left: 10px;
-  text-wrap: wrap;
-  word-wrap: break-word;
-}
-
-.relevant-institution-list {
-  margin-left: 10px;
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.relevant-institution-list :hover {
-  text-decoration: underline;
-}
-
-.relevant-institution {
-  /* border: 2px solid red ; */
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-
-.relevant-institution>p {
-  color: var(--theme-color);
-  /* text-wrap: nowrap; */
+.ps-tag__follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  height: 38px;
+  background: var(--ps-color-accent);
+  color: #1B1147;
+  border-radius: var(--ps-radius-pill);
+  font-size: var(--ps-fs-sm);
+  font-weight: 700;
   cursor: pointer;
 }
 
-.author-name {
-  color: var(--theme-color);
+.ps-tag__follow-btn:hover { background: var(--ps-color-accent-strong); }
+
+.ps-tag__action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  border-radius: var(--ps-radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
   cursor: pointer;
-  margin-bottom: 10px;
-  margin-right: 10px;
+}
+.ps-tag__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+
+.ps-tag__hero-stats {
+  background: rgba(15, 14, 26, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-3);
+  backdrop-filter: blur(10px);
+}
+
+.ps-tag__stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-bottom: 6px;
+}
+.ps-tag__stat:last-of-type { border: 0; }
+
+.ps-tag__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-2xl);
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.ps-tag__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ps-color-accent);
+}
+
+.ps-tag__section { margin-bottom: var(--ps-space-6); }
+
+.ps-tag__charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  gap: var(--ps-space-4);
+}
+
+.ps-tag__pie {
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 1024px) {
+  .ps-tag__charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ps-tag__trend {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ps-space-3);
+  height: 160px;
+  padding: var(--ps-space-3) 0 var(--ps-space-8);
+  position: relative;
+}
+
+.ps-tag__trend-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--ps-color-primary), var(--ps-color-accent));
+  border-radius: var(--ps-radius-sm);
+  position: relative;
+  transition: height var(--ps-motion-slow) var(--ps-ease-out);
+  min-width: 24px;
+}
+
+.ps-tag__trend-label {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--ps-font-mono);
+  font-size: 12px;
+  color: var(--ps-text-2);
+}
+
+.ps-tag__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--ps-space-6);
+  align-items: flex-start;
+}
+
+.ps-tag__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-4));
+}
+
+.ps-tag__author-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
+}
+
+.ps-tag__author-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  padding: 10px 8px;
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-tag__author-list li:hover { background: var(--ps-color-primary-soft); }
+
+.ps-tag__author-list li > div { flex: 1; min-width: 0; }
+
+.ps-tag__author-list h4 {
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-1);
+}
+
+.ps-tag__author-list p {
+  font-size: 11px;
+  color: var(--ps-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ps-tag__related {
   display: flex;
   flex-wrap: wrap;
+  gap: 6px;
 }
 
-.author-name:hover {
-  text-decoration: underline;
+@media screen and (max-width: 1024px) {
+  .ps-tag__hero-grid,
+  .ps-tag__grid {
+    grid-template-columns: 1fr;
+  }
+  .ps-tag__sidebar { position: static; }
 }
 
-.author-list {
-  margin-left: 10px;
-}
-
-@media screen and (max-width: 768px) {
-  .main-area {
-    display: block;
-  }
-
-  .left-row {
-    width: 100%;
-  }
-
-  .right-row {
-    font-size: 25px;
-    width: 100%;
-    border-left: unset;
-    padding-left: unset;
-  }
+@media screen and (max-width: 720px) {
+  .ps-tag { padding: var(--ps-space-4); }
 }
 </style>

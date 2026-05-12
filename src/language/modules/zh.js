@@ -11,6 +11,11 @@ export default {
     language: '中文',
     huge_input_placeholder: '文献、期刊、作者以及更多',
 
+    nav_home: '首页',
+    nav_explore: '探索',
+    nav_my: '我的',
+    change_lang: '切换语言',
+
     login_prompt: '：探索更丰富的功能',
     email_text: '邮箱',
     password_text: '密码',

@@ -1,180 +1,558 @@
 <template>
-    <div class="container">
-        <button class="basic-btn" @click="setAllMessageRead">{{ $t('set_read_all') }}</button>
-        <button class="basic-btn" @click="deleteAllReadMessages">{{ $t('delete_read') }}</button>
-        <div v-if="showAllMsg">
-            <h2 class="message-list-title">
-                {{ $t('message_all') }}
-                <svg @click="showAllMsg = false"
-                    t="1703149418371" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4408" id="mx_n_1703149418372" width="200" height="200"><path d="M123.751 409.147h259.974c15.85 0 25.364-12.682 25.364-25.364 0-15.854-12.682-25.363-25.364-25.363H183.99c60.236-123.646 183.882-209.248 326.551-209.248 180.713 0 332.891 136.328 358.254 310.699h53.898C897.331 256.965 722.958 98.447 510.541 98.447c-155.35 0-288.506 85.602-361.426 212.417V123.809c0-12.681-9.509-25.363-25.364-25.363-12.681 0-25.363 12.682-25.363 25.363v259.974c0.001 25.364 25.363 25.364 25.363 25.364m776.748 206.076h-259.97c-15.854 0-25.363 12.682-25.363 25.364 0 15.848 12.682 25.362 25.363 25.362h196.563C780.025 789.592 653.21 872.026 510.541 872.026c-180.713 0-332.891-136.328-358.254-310.7h-50.725C126.925 767.403 301.293 925.92 510.541 925.92c155.35 0 291.674-85.598 361.427-212.417v187.054c0 15.854 12.682 25.363 25.363 25.363 15.851 0 25.363-12.681 25.363-25.363V640.588c3.169-25.365-22.195-25.365-22.195-25.365m0 0z" p-id="4409"></path></svg>
-            </h2>
-            <!-- 这里注意英文复数 -->
-            <p>{{ $t('unread_cnt_1') }}{{ unreadMsgs.length }}{{$t(unreadMsgs.length > 1 ? 'unread_cnt_3' : 'unread_cnt_2')}}</p>
-            <div class="message-wrapper" v-for="(msg, index) in msgs" :key="index">
-                <MessageItem :msg="msg"></MessageItem>
-            </div>
+  <div class="ps-msg">
+    <AppGradientHero variant="soft" compact class="ps-msg__hero">
+      <div class="ps-msg__hero-content">
+        <div>
+          <p class="ps-msg__eyebrow">消息中心</p>
+          <h1 class="ps-msg__title">所有通知</h1>
+          <p class="ps-msg__lede">系统通知、学者更新、申请反馈与私信都汇集在这里。</p>
         </div>
-            <div v-else>
-            <h2 class="message-list-title unread-msg">
-                {{ $t('message_unread') }}
-                <svg @click="showAllMsg = true" t="1703149418371" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4408" id="mx_n_1703149418372" width="200" height="200"><path d="M123.751 409.147h259.974c15.85 0 25.364-12.682 25.364-25.364 0-15.854-12.682-25.363-25.364-25.363H183.99c60.236-123.646 183.882-209.248 326.551-209.248 180.713 0 332.891 136.328 358.254 310.699h53.898C897.331 256.965 722.958 98.447 510.541 98.447c-155.35 0-288.506 85.602-361.426 212.417V123.809c0-12.681-9.509-25.363-25.364-25.363-12.681 0-25.363 12.682-25.363 25.363v259.974c0.001 25.364 25.363 25.364 25.363 25.364m776.748 206.076h-259.97c-15.854 0-25.363 12.682-25.363 25.364 0 15.848 12.682 25.362 25.363 25.362h196.563C780.025 789.592 653.21 872.026 510.541 872.026c-180.713 0-332.891-136.328-358.254-310.7h-50.725C126.925 767.403 301.293 925.92 510.541 925.92c155.35 0 291.674-85.598 361.427-212.417v187.054c0 15.854 12.682 25.363 25.363 25.363 15.851 0 25.363-12.681 25.363-25.363V640.588c3.169-25.365-22.195-25.365-22.195-25.365m0 0z" p-id="4409"></path></svg>
-            </h2>
-            <div class="message-wrapper" v-for="(msg, index) in unreadMsgs" :key="index">
-                <MessageItem :msg="msg"></MessageItem>
-            </div>
-            </div>
+        <div class="ps-msg__hero-actions">
+          <button class="basic-btn-outline" @click="markAllRead">
+            <AppIcon name="Notifications" :size="14" />
+            标记全部已读
+          </button>
+          <button class="basic-btn-outline" @click="clearAllRead">
+            <AppIcon name="Close" :size="14" />
+            清空已读
+          </button>
+        </div>
+      </div>
+    </AppGradientHero>
+
+    <div class="ps-msg__layout">
+      <aside class="ps-msg__sidebar">
+        <AppCard>
+          <AppSectionHeader title="筛选" tag="h3" />
+          <ul class="ps-msg__cats">
+            <li
+              v-for="cat in categories"
+              :key="cat.id"
+              :class="{ 'ps-msg__cat--active': activeCategory === cat.id }"
+              @click="activeCategory = cat.id"
+            >
+              <AppIcon :name="cat.icon" :size="14" />
+              <span>{{ cat.label }}</span>
+              <span class="ps-msg__cat-count">{{ countByCategory(cat.id) }}</span>
+            </li>
+          </ul>
+        </AppCard>
+
+        <AppCard accent="gold">
+          <AppSectionHeader title="提示" tag="h3" />
+          <ul class="ps-msg__hint-list">
+            <li>
+              <AppIcon name="Sparkles" :size="14" />
+              点击列表项查看完整内容。
+            </li>
+            <li>
+              <AppIcon name="FlashOutline" :size="14" />
+              支持按类型筛选与一键已读。
+            </li>
+          </ul>
+        </AppCard>
+      </aside>
+
+      <section class="ps-msg__main">
+        <div class="ps-msg__list-pane">
+          <div class="ps-msg__list-head">
+            <h3>{{ activeCategoryLabel }}</h3>
+            <span class="ps-msg__list-count">{{ filteredMessages.length }} 条</span>
+          </div>
+
+          <AppEmptyState
+            v-if="!filteredMessages.length"
+            title="暂无消息"
+            description="这里是空的。等关注的学者发布新论文，我们会通知你。"
+          />
+
+          <ul v-else class="ps-msg__list">
+            <li
+              v-for="m in filteredMessages"
+              :key="m.id"
+              :class="{
+                'ps-msg__row--unread': !m.is_read,
+                'ps-msg__row--active': selectedId === m.id
+              }"
+              @click="selectMessage(m)"
+            >
+              <AppAvatar :id="m.sender.id" :name="m.sender.display_name" size="sm" />
+              <div class="ps-msg__row-body">
+                <h4>{{ m.title }}</h4>
+                <p>{{ truncate(m.content, 60) }}</p>
+                <span class="ps-msg__row-meta">
+                  <span>{{ m.sender.display_name }}</span>
+                  <span>·</span>
+                  <span>{{ m.created_at }}</span>
+                </span>
+              </div>
+              <span v-if="!m.is_read" class="ps-msg__row-dot" aria-hidden="true"></span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ps-msg__detail-pane">
+          <transition name="ps-fade" mode="out-in">
+            <AppCard v-if="selected" :key="selected.id" class="ps-msg__detail">
+              <header class="ps-msg__detail-head">
+                <AppAvatar :id="selected.sender.id" :name="selected.sender.display_name" size="lg" />
+                <div>
+                  <h2>{{ selected.title }}</h2>
+                  <p>
+                    <span>{{ selected.sender.display_name }}</span>
+                    <span>·</span>
+                    <span>{{ selected.created_at }}</span>
+                  </p>
+                </div>
+                <AppTagChip :variant="categoryVariant(selected.category)" size="md">
+                  {{ categoryLabel(selected.category) }}
+                </AppTagChip>
+              </header>
+              <p class="ps-msg__detail-body">{{ selected.content }}</p>
+              <footer class="ps-msg__detail-foot">
+                <button class="basic-btn-outline" @click="deleteMessage">
+                  <AppIcon name="Close" :size="14" />
+                  删除消息
+                </button>
+                <button v-if="selected.category === 'private'" class="basic-btn">
+                  <AppIcon name="Send" :size="14" />
+                  回复
+                </button>
+              </footer>
+            </AppCard>
+            <AppEmptyState
+              v-else
+              key="empty"
+              title="选择一条消息查看详情"
+              description="左侧点击任意条目，正文会显示在这里。"
+            />
+          </transition>
+        </div>
+      </section>
     </div>
+  </div>
 </template>
 
 <script>
-import MessageItem from '../../components/message-item/MessageItem.vue'
 import { Messages } from '../../api/messages.js'
-import i18n from '../../language'
+import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
+
+const CATEGORIES = [
+  { id: 'all', label: '全部', icon: 'Layers' },
+  { id: 'system', label: '系统通知', icon: 'Notifications' },
+  { id: 'follow', label: '关注更新', icon: 'People' },
+  { id: 'audit', label: '审核反馈', icon: 'RibbonOutline' },
+  { id: 'private', label: '私信', icon: 'Mail' }
+]
+
+const CATEGORY_META = {
+  system: { label: '系统', variant: 'subtle' },
+  follow: { label: '关注', variant: 'gold' },
+  audit: { label: '审核', variant: 'success' },
+  private: { label: '私信', variant: 'subtle' }
+}
 
 export default {
-    name: 'MessageView',
-    components: {
-        MessageItem,
-        i18n
-    },
-    data() {
-        return {
-            showAllMsg: true,
-            msgs: [],
-            unreadMsgs: [],
-        }
-    },
-    mounted() {
-        this.getAllMessage()
-        this.$bus.on('sendDeleteMessageRequest', this.handleDeleteMessage)
-        this.$bus.on('sendSetMessageReadByIdRequest', this.setMessageReadById)
-    },
-    methods: {
-        getAllMessage() {
-            Messages.getAllReceivedMessages().then(
-                response => {
-                    this.msgs = response.data
-                    this.unreadMsgs = this.msgs.filter(msg => msg.is_read == false)
-                }
-            )
-        },
-        handleDeleteMessage(msg) {
-            this.msgs.splice(this.msgs.indexOf(msg), 1)
-            this.unreadMsgs.splice(this.unreadMsgs.indexOf(msg), 1)
-            Messages.deleteMessageById(msg.id).then(
-                response => {
-                    // alert('删除成功')
-                },
-                error => {
-                    // alert('删除失败')
-                }
-            )
-        },
-        setAllMessageRead() {
-            this.msgs.filter(msg => msg.is_read == false).forEach(msg => msg.is_read = true)
-            this.unreadMsgs = []
-            Messages.setAllMessageRead().then(response => {})
-        },
-        setMessageReadById(msg) {
-            Messages.setMessageReadById(msg.id, {is_read: true}).then(
-                response => {
-                    this.getAllMessage()
-                },
-                error => {
-                    // alert('设置为已读失败')
-                }
-            )
-        },
-        deleteAllReadMessages() {
-            this.msgs = this.msgs.filter(message => message.is_read == false)
-            Messages.deleteAllReadMessages().then(
-                response => {
-                },
-                error => {
-                }
-            )
-        },
+  name: 'MessageView',
+  components: {
+    AppCard,
+    AppIcon,
+    AppTagChip,
+    AppSectionHeader,
+    AppGradientHero,
+    AppAvatar,
+    AppEmptyState
+  },
+  data() {
+    return {
+      categories: CATEGORIES,
+      activeCategory: 'all',
+      messages: [],
+      selectedId: ''
     }
+  },
+  computed: {
+    filteredMessages() {
+      if (this.activeCategory === 'all') return this.messages
+      return this.messages.filter((m) => m.category === this.activeCategory)
+    },
+    selected() {
+      return this.messages.find((m) => m.id === this.selectedId) || null
+    },
+    activeCategoryLabel() {
+      const cat = CATEGORIES.find((c) => c.id === this.activeCategory)
+      return cat ? cat.label : '消息'
+    }
+  },
+  mounted() {
+    this.load()
+  },
+  methods: {
+    load() {
+      Messages.getAllReceivedMessages().then(
+        (res) => {
+          this.messages = (res && res.data) || []
+          if (this.messages.length && !this.selectedId) {
+            this.selectedId = this.messages[0].id
+          }
+        },
+        () => {}
+      )
+    },
+    selectMessage(m) {
+      this.selectedId = m.id
+      if (!m.is_read) {
+        m.is_read = true
+        Messages.setMessageReadById(m.id, { is_read: true })
+      }
+    },
+    countByCategory(id) {
+      if (id === 'all') return this.messages.filter((m) => !m.is_read).length
+      return this.messages.filter((m) => m.category === id && !m.is_read).length
+    },
+    markAllRead() {
+      Messages.setAllMessageRead().then(() => {
+        this.messages.forEach((m) => (m.is_read = true))
+        this.$bus.emit('message', { title: '已全部标记为已读', content: '', time: 1200 })
+      })
+    },
+    clearAllRead() {
+      Messages.deleteAllReadMessages().then(() => {
+        this.messages = this.messages.filter((m) => !m.is_read)
+        this.$bus.emit('message', { title: '已清除已读消息', content: '', time: 1200 })
+      })
+    },
+    deleteMessage() {
+      if (!this.selected) return
+      const id = this.selected.id
+      Messages.deleteMessageById(id).then(() => {
+        this.messages = this.messages.filter((m) => m.id !== id)
+        this.selectedId = this.messages[0] ? this.messages[0].id : ''
+        this.$bus.emit('message', { title: '已删除消息', content: '', time: 1200 })
+      })
+    },
+    truncate(text, n) {
+      if (!text) return ''
+      return text.length > n ? text.slice(0, n) + '…' : text
+    },
+    categoryLabel(cat) {
+      return (CATEGORY_META[cat] || { label: '通知' }).label
+    },
+    categoryVariant(cat) {
+      return (CATEGORY_META[cat] || { variant: 'subtle' }).variant
+    }
+  }
 }
 </script>
+
 <style scoped>
-.container {
-  width: 60%;
-  /* min-width: 530px; */
+.ps-msg {
+  max-width: var(--ps-content-max);
   margin: 0 auto;
-  margin-top: 20px;
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
+}
+
+.ps-msg__hero { margin-bottom: var(--ps-space-6); }
+
+.ps-msg__hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ps-space-5);
+}
+
+.ps-msg__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ps-color-accent-strong);
+  font-weight: 700;
+  margin-bottom: var(--ps-space-2);
+}
+
+.ps-msg__title {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-3xl);
+  font-weight: 700;
+  color: var(--ps-text-1);
+  margin-bottom: 4px;
+}
+
+.ps-msg__lede {
+  color: var(--ps-text-2);
+  font-size: var(--ps-fs-sm);
+}
+
+.ps-msg__hero-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ps-msg__hero-actions :deep(.basic-btn-outline) {
+  height: 38px;
+  gap: 6px;
+}
+
+/* ── Layout ──────────────────────────────────────── */
+.ps-msg__layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--ps-space-5);
+  align-items: flex-start;
+}
+
+.ps-msg__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-4));
+}
+
+.ps-msg__cats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ps-msg__cats li {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-2);
+  padding: 8px 12px;
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-msg__cats li:hover { background: var(--ps-color-primary-soft); color: var(--ps-color-primary); }
+
+.ps-msg__cat--active {
+  background: var(--ps-color-primary-soft) !important;
+  color: var(--ps-color-primary) !important;
+  font-weight: 700;
+}
+
+.ps-msg__cats span:first-of-type { flex: 1; }
+
+.ps-msg__cat-count {
+  font-family: var(--ps-font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--ps-radius-pill);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
+
+.ps-msg__cat--active .ps-msg__cat-count {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+}
+
+.ps-msg__hint-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
+  font-size: 12px;
+  color: var(--ps-text-2);
+}
+
+.ps-msg__hint-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.ps-msg__hint-list :deep(.ps-icon) { color: var(--ps-color-accent-strong); margin-top: 2px; }
+
+/* ── Main ─────────────────────────────────────── */
+.ps-msg__main {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: var(--ps-space-4);
+}
+
+.ps-msg__list-pane {
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-3);
+  height: calc(100vh - var(--ps-nav-height) - 220px);
+  min-height: 480px;
+  overflow: auto;
+}
+
+.ps-msg__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px var(--ps-space-3);
+  border-bottom: 1px solid var(--ps-border-1);
+  margin-bottom: var(--ps-space-2);
+}
+
+.ps-msg__list-head h3 {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-md);
+  font-weight: 700;
+  color: var(--ps-text-1);
+}
+
+.ps-msg__list-count {
+  font-size: 11px;
+  color: var(--ps-text-3);
+  font-family: var(--ps-font-mono);
+}
+
+.ps-msg__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ps-msg__list li {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ps-space-3);
+  padding: var(--ps-space-3);
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
 }
 
-.container button {
-    position: absolute;
-    right: 0;
-    font-size: 14px;
-    margin-top: 10px;
-}
-.container button:first-of-type {
-    right: 120px;
+.ps-msg__list li:hover {
+  background: var(--ps-color-primary-soft);
 }
 
-
-.message-list-title {
-  font-size: 40px;
-  font-weight: bold;
-  margin-bottom: 0;
+.ps-msg__row--active {
+  background: var(--ps-color-primary-soft) !important;
+  border-left: 3px solid var(--ps-color-primary);
 }
 
-.message-list-title svg {
-    width: 35px;
-    height: 35px;
-    margin-left: 5px;
-    cursor: pointer;
-    fill: var(--default-text-color)
+.ps-msg__row-body { flex: 1; min-width: 0; }
+
+.ps-msg__row-body h4 {
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-1);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.container p {
-    margin-bottom: 20px;
-    color: var(--theme-color);
-    font-weight: bold;
+.ps-msg__row--unread .ps-msg__row-body h4 {
+  font-weight: 700;
 }
 
-.unread-msg {
-    margin-bottom: 45px;
+.ps-msg__row-body p {
+  font-size: 12px;
+  color: var(--ps-text-2);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.message-wrapper {
-    padding: 20px 0;
-    border-bottom: 1px solid var(--theme-mode-contrast);
-}
-.message-wrapper:last-child {
-    border-bottom: 0;
-}
-
-@media screen and (max-width: 768px) {
-    .container {
-        width: 80%;
-    }
-    .message-list-title {
-        font-size: 30px;
-    }
-    .message-list-title svg {
-        width: 30px;
-        height: 30px;
-    }
+.ps-msg__row-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--ps-text-3);
 }
 
-@media screen and (max-width: 500px) {
-    .message-wrapper:first-of-type {
-        margin-top: 40px;
-    }
+.ps-msg__row-dot {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ps-color-accent);
+  box-shadow: 0 0 0 2px var(--ps-bg-elevated);
+}
 
-    .container button {
-        right: unset;
-        left: 0;
-        top: 60px;
-    }
+/* ── Detail pane ─────────────────────────────── */
+.ps-msg__detail-pane {
+  min-height: 480px;
+}
 
-    .container button:nth-of-type(2) {
-        left: 120px;
-    }
+.ps-msg__detail {
+  height: 100%;
+}
+
+.ps-msg__detail-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-4);
+  padding-bottom: var(--ps-space-4);
+  border-bottom: 1px solid var(--ps-border-1);
+  margin-bottom: var(--ps-space-5);
+}
+
+.ps-msg__detail-head > div { flex: 1; }
+
+.ps-msg__detail-head h2 {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-xl);
+  font-weight: 700;
+  color: var(--ps-text-1);
+  margin-bottom: 2px;
+}
+
+.ps-msg__detail-head p {
+  font-size: 12px;
+  color: var(--ps-text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ps-msg__detail-body {
+  font-size: var(--ps-fs-base);
+  color: var(--ps-text-1);
+  line-height: var(--ps-lh-relaxed);
+  white-space: pre-line;
+}
+
+.ps-msg__detail-foot {
+  margin-top: var(--ps-space-7);
+  padding-top: var(--ps-space-4);
+  border-top: 1px solid var(--ps-border-1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ps-fade-enter-active, .ps-fade-leave-active {
+  transition: opacity var(--ps-motion-fast) var(--ps-ease-out);
+}
+.ps-fade-enter-from, .ps-fade-leave-to { opacity: 0; }
+
+@media screen and (max-width: 1024px) {
+  .ps-msg__layout {
+    grid-template-columns: 1fr;
+  }
+  .ps-msg__sidebar { position: static; }
+  .ps-msg__main {
+    grid-template-columns: 1fr;
+  }
+  .ps-msg__list-pane {
+    height: 360px;
+    min-height: 0;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .ps-msg { padding: var(--ps-space-4); }
+  .ps-msg__hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

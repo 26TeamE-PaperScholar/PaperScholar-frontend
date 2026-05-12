@@ -1,76 +1,73 @@
 <template>
-  <!-- <button class="basic-btn" v-tooltip="'hello'">666</button>
-  <br><br>
-  <button class="basic-btn-outline">777</button>
-  <br><br>
-  <input class="basic-input" type="text" :value="msg">
-  <br><br>
-  <div class="huge-input-wrapper">
-    <input class="basic-input huge-input" type="text" placeholder="文献、期刊、作者以及更多"/>
+  <div id="ps-shell">
+    <NavBar />
+    <main class="ps-page">
+      <RouterView v-slot="{ Component, route }">
+        <transition name="ps-route" mode="out-in" appear>
+          <component :is="Component" :key="route.fullPath" />
+        </transition>
+      </RouterView>
+    </main>
+    <PopoutMessage :show="showMessage" :title="messageTitle" :content="messageContent" />
   </div>
-  <br><br> -->
-  <!-- <Pagination :default-items-per-page="5">
-    <button v-for="i in 100" :key="i" @click="handleclick(i)">
-    第 {{ i }} 个条目
-    </button>
-  </Pagination> -->
-  <!-- <div class="temp" 
-    v-tooltip="{ c: '收藏/取消收藏', fs: '16px' }"
-    @click="sendMsg"
-  >
-  </div> -->
+</template>
 
-  <NavBar/>
-
-  <!-- <SandBoxLoading/> -->
-  <RouterView />
-
-  <PopoutMessage :show="showMessage" :title="messageTitle" :content="messageContent" />
-  <!-- <FollowListVue /> -->
-  <!-- <institution-view></institution-view> -->
-  <!-- <TagDetailView></TagDetailView> -->
-</template> 
-
-<script setup>
-
-import { ref, getCurrentInstance, watch } from 'vue'
-import PopoutMessage from './components/popout-message/PopoutMessage.vue'
+<script>
+import { getCurrentInstance } from 'vue'
 import NavBar from './components/nav-bar/NavBar.vue'
-import {showLoading,hideLoading} from "./components/Loading/index"
-import SandBoxLoading from "./components/Loading/SandboxLoading.vue"
-// import PaperDetail from './views/paper/PaperDetailView.vue'
-// import InstitutionView from './views/institution/InstitutionView.vue'
-import TagDetailView from './views/tags/TagDetailView.vue'
+import PopoutMessage from './components/popout-message/PopoutMessage.vue'
 
-let showMessage = ref(false)  // 展示消息
-let messageTitle = ref('')    // 消息标题
-let messageContent = ref('')  // 消息内容
-const instance = getCurrentInstance() // 获取 'vm'
-// 绑定全局消息事件
-instance.proxy.$bus.on('message', (data) => {
-  console.log('6666')
-  messageTitle.value = data.title
-  messageContent.value = data.content
-  showMessage.value = true
-  setTimeout(() => {
-    showMessage.value = false
-    setTimeout(() => {
-      messageTitle.value = ''
-      messageContent.value = ''
-    }, 1000)
-  }, data.time)
-})
-
-let handleclick = (i) => {
-  alert('点击第'+i+'个条目')
+export default {
+  name: 'App',
+  components: {
+    NavBar,
+    PopoutMessage
+  },
+  data() {
+    return {
+      showMessage: false,
+      messageTitle: '',
+      messageContent: ''
+    }
+  },
+  mounted() {
+    const instance = getCurrentInstance()
+    instance.proxy.$bus.on('message', this.handleMessage)
+  },
+  beforeUnmount() {
+    const instance = getCurrentInstance()
+    instance.proxy.$bus.off('message', this.handleMessage)
+  },
+  methods: {
+    handleMessage(data) {
+      this.messageTitle = data.title
+      this.messageContent = data.content
+      this.showMessage = true
+      setTimeout(() => {
+        this.showMessage = false
+        setTimeout(() => {
+          this.messageTitle = ''
+          this.messageContent = ''
+        }, 1000)
+      }, data.time || 1500)
+    }
+  }
 }
-
-let sendMsg = () => {
-  instance.proxy.$bus.emit('message', { title: 'hel lgfiubfgi chasiuchwd askbckj abckjgak jsgck jagckja bgcjkb vsdajcbvk jasvb ckjabckwqab fwid   fhdiugf iuwef i u广泛的 fgdqiahfdiq  iaeufwiufgh iuwfhqio', content: 'gfhaowhfia vgiowab kcabkjfv baw kjbfvjka wgvj uedsgg juvaeqiug fva eiugv iquhgi uqhiugqe hfuk qwa bqfjhqg uy', time: 300000 })
-  console.log(instance.proxy.$bus)
-}
-
 </script>
 
 <style scoped>
+#ps-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(212, 175, 55, 0.06), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 110% 0%, rgba(45, 27, 105, 0.05), transparent 60%),
+    var(--ps-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-page {
+  flex: 1;
+  width: 100%;
+}
 </style>

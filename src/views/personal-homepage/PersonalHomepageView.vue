@@ -1,929 +1,985 @@
 <template>
-<div class="main-part">
-    <div class="info-tag-list">
-        <div class="personal-info">
-            <div class="personal-image">
-                <img :src="personalInfo.avatarUrl" alt="Personal Image" @mouseover="avatarIsHovered = true" @mouseleave="handleMouseLeaveAvatar" @click="uploadAvatar">
-                <input type="file" accept="image/*" ref="fileInput" @change="handleFileChange" />
-            </div>
-            <div class="personal-info-text">
-                <p class="personal-info-text-nickname">
-                    <!-- {{ $t('personal_info_nick_name') }}:  -->
-                    <template v-if="!isEditing">{{ personalInfo.nickName }}</template>
-                    <input class="basic-input edit-input-nickname" v-else type="text" v-model="personalInfo.nickName" />
-                </p>
-                <p class="personal-info-text-real-name">
-                    <!-- {{ $t('personal_info_real_name') }}:  -->
-                    <template v-if="!isEditing">{{ personalInfo.realName }}</template>
-                    <input class="basic-input edit-input-real-name" v-else type="text" v-model="personalInfo.realName" :placeholder="$t('personal_info_real_name')" />
-                </p>
-                <p class="personal-info-text-region">
-                    <em>{{ $t('personal_info_region') }}</em>&nbsp;&nbsp;
-                    {{ personalInfo.region }}
-                </p>
-                <p class="personal-info-text-gender">
-                    <em>{{ $t('personal_info_gender') }}</em>&nbsp;&nbsp;
-                    <template v-if="!isEditing">{{ $t(personalInfo.gender) }}</template>
-                    <template v-else>
-                        <input id="male" type="radio" value="gender_male" v-model="personalInfo.gender" />
-                        <label for="male">{{ $t('gender_male') }}</label>
-                        <input id="female" type="radio" value="gender_female" v-model="personalInfo.gender" />
-                        <label for="female">{{ $t('gender_female') }}</label>
-                        <input id="unset" type="radio" value="gender_unset" v-model="personalInfo.gender" />
-                        <label for="unset">{{ $t('gender_unset') }}</label>
-                    </template>
+  <div class="ps-me">
+    <AppGradientHero variant="dark" compact class="ps-me__hero">
+      <div class="ps-me__hero-grid">
+        <div class="ps-me__hero-main">
+          <div class="ps-me__avatar-wrap" @click="triggerAvatarUpload">
+            <img
+              v-if="personalInfo.avatarUrl && avatarLoaded"
+              :src="personalInfo.avatarUrl"
+              alt="avatar"
+              class="ps-me__avatar-img"
+              @error="avatarLoaded = false"
+            />
+            <AppAvatar
+              v-else
+              :id="personalInfo.id"
+              :name="personalInfo.nickName"
+              :gradient="personalInfo.avatarGradient"
+              size="2xl"
+              class="ps-me__avatar"
+            />
+            <span class="ps-me__avatar-overlay" aria-hidden="true">
+              <AppIcon name="Pencil" :size="16" />
+              更换头像
+            </span>
+            <input type="file" accept="image/*" ref="avatarInput" class="ps-me__file-input" @change="handleAvatarFile" />
+          </div>
+          <div>
+            <p class="ps-me__eyebrow">个人主页</p>
+            <h1 class="ps-me__name">
+              <template v-if="!isEditing">{{ personalInfo.nickName }}</template>
+              <input v-else class="basic-input ps-me__name-input" v-model="personalInfo.nickName" />
+            </h1>
+            <p class="ps-me__realname">
+              <template v-if="!isEditing">{{ personalInfo.realName || '尚未设置真实姓名' }}</template>
+              <input v-else class="basic-input ps-me__realname-input" v-model="personalInfo.realName" :placeholder="$t('personal_info_real_name') || '真实姓名'" />
+            </p>
+            <p class="ps-me__bio">{{ personalInfo.bio }}</p>
+          </div>
+        </div>
 
-                </p>
-                <p class="personal-info-text-institution" v-if="personalInfo.institution || isEditing">
-                    <em>{{ $t('personal_info_institution') }}</em>&nbsp;&nbsp;
-                    <template v-if="!isEditing">{{ personalInfo.institution }}</template>
-                    <input class="basic-input edit-input-text" v-else type="text" v-model="personalInfo.institution" />
-                </p>
-                <!-- <p class="personal-info-text-major">
-                <em>{{ $t('personal_info_major') }}</em>&nbsp;&nbsp;
-                {{ personalInfo.major }}
-              </p> -->
-                <p class="personal-info-text-email">
-                    <em>{{ $t('personal_info_email') }}</em>&nbsp;&nbsp;
-                    <template v-if="!isEditing">{{ personalInfo.email }}</template>
-                    <input class="basic-input edit-input-text" v-else type="text" v-model="personalInfo.email" />
-                </p>
-                <p class="personal-info-text-url" v-if="personalInfo.urls.length !== 0 || isEditing">
-                    <em>{{ $t('personal_info_url') }}</em>
-                    <ul class="personal-info-text-url-list">
-                        <li v-for="(url, index) in personalInfo.urls" :key="index">
-                            &nbsp;&nbsp;&nbsp;
-                            <svg t="1702890339983" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4227">
-                                <path d="M377.6 473.6C377.6 448 384 422.4 403.2 403.2l70.4-70.4 57.6-57.6c19.2-19.2 38.4-25.6 64-25.6 25.6 0 44.8 6.4 64 25.6 38.4 38.4 38.4 89.6 0 128l-128 128C512 550.4 492.8 556.8 467.2 556.8L416 608C428.8 614.4 448 620.8 467.2 620.8 512 620.8 544 601.6 576 576l128-128c57.6-57.6 57.6-153.6 0-211.2-57.6-57.6-153.6-57.6-211.2 0l-128 128C320 403.2 307.2 467.2 326.4 524.8L377.6 473.6z" p-id="4228"></path>
-                                <path d="M646.4 550.4c0 25.6-6.4 51.2-25.6 70.4l-128 128c-19.2 19.2-38.4 25.6-64 25.6-25.6 0-44.8-6.4-64-25.6-38.4-38.4-38.4-89.6 0-128l128-128c19.2-19.2 44.8-25.6 70.4-25.6l51.2-51.2C588.8 409.6 576 403.2 556.8 403.2 512 403.2 473.6 422.4 448 448L320 576c-57.6 57.6-57.6 153.6 0 211.2 57.6 57.6 153.6 57.6 211.2 0l128-128c44.8-44.8 57.6-108.8 32-160L646.4 550.4z" p-id="4229"></path>
-                            </svg>
-                            <a :href="url" target="_blank" v-if="!isEditing">{{ url }}</a>
-                            <input class="basic-input url-input" v-else type="text" v-model="personalInfo.urls[index]" />
-                            <svg v-if="isEditing" @click="personalInfo.urls.splice(index, 1);" t="1703220686999" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3523" id="mx_n_1703220687001" width="200" height="200">
-                                <path d="M512 832c-176.448 0-320-143.552-320-320S335.552 192 512 192s320 143.552 320 320-143.552 320-320 320m0-704C300.256 128 128 300.256 128 512s172.256 384 384 384 384-172.256 384-384S723.744 128 512 128" p-id="3524"></path>
-                                <path d="M649.824 361.376a31.968 31.968 0 0 0-45.248 0L505.6 460.352l-98.976-98.976a31.968 31.968 0 1 0-45.248 45.248l98.976 98.976-98.976 98.976a32 32 0 0 0 45.248 45.248l98.976-98.976 98.976 98.976a31.904 31.904 0 0 0 45.248 0 31.968 31.968 0 0 0 0-45.248L550.848 505.6l98.976-98.976a31.968 31.968 0 0 0 0-45.248" p-id="3525"></path>
-                            </svg>
-                        </li>
-                        <li class="add-url" v-if="isEditing">
-                            &nbsp;&nbsp;&nbsp;
-                            <svg t="1702890339983" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4227">
-                                <path d="M377.6 473.6C377.6 448 384 422.4 403.2 403.2l70.4-70.4 57.6-57.6c19.2-19.2 38.4-25.6 64-25.6 25.6 0 44.8 6.4 64 25.6 38.4 38.4 38.4 89.6 0 128l-128 128C512 550.4 492.8 556.8 467.2 556.8L416 608C428.8 614.4 448 620.8 467.2 620.8 512 620.8 544 601.6 576 576l128-128c57.6-57.6 57.6-153.6 0-211.2-57.6-57.6-153.6-57.6-211.2 0l-128 128C320 403.2 307.2 467.2 326.4 524.8L377.6 473.6z" p-id="4228"></path>
-                                <path d="M646.4 550.4c0 25.6-6.4 51.2-25.6 70.4l-128 128c-19.2 19.2-38.4 25.6-64 25.6-25.6 0-44.8-6.4-64-25.6-38.4-38.4-38.4-89.6 0-128l128-128c19.2-19.2 44.8-25.6 70.4-25.6l51.2-51.2C588.8 409.6 576 403.2 556.8 403.2 512 403.2 473.6 422.4 448 448L320 576c-57.6 57.6-57.6 153.6 0 211.2 57.6 57.6 153.6 57.6 211.2 0l128-128c44.8-44.8 57.6-108.8 32-160L646.4 550.4z" p-id="4229"></path>
-                            </svg>
-                            <input class="basic-input url-input" type="text" v-model="urlAdding" />
-                            <svg class="cross" @click="if (urlAdding !== '') personalInfo.urls.push(urlAdding); urlAdding=''" t="1703220134641" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7499" id="mx_n_1703220134642" width="200" height="200">
-                                <path d="M512 832c-176.448 0-320-143.552-320-320S335.552 192 512 192s320 143.552 320 320-143.552 320-320 320m0-704C300.256 128 128 300.256 128 512s172.256 384 384 384 384-172.256 384-384S723.744 128 512 128" p-id="7500"></path>
-                                <path d="M683.936 470.944H544v-139.968a32 32 0 1 0-64 0v139.968h-139.936a32 32 0 0 0 0 64H480v139.968a32 32 0 0 0 64 0v-139.968h139.968a32 32 0 0 0 0-64" p-id="7501"></path>
-                            </svg>
-                        </li>
-                    </ul>
-                </p>
-                <svg v-if="!isEditing" @click="enterEditingMode" t="1703218462193" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6301" id="mx_n_1703218462195" width="200" height="200">
-                    <path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" p-id="6302"></path>
-                    <path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z" p-id="6303"></path>
-                </svg>
+        <aside class="ps-me__hero-stats">
+          <div class="ps-me__stat">
+            <span class="ps-me__stat-num">{{ favouritesInfo.length }}</span>
+            <span class="ps-me__stat-label">收藏夹</span>
+          </div>
+          <div class="ps-me__stat">
+            <span class="ps-me__stat-num">{{ interests.length }}</span>
+            <span class="ps-me__stat-label">兴趣标签</span>
+          </div>
+          <div class="ps-me__stat">
+            <span class="ps-me__stat-num">{{ followingCount }}</span>
+            <span class="ps-me__stat-label">关注学者</span>
+          </div>
+          <div class="ps-me__hero-actions">
+            <button v-if="!isEditing" class="ps-me__action-primary" @click="enterEditingMode">
+              <AppIcon name="Pencil" :size="14" />
+              编辑资料
+            </button>
+            <template v-else>
+              <button class="ps-me__action-primary" @click="submitChangePersonalInfo">
+                <AppIcon name="Cloud" :size="14" />
+                保存
+              </button>
+              <button class="ps-me__action-secondary" @click="cancelChangePersonalInfo">取消</button>
+            </template>
+            <button v-if="!isEditing && !auditStatus" class="ps-me__action-secondary" @click="authenticateModalShouldShow = true">
+              <AppIcon name="RibbonOutline" :size="14" />
+              申请认证
+            </button>
+            <button v-if="!isEditing && auditStatus" class="ps-me__action-secondary" @click="auditDetailModalShouldShow = true">
+              <AppIcon name="HelpCircle" :size="14" />
+              查看审核
+            </button>
+          </div>
+        </aside>
+      </div>
+    </AppGradientHero>
+
+    <div class="ps-me__layout">
+      <aside class="ps-me__sidebar">
+        <AppCard>
+          <AppSectionHeader title="账户信息" tag="h3" />
+          <dl class="ps-me__info">
+            <div>
+              <dt><AppIcon name="Mail" :size="13" inline /> 邮箱</dt>
+              <dd>
+                <template v-if="!isEditing">{{ personalInfo.email }}</template>
+                <input v-else class="basic-input ps-me__inline-input" v-model="personalInfo.email" />
+              </dd>
             </div>
-            <div class="btn-wrapper">
-                <button v-if="isEditing" class="basic-btn authenticate-btn" @click="submitChangePersonalInfo">{{ $t('confirm_text' )}}</button>
-                <button v-if="isEditing" class="basic-btn authenticate-btn" @click="cancelChangePersonalInfo">{{ $t('cancel_text' )}}</button>
-                <button v-if="!isEditing && !auditStatus" class="basic-btn authenticate-btn" @click="authenticateModalShouldShow = true">{{ $t('authenticate_text') }}</button>
-                <button v-if="!isEditing && auditStatus" class="basic-btn authenticate-btn" @click="auditDetailModalShouldShow = true">{{ $t('view_audit_detail')}}</button>
+            <div>
+              <dt><AppIcon name="LocationOutline" :size="13" inline /> 地区</dt>
+              <dd>{{ personalInfo.region || '未填写' }}</dd>
             </div>
+            <div>
+              <dt><AppIcon name="School" :size="13" inline /> 机构</dt>
+              <dd>
+                <template v-if="!isEditing">{{ personalInfo.institution || '未填写' }}</template>
+                <input v-else class="basic-input ps-me__inline-input" v-model="personalInfo.institution" />
+              </dd>
+            </div>
+            <div>
+              <dt><AppIcon name="Person" :size="13" inline /> 性别</dt>
+              <dd>
+                <template v-if="!isEditing">{{ $t(personalInfo.gender) || '未填写' }}</template>
+                <select v-else v-model="personalInfo.gender" class="ps-me__inline-select">
+                  <option value="gender_male">男</option>
+                  <option value="gender_female">女</option>
+                  <option value="gender_unset">不公开</option>
+                </select>
+              </dd>
+            </div>
+          </dl>
+        </AppCard>
+
+        <AppCard accent="gold">
+          <AppSectionHeader title="对外链接" tag="h3">
+            <template #actions>
+              <button v-if="!isEditing" class="ps-me__link-edit" @click="enterEditingMode">
+                <AppIcon name="Pencil" :size="12" />
+              </button>
+            </template>
+          </AppSectionHeader>
+          <ul class="ps-me__links">
+            <li v-for="(url, idx) in personalInfo.urls" :key="idx">
+              <AppIcon name="GlobeOutline" :size="13" />
+              <template v-if="!isEditing">
+                <a :href="url" target="_blank" rel="noopener">{{ url }}</a>
+              </template>
+              <template v-else>
+                <input class="basic-input ps-me__inline-input" v-model="personalInfo.urls[idx]" />
+                <button class="ps-me__link-remove" @click="personalInfo.urls.splice(idx, 1)" aria-label="remove">
+                  <AppIcon name="Close" :size="12" />
+                </button>
+              </template>
+            </li>
+            <li v-if="isEditing" class="ps-me__add-link">
+              <AppIcon name="Add" :size="13" />
+              <input class="basic-input ps-me__inline-input" v-model="urlAdding" placeholder="https://" />
+              <button class="ps-me__link-remove" @click="addUrl">
+                <AppIcon name="Add" :size="12" />
+              </button>
+            </li>
+          </ul>
+        </AppCard>
+
+        <AppCard>
+          <AppSectionHeader title="兴趣标签" tag="h3">
+            <template #actions>
+              <button class="ps-me__link-edit" @click="interestTagSelectorModalShow = true">
+                <AppIcon name="Add" :size="12" />
+              </button>
+            </template>
+          </AppSectionHeader>
+          <div class="ps-me__tags">
+            <AppTagChip
+              v-for="(tag, idx) in interests"
+              :key="idx"
+              size="md"
+              variant="subtle"
+              clickable
+              @click="jumpToTagDetail(tag)"
+            >{{ tag.name }}</AppTagChip>
+            <AppEmptyState
+              v-if="!interests.length"
+              title="尚未选择兴趣"
+              description="选择 3–5 个关心的主题，获取个性化推荐。"
+            />
+          </div>
+        </AppCard>
+      </aside>
+
+      <section class="ps-me__main">
+        <div class="ps-me__tabs">
+          <button
+            v-for="t in tabs"
+            :key="t.id"
+            class="ps-me__tab"
+            :class="{ 'ps-me__tab--active': activeTab === t.id }"
+            @click="activeTab = t.id"
+          >
+            <AppIcon :name="t.icon" :size="14" />
+            {{ t.label }}
+          </button>
         </div>
-        <div class="tag-and-list">
-            <div class="list">
-                <div class="favourites-header">
-                    <div class="favourites-subscribe-tab">
-                        <h4 :class="[{'tab tab-not-selected': !isFavourite}, { 'tab tab-selected': isFavourite }]" @click="isFavourite = true">
-                            {{ $t('favourites') }}
-                        </h4>
-                        <h4 :class="[{'tab tab-selected': !isFavourite}, { 'tab tab-not-selected': isFavourite }]" @click="isFavourite = false">
-                            {{ $t('personal_follow_list') }}
-                        </h4>
-                    </div>
-                    <button class="favourites-creation" @click="isCreating = true" v-if="isFavourite">
-                        {{ $t('create_favourites') }}
-                    </button>
-                </div>
-                <div class="favorites-list" v-if="isFavourite">
-                    <FavouriteList @cancelCreation="cancelCreation" @updateCreation="updateCreation" :isCreating="isCreating" :favouritesInfo="favouritesInfo" />
-                </div>
-                <div class="follow-list" v-else>
-                    <FollowList :userID="personalInfo.id" />
-                </div>
-            </div>
-            <div class="personal-tag">
-                <h3>
-                  {{ $t('personal_interest_tags') }}
-                  <svg @click="interestTagSelectorModalShow = true"
-                    t="1703450163993" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8553" width="200" height="200"><path d="M469.333333 469.333333V170.666667h85.333334v298.666666h298.666666v85.333334h-298.666666v298.666666h-85.333334v-298.666666H170.666667v-85.333334h298.666666z" p-id="8554"></path></svg>
-                </h3>
-                <div class="tag-container">
-                    <p v-for="(tag, index) in interests" :key="index" class="tag-item" @click="jumpToTagDetail(tag)">
-                        {{ tag.name }}
-                    </p>
-                </div>
-            </div>
+
+        <!-- Favorites: 使用原 FavouriteList 组件，保留 CRUD 能力 -->
+        <div v-if="activeTab === 'favourites'" class="ps-me__panel">
+          <div class="ps-me__panel-header">
+            <p class="ps-me__panel-hint">{{ favouritesInfo.length }} 个收藏夹 · 总计 {{ totalFavoriteCount }} 篇文献</p>
+            <button class="basic-btn-outline ps-me__new-fav" @click="isCreating = true">
+              <AppIcon name="Add" :size="14" />
+              新建收藏夹
+            </button>
+          </div>
+          <AppCard class="ps-me__fav-wrap">
+            <FavouriteList
+              :isCreating="isCreating"
+              :favouritesInfo="favouritesInfo"
+              @cancelCreation="cancelCreation"
+              @updateCreation="updateCreation"
+            />
+            <AppEmptyState
+              v-if="!favouritesInfo.length && !isCreating"
+              title="还没有收藏夹"
+              description="点击「新建收藏夹」开始整理你的阅读清单。"
+            />
+          </AppCard>
         </div>
+
+        <!-- Following: 使用原 FollowList 组件，保留 follow/unfollow 能力 -->
+        <div v-if="activeTab === 'following'" class="ps-me__panel">
+          <AppCard>
+            <FollowList :userID="personalInfo.id" />
+          </AppCard>
+        </div>
+
+        <!-- History -->
+        <div v-if="activeTab === 'history'" class="ps-me__panel">
+          <AppCard>
+            <AppSectionHeader title="近期检索" subtitle="" tag="h3" />
+            <ul class="ps-me__history">
+              <li v-for="h in searchHistory" :key="h.id" @click="searchAgain(h)">
+                <AppIcon name="Search" :size="13" />
+                <span class="ps-me__history-keyword">{{ h.keyword }}</span>
+                <span class="ps-me__history-meta">{{ h.timestamp }}</span>
+              </li>
+              <AppEmptyState v-if="!searchHistory.length" title="暂无搜索记录" />
+            </ul>
+          </AppCard>
+          <AppCard>
+            <AppSectionHeader title="阅读历史" subtitle="" tag="h3" />
+            <ul class="ps-me__history">
+              <li v-for="v in viewHistoryWithMeta" :key="v.id" @click="$router.push('/paper_detail/' + v.paper_id)">
+                <AppIcon name="Eye" :size="13" />
+                <span class="ps-me__history-keyword">{{ v.title }}</span>
+                <span class="ps-me__history-meta">{{ v.viewed_at }}</span>
+              </li>
+              <AppEmptyState v-if="!viewHistoryWithMeta.length" title="暂无阅读记录" />
+            </ul>
+          </AppCard>
+        </div>
+      </section>
     </div>
-</div>
 
-<AuthenticateIdentityModal :show="authenticateModalShouldShow" @close="authenticateModalShouldShow = false" />
-
-<InterestTagSelectorModal :show="interestTagSelectorModalShow" @close="interestTagSelectorModalShow = false" />
-
-<AuditDetailModal :show="auditDetailModalShouldShow" @close="auditDetailModalShouldShow = false" />
+    <AuthenticateIdentityModal :show="authenticateModalShouldShow" @close="authenticateModalShouldShow = false" />
+    <InterestTagSelectorModal :show="interestTagSelectorModalShow" @close="interestTagSelectorModalShow = false" />
+    <AuditDetailModal :show="auditDetailModalShouldShow" @close="auditDetailModalShouldShow = false" />
+  </div>
 </template>
 
 <script>
-import FavouriteListItem from '../../components/favorites/FavouriteListItem.vue'
-import i18n from '../../language'
-import FavouriteList from '../../components/favorites/FavouriteList.vue'
-import {
-    User
-} from '../../api/users.js'
-import {
-    Article
-} from '../../api/article.js'
-import {
-    Application
-} from '../../api/applications.js'
-import FollowList from '../../components/follow-list/FollowList.vue'
+import { User } from '../../api/users.js'
+import { Application } from '../../api/applications.js'
+import { History } from '../../api/history.js'
 import AuthenticateIdentityModal from '../../components/modals/AuthenticateIdentityModal.vue'
-import InterestTagSelectorModal from "../../components/modals/InterestTagSelectorModal.vue"
+import InterestTagSelectorModal from '../../components/modals/InterestTagSelectorModal.vue'
 import AuditDetailModal from '../../components/modals/AuditDetailModal.vue'
-import {
-    dataTool
-} from 'echarts'
+import FavouriteList from '../../components/favorites/FavouriteList.vue'
+import FollowList from '../../components/follow-list/FollowList.vue'
+import { mockFollowing, mockUser } from '../../mock/user'
+import { findPaper } from '../../mock/papers'
+import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
+
 export default {
-    components: {
-        FavouriteListItem,
-        FavouriteList,
-        FollowList,
-        AuthenticateIdentityModal,
-        InterestTagSelectorModal,
-        AuditDetailModal,
-        i18n,
-    },
-    data() {
-        return {
-            isEditing: false,
-            urlAdding: '',
-            authenticateModalShouldShow: false,
-            interestTagSelectorModalShow: false,
-            auditDetailModalShouldShow: false,
-            infoItem: {
-                title: "低碳经济: 人类经济发展方式的新变革",
-                author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
-                excerpt: "低碳经济(Low-carbon Economy)是未来经济发展方式的新选择.本文从大时空跨度和能源利用方式上,分析了人类经济发展形态演变历程;探讨了低碳经济… 了低碳经济产生与发展.本文研究了低碳",
-                timeCited: 57,
-                keyword: "经济",
-            },
-            avatarFile: null,
-            avatarUrl: '',
-            personalInfo: {
-                id: '',
-                avatarUrl: '',
-                nickName: '',
-                realName: '',
-                region: '',
-                institution: '',
-                email: '',
-                gender: '',
-                urls: [],
-                major: '',
-            },
-            interests: [],
-            savePersonalInfo: {},
-            avatarIsHovered: false,
-            isChangeing: false,
-            isCreating: false,
-            moveVisible: false,
-            isFavourite: true,
-            favouritesInfo: [],
-            auditDetail: null,
-            auditStatus: false // false 未提交、true 已提交
-        }
-    },
-
-    created() {
-        this.getUserInfo()
-        this.getAuditDetail()
-        this.$bus.on('sendFlushInterestRequest', this.flushInterets)
-        this.$bus.on('sendFlushAuditStatusRequest', this.flushAuditStatus)
-    },
-    methods: {
-        getUserInfo() {
-            console.log(this.$cookies.get('user_id'))
-            let userId = this.$cookies.get('user_id')
-            if (userId) {
-                User.getUser(userId).then(
-                    (response) => {
-                        this.personalInfo.id = userId
-                        this.personalInfo.nickName = response.data.username
-                        this.personalInfo.realName = response.data.real_name
-                        this.personalInfo.region = response.data.region
-                        this.personalInfo.gender = response.data.gender
-                        this.personalInfo.institution = response.data.institution
-                        this.personalInfo.email = response.data.email
-                        this.personalInfo.urls = response.data.websites
-                        for (let i = 0; i < this.personalInfo.urls.length; i++) {
-                            if (!this.personalInfo.urls[i].startsWith('http://') &&
-                                !this.personalInfo.urls[i].startsWith('https://')) {
-                                this.personalInfo.urls[i] = "http://" + this.personalInfo.urls[i]
-                            }
-                        }
-                        this.personalInfo.avatarUrl = 'api/users/' + userId + '/avatar/'
-                        this.interests = response.data.interests
-                    },
-                    (error) => {
-                        console.log(error)
-                    }
-                )
-                User.getFavoriteList(0).then(
-                    (response) => {
-                        console.log(response)
-                        for (var i = 0; i < response.data.length; i++) {
-                            this.favouritesInfo.push({
-                                name: response.data[i].name,
-                                id: response.data[i].id
-                            })
-                        }
-                    },
-                    (error) => {
-                        console.log(error)
-                    }
-                )
-            }
-        },
-        flushInterets() {
-            let userId = this.$cookies.get('user_id')
-            if (userId) {
-                User.getUser(userId).then(
-                    (response) => {
-                        this.interests = response.data.interests
-                    },
-                    (error) => {
-                        console.log(error)
-                    }
-                )
-            }
-        },
-        flushAuditStatus() {
-          this.auditStatus = true
-        },
-        jumpToTagDetail(tag) {
-            this.$router.push('/tag_detail/' + tag.id)
-        },
-        getAuditDetail() {
-            Application.getSubmittedList().then(
-                response => {
-                    if (response.data.length != 0) {
-                       this.auditDetail = response.data[0]
-                       this.auditStatus = true
-                    }
-                },
-                error => {
-                    console.log(error.message);
-                }
-            )
-        },
-        changePersonalInfo() {
-            this.isChangeing = true
-            this.cur2savePersonalInfo()
-        },
-        submitChangePersonalInfo() {
-            this.isEditing = false
-            let userId = this.$cookies.get('user_id')
-            if (this.urlAdding !== '') {
-                this.personalInfo.urls.push(this.urlAdding)
-                this.urlAdding = ''
-            }
-            for (let i = 0; i < this.personalInfo.urls.length; i++) {
-                if (!this.personalInfo.urls[i].startsWith('http://') &&
-                    !this.personalInfo.urls[i].startsWith('https://')) {
-                    this.personalInfo.urls[i] = "http://" + this.personalInfo.urls[i]
-                }
-            }
-            let data = {
-                username: this.personalInfo.nickName,
-                real_name: this.personalInfo.realName,
-                gender: this.personalInfo.gender,
-                institution: this.personalInfo.institution,
-                websites: this.personalInfo.urls
-            }
-            if (userId) {
-                User.changePersonalInfo(userId, data).then(
-                    response => {
-                        this.cur2savePersonalInfo()
-                        this.$bus.emit('message', { title: this.$t('change_info_success'), content: '', time: 1000 })
-                    },
-                    error => {
-                        this.save2curPersonalInfo()
-                        this.$bus.emit('message', { title: this.$t('change_info_failure'), content: '', time: 1000 })
-                    }
-                )
-            }
-        },
-        changePersonalAvatar() {
-            let userId = this.$cookies.get('user_id')
-            // 由于这里涉及到了传输头像，就是传输文件，所以这里不能再用json传输数据，需要使用FormData
-            let data = new FormData()
-            if (this.avatarChanged) {
-                data.append('avatar', this.avatarFile)
-            }
-            if (userId) {
-                User.changePersonalInfo(userId, data).then(
-                    response => {
-                        this.cur2savePersonalInfo()
-                        this.$bus.emit('message', { title: this.$t('change_info_success'), content: '', time: 1000 })
-                        // alert('头像修改成功')
-                    },
-                    error => {
-                        this.save2curPersonalInfo()
-                            // (error.message)
-                        this.$bus.emit('message', { title: this.$t('change_info_failure'), content: '', time: 1000 })
-                        
-                    }
-                )
-            }
-        },
-        cancelChangePersonalInfo() {
-            this.isEditing = false
-            this.save2curPersonalInfo()
-        },
-        handleMove() {
-            this.moveVisible = true
-        },
-        handleMoveClick(index) {
-            this.moveVisible = false
-        },
-        cancelCreation() {
-            this.isCreating = false
-        },
-        updateCreation(name) {
-            this.isCreating = false
-            let data = {
-                name: name
-            }
-            User.createFavorite(0, data).then(
-                (response) => {
-                    console.log(response)
-                    // console.log(response.data.username)
-                },
-                (error) => {
-                    console.log(error)
-                }
-            )
-            this.favouritesInfo.unshift({
-                name: name,
-                showContextMenu: false
-            })
-        },
-        returnToMainPage() {
-            this.$router.push('/');
-        },
-        // 下面是用来处理头像悬浮和头像上传更改
-        handleMouseLeaveAvatar() {
-            this.avatarIsHovered = false
-        },
-        uploadAvatar() {
-            this.$refs.fileInput.click()
-        },
-        handleFileChange(e) {
-            this.avatarChanged = true
-            this.avatarFile = e.target.files[0]
-            this.avatarUrl = URL.createObjectURL(this.avatarFile)
-            this.cur2savePersonalInfo()
-            this.personalInfo.avatarUrl = this.avatarUrl
-            this.changePersonalAvatar()
-        },
-        // 为了能够恢复修改的内容以及取消修改
-        cur2savePersonalInfo() {
-            this.savePersonalInfo.avatarUrl = this.personalInfo.avatarUrl
-            this.savePersonalInfo.nickName = this.personalInfo.nickName
-            this.savePersonalInfo.realNmae = this.personalInfo.realName
-            this.savePersonalInfo.gender = this.personalInfo.gender
-            this.savePersonalInfo.urls = this.personalInfo.urls
-        },
-        save2curPersonalInfo() {
-            this.personalInfo.avatarUrl = this.savePersonalInfo.avatarUrl
-            this.personalInfo.nickName = this.savePersonalInfo.nickName
-            this.personalInfo.realName = this.savePersonalInfo.realName
-            this.personalInfo.gender = this.savePersonalInfo.gender
-            this.personalInfo.urls = this.savePersonalInfo.urls
-        },
-        enterEditingMode() {
-            this.isEditing = true
-            this.cur2savePersonalInfo()
-        }
-    },
-}
-window.addEventListener('scroll', function () {
-    var container = document.querySelector('.model')
-
-    if (container === null || getComputedStyle(container).display === 'none') {
-        return;
+  name: 'PersonalHomepageView',
+  components: {
+    AuthenticateIdentityModal,
+    InterestTagSelectorModal,
+    AuditDetailModal,
+    FavouriteList,
+    FollowList,
+    AppCard,
+    AppIcon,
+    AppTagChip,
+    AppSectionHeader,
+    AppGradientHero,
+    AppAvatar,
+    AppEmptyState
+  },
+  data() {
+    return {
+      isEditing: false,
+      urlAdding: '',
+      authenticateModalShouldShow: false,
+      interestTagSelectorModalShow: false,
+      auditDetailModalShouldShow: false,
+      activeTab: 'favourites',
+      tabs: [
+        { id: 'favourites', label: '我的收藏', icon: 'Bookmark' },
+        { id: 'following', label: '关注学者', icon: 'People' },
+        { id: 'history', label: '浏览历史', icon: 'Time' }
+      ],
+      personalInfo: {
+        id: '',
+        avatarUrl: '',
+        avatarGradient: mockUser.avatar_gradient,
+        nickName: '',
+        realName: '',
+        region: '',
+        institution: '',
+        email: '',
+        gender: 'gender_unset',
+        urls: [],
+        bio: ''
+      },
+      avatarLoaded: false,
+      avatarChanged: false,
+      avatarFile: null,
+      interests: [],
+      savePersonalInfo: {},
+      isCreating: false,
+      followingList: [],
+      favouritesInfo: [],
+      auditDetail: null,
+      auditStatus: false,
+      searchHistory: [],
+      viewHistory: []
     }
+  },
+  computed: {
+    followingCount() { return this.followingList.length },
+    totalFavoriteCount() {
+      return this.favouritesInfo.reduce((acc, f) => acc + ((f.paper_ids || []).length), 0)
+    },
+    viewHistoryWithMeta() {
+      return this.viewHistory.map((v) => {
+        const p = findPaper(v.paper_id)
+        return { ...v, title: (p && p.title) || v.paper_id }
+      })
+    }
+  },
+  created() {
+    this.getUserInfo()
+    this.getAuditDetail()
+    this.loadFavorites()
+    this.loadFollowing()
+    this.loadHistory()
+    this.$bus.on('sendFlushInterestRequest', this.flushInterets)
+    this.$bus.on('sendFlushAuditStatusRequest', this.flushAuditStatus)
+  },
+  beforeUnmount() {
+    this.$bus.off('sendFlushInterestRequest', this.flushInterets)
+    this.$bus.off('sendFlushAuditStatusRequest', this.flushAuditStatus)
+  },
+  methods: {
+    getUserInfo() {
+      const userId = this.$cookies.get('user_id') || mockUser.id
+      User.getUser(userId).then(
+        (response) => {
+          const data = (response && response.data) || {}
+          this.personalInfo.id = data.id || userId
+          this.personalInfo.nickName = data.username || data.nickName || ''
+          this.personalInfo.realName = data.real_name || ''
+          this.personalInfo.region = data.region || ''
+          this.personalInfo.gender = data.gender || 'gender_unset'
+          this.personalInfo.institution = data.institution || ''
+          this.personalInfo.email = data.email || ''
+          this.personalInfo.bio = data.bio || ''
+          this.personalInfo.urls = (data.websites || data.urls || []).map((u) => {
+            if (!u.startsWith('http')) return 'https://' + u
+            return u
+          })
+          this.interests = data.interests || []
+        },
+        () => {}
+      )
+    },
+    loadFavorites() {
+      User.getFavoriteList(0).then(
+        (response) => {
+          this.favouritesInfo = (response && response.data) || []
+        },
+        () => {}
+      )
+    },
+    loadFollowing() {
+      this.followingList = mockFollowing
+    },
+    loadHistory() {
+      History.getSearchHistory().then(
+        (res) => { this.searchHistory = (res && res.data) || [] },
+        () => {}
+      )
+      History.getViewHistory().then(
+        (res) => { this.viewHistory = (res && res.data) || [] },
+        () => {}
+      )
+    },
+    flushInterets() { this.getUserInfo() },
+    flushAuditStatus() { this.auditStatus = true },
+    jumpToTagDetail(tag) { this.$router.push('/tag_detail/' + tag.id) },
+    getAuditDetail() {
+      Application.getSubmittedList().then(
+        (res) => {
+          const list = (res && res.data) || []
+          if (list.length) {
+            this.auditDetail = list[0]
+            this.auditStatus = true
+          }
+        }
+      )
+    },
+    enterEditingMode() {
+      this.isEditing = true
+      this.cur2savePersonalInfo()
+    },
+    submitChangePersonalInfo() {
+      this.isEditing = false
+      if (this.urlAdding) { this.personalInfo.urls.push(this.urlAdding); this.urlAdding = '' }
+      const userId = this.personalInfo.id
+      const data = {
+        username: this.personalInfo.nickName,
+        real_name: this.personalInfo.realName,
+        gender: this.personalInfo.gender,
+        institution: this.personalInfo.institution,
+        websites: this.personalInfo.urls
+      }
+      User.changePersonalInfo(userId, data).then(
+        () => {
+          this.cur2savePersonalInfo()
+          this.$bus.emit('message', { title: '资料已更新', content: '', time: 1500 })
+        },
+        () => {
+          this.save2curPersonalInfo()
+          this.$bus.emit('message', { title: '更新失败', content: '请稍后再试', time: 1500 })
+        }
+      )
+    },
+    cancelChangePersonalInfo() {
+      this.isEditing = false
+      this.save2curPersonalInfo()
+    },
+    cur2savePersonalInfo() {
+      this.savePersonalInfo = JSON.parse(JSON.stringify(this.personalInfo))
+    },
+    save2curPersonalInfo() {
+      this.personalInfo = { ...this.personalInfo, ...this.savePersonalInfo }
+    },
+    addUrl() {
+      const u = this.urlAdding.trim()
+      if (!u) return
+      this.personalInfo.urls.push(u.startsWith('http') ? u : 'https://' + u)
+      this.urlAdding = ''
+    },
+    searchAgain(h) {
+      this.$router.push({
+        path: '/search_result',
+        query: { search: h.keyword, search_type: 1, per_page: '10', page: '1' }
+      })
+    },
 
-    var scrollTop = window.pageYOffset || document.documentElement.scrollTop
-    var windowHeight = window.innerHeight;
+    /* ── 头像上传：恢复原 PersonalHomepageView 的能力 ─────────── */
+    triggerAvatarUpload() {
+      const input = this.$refs.avatarInput
+      if (input) input.click()
+    },
+    handleAvatarFile(e) {
+      const file = e.target.files && e.target.files[0]
+      if (!file) return
+      this.avatarFile = file
+      this.avatarChanged = true
+      this.personalInfo.avatarUrl = URL.createObjectURL(file)
+      this.avatarLoaded = true
+      const userId = this.personalInfo.id
+      const formData = new FormData()
+      formData.append('avatar', file)
+      User.changePersonalInfo(userId, formData).then(
+        () => { this.$bus.emit('message', { title: '头像已更新', content: '', time: 1500 }) },
+        () => { this.$bus.emit('message', { title: '头像上传失败', content: '请稍后再试', time: 1500 }) }
+      )
+    },
 
-    var topPosition = scrollTop + (windowHeight / 2)
-    container.style.top = topPosition + 'px'
-});
+    /* ── 收藏夹 CRUD：来自原 FavouriteList 的两个事件回调 ────── */
+    cancelCreation() {
+      this.isCreating = false
+    },
+    updateCreation(name) {
+      this.isCreating = false
+      User.createFavorite(0, { name }).then(
+        (res) => {
+          const created = (res && res.data) || { id: 'F-mock-' + Date.now(), name }
+          this.favouritesInfo.unshift({
+            id: created.id,
+            name: created.name || name,
+            paper_ids: [],
+            showContextMenu: false
+          })
+        },
+        () => {}
+      )
+    }
+  }
+}
 </script>
 
 <style scoped>
-* {
-    box-sizing: border-box;
-    max-width: 100%;
+.ps-me {
+  max-width: var(--ps-content-max);
+  margin: 0 auto;
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
 }
 
-em {
-    font-weight: bold;
+.ps-me__hero { margin-bottom: var(--ps-space-7); }
+
+.ps-me__hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--ps-space-7);
+  align-items: center;
 }
 
-.return-part {
-    display: flex;
-    width: 80px;
-    cursor: pointer;
-    height: 35px;
+.ps-me__hero-main {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-5);
 }
 
-.icon {
-    width: 30px;
-    height: 30px;
-    background-size: cover;
-    cursor: pointer;
-    transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
-    fill: #666;
+.ps-me__avatar-wrap {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  border: 3px solid rgba(212, 175, 55, 0.55);
+  box-shadow: var(--ps-shadow-gold);
+  flex: none;
 }
 
-.return-text {
-    font-size: 20px;
-    /* color: #666; */
-    margin-top: 2px;
+.ps-me__avatar-wrap :deep(.ps-avatar),
+.ps-me__avatar-img {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: cover;
+  border: 0 !important;
 }
 
-.main-part {
-    /* min-height: 800px; */
-    width: 100%;
-    /* min-width: 500px; */
-    display: flex;
-    justify-content: center;
-    margin-top: 30px;
-    /* margin-left: 10%; */
+.ps-me__avatar-wrap :deep(.ps-avatar__initials) { font-size: 38px !important; }
+
+.ps-me__avatar {
+  border: 3px solid rgba(212, 175, 55, 0.55);
+  box-shadow: var(--ps-shadow-gold);
 }
 
-.title-part {
-    display: flex;
-    /* margin-top: 50px; */
-    /* margin-left: 80px; */
-    justify-content: space-around;
-    flex-wrap: wrap;
+.ps-me__avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(11, 11, 31, 0.55);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity var(--ps-motion-fast) var(--ps-ease-out);
+  letter-spacing: 0.06em;
 }
 
-.title {
-    display: flex;
-    width: 300px;
-    height: 80px;
-    justify-content: center;
-    align-items: center;
-    font-size: 30px;
+.ps-me__avatar-wrap:hover .ps-me__avatar-overlay { opacity: 1; }
+
+.ps-me__file-input { display: none; }
+
+.ps-me__fav-wrap { padding: var(--ps-space-4) !important; }
+
+.ps-me__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ps-color-accent);
+  font-weight: 700;
+  margin-bottom: var(--ps-space-2);
 }
 
-.info-tag-list {
-    display: flex;
-    width: 80%;
-    justify-content: space-around;
-
+.ps-me__name {
+  font-family: var(--ps-font-display);
+  font-size: clamp(28px, 3.6vw, 38px);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.1;
 }
 
-.personal-info {
-    /* border: 1px solid red; */
-    width: 300px;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    justify-content: center;
+.ps-me__name-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  font-size: var(--ps-fs-2xl);
 }
 
-.personal-image img {
-    height: 250px;
-    width: 250px;
-    border-radius: 50%;
-    transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
-    cursor: pointer;
+.ps-me__realname {
+  font-size: var(--ps-fs-md);
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
 }
 
-.personal-image img:hover {
-    transform: translate(-3px, -3px) scale(1.02);
-    box-shadow: 3px 3px 8px grey;
+.ps-me__realname-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
 }
 
-.personal-info-text {
-    /* min-height: 400px; */
-    width: 300px;
-    margin-top: 10px;
-    position: relative;
+.ps-me__bio {
+  font-size: var(--ps-fs-sm);
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: var(--ps-space-2);
+  max-width: 540px;
 }
 
-.personal-info-text>svg {
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    top: 5px;
-    right: 0;
-    background: transparent;
-    cursor: pointer;
-    fill: var(--default-text-color);
+.ps-me__hero-stats {
+  background: rgba(15, 14, 26, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--ps-space-3);
+  align-items: center;
+  backdrop-filter: blur(10px);
 }
 
-.personal-info-text p:not(:nth-child(1), :nth-child(2)) {
-    background: var(--theme-mode-like);
-    padding-left: 20px;
-    padding-top: 15px;
+.ps-me__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.personal-info-text p:nth-child(3) {
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+.ps-me__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-2xl);
+  font-weight: 700;
+  color: #FFFFFF;
 }
 
-.personal-info-text p:last-of-type {
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    padding-bottom: 15px;
+.ps-me__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ps-color-accent);
 }
 
-.personal-info-text * {
-    color: var(--default-text-color);
+.ps-me__hero-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  margin-top: var(--ps-space-3);
+  padding-top: var(--ps-space-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  flex-wrap: wrap;
 }
 
-.personal-info-text-nickname {
-    font-size: 25px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.personal-info-text-real-name {
-    font-size: 16px;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.personal-info-text-url-list li {
-    margin-left: 5px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    position: relative;
-}
-
-.personal-info-text-url-list li svg {
-    width: 30px;
-    height: 30px;
-    fill: var(--default-text-color);
-}
-
-.personal-info-text-url-list li svg:last-of-type.cross {
-    position: absolute;
-    top: 0;
-    right: 0;
-    cursor: pointer;
-    fill: var(--default-text-color);
-}
-
-.personal-info-text-url-list li:last-child {
-    margin-bottom: 0;
-}
-
-.personal-info-text-url-list li:hover svg:first-of-type {
-    font-size: 17px;
-    font-weight: bold;
-    color: var(--theme-color);
-    fill: var(--theme-color);
-}
-
-/* .personal-info-text-item {
-  margin-bottom: 5px;
-  margin-left: 20px;
-} */
-.tag-and-list {
-    width: 60%;
-    margin-left: 30px;
-}
-
-.personal-tag {
-    min-height: 100px;
-    width: 100%;
-    /* border: 2px solid red; */
-    /* width: 50%;  */
-}
-
-.personal-tag svg {
-  fill: var(--theme-color) !important;
-  width: 30px;
-  height: 30px;
-  translate: 0 5px;
+.ps-me__action-primary,
+.ps-me__action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: var(--ps-fs-xs);
+  font-weight: 600;
+  border-radius: var(--ps-radius-pill);
   cursor: pointer;
 }
 
-.personal-tag h3 {
-    font-size: 25px;
-    font-weight: bold;
+.ps-me__action-primary {
+  background: var(--ps-color-accent);
+  color: #1B1147;
+}
+.ps-me__action-primary:hover { background: var(--ps-color-accent-strong); }
+
+.ps-me__action-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.ps-me__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* ── Layout ──────────────────────────────────────── */
+.ps-me__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: var(--ps-space-6);
+  align-items: flex-start;
 }
 
-.tag-container {
-    display: flex;
-    flex-wrap: wrap;
+.ps-me__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-4));
 }
 
-.tag-item {
-    margin-top: 10px;
-    margin-right: 20px;
-    color: var(--theme-color);
-    cursor: pointer;
+.ps-me__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
 }
 
-.tag-item :hover {
-    text-decoration: underline;
-    cursor: pointer;
+.ps-me__info div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--ps-space-2) 0;
+  border-bottom: 1px dashed var(--ps-border-1);
+}
+.ps-me__info div:last-child { border: 0; }
+
+.ps-me__info dt {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ps-text-3);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.list {
-    margin-top: 0;
+.ps-me__info dd { color: var(--ps-text-1); font-size: var(--ps-fs-sm); font-weight: 500; }
 
-    /* display: flex; */
-    /* justify-content: space-around;
-  flex-wrap: wrap; */
-    /* width: 50%; */
-    min-height: 300px;
-
+.ps-me__inline-input {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 
-.favourites-subscribe-tab {
-    display: flex;
+.ps-me__inline-select {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+  background: var(--ps-bg-elevated);
+  color: var(--ps-text-1);
+  font-family: inherit;
 }
 
-.favourites-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+.ps-me__link-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--ps-radius-sm);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+  cursor: pointer;
 }
 
-.tab {
-    height: 40px;
-    font-size: 18px;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
+.ps-me__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
 }
 
-.tab:last-of-type {
-    margin-left: 20px;
+.ps-me__links li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ps-text-2);
 }
 
-.tab-selected {
-    background-color: var(--theme-color);
-    font-weight: bold;
+.ps-me__links a {
+  color: var(--ps-color-primary);
+  word-break: break-all;
 }
 
-.tab-selected:hover {
-    background-color: var(--theme-color-80);
+.ps-me__link-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ps-bg-sunken);
+  color: var(--ps-text-2);
+  cursor: pointer;
 }
 
-.tab-not-selected {
-    color: var(--default-text-color);
-    background-color: var(--theme-mode-contrast);
+.ps-me__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.tab-not-selected:hover {
-    background-color: var(--theme-mode-high-contrast);
+/* ── Main panels ───────────────────────────────── */
+.ps-me__main { min-width: 0; }
+
+.ps-me__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-pill);
+  margin-bottom: var(--ps-space-5);
+  width: fit-content;
 }
 
-.favourites-creation {
-    background-color: rgb(98, 186, 70);
-    width: 120px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    /* margin-right: 70px; */
-    cursor: pointer;
-    color: white;
+.ps-me__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  background: transparent;
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
 }
 
-.favourites-creation:hover {
-    background-color: rgb(131, 192, 113);
-    color: white;
+.ps-me__tab:hover { color: var(--ps-text-1); }
+.ps-me__tab--active { background: var(--ps-color-primary); color: var(--ps-text-inverse); }
+
+.ps-me__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--ps-space-4);
 }
 
-.model {
-    background-color: white;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 600px;
-    min-height: 400px;
-    border-radius: 20px;
-    position: absolute;
-    padding-top: 25px;
-    padding-bottom: 25px;
-    padding-left: 30px;
-    padding-right: 30px;
-    display: flex;
-    justify-content: center;
+.ps-me__panel-hint {
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
 }
 
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
+.ps-me__new-fav {
+  height: 36px;
+  gap: 6px;
+  font-size: var(--ps-fs-sm);
 }
 
-.fade-enter-to,
-.fade-leave-from {
-    opacity: 1;
+.ps-me__fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--ps-space-4);
 }
 
-.fade-enter-active,
-.fade-leave-active {
-
-    transition: opacity 0.5s linear 0s;
+.ps-me__fav-card {
+  position: relative;
+  padding-top: var(--ps-space-7) !important;
 }
 
-.inner-box {
-    width: 70%;
+.ps-me__fav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--ps-fav-color, var(--ps-color-primary));
+  border-radius: var(--ps-radius-lg) var(--ps-radius-lg) 0 0;
 }
 
-.move-title {
-    color: black;
+.ps-me__fav-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ps-radius-md);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-fav-color, var(--ps-color-primary));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-me__fav-name {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-lg);
+  font-weight: 700;
+  color: var(--ps-text-1);
+  margin-bottom: 4px;
+}
+
+.ps-me__fav-desc {
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
+  line-height: 1.5;
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-me__fav-meta {
+  display: flex;
+  gap: var(--ps-space-3);
+  font-size: 11px;
+  color: var(--ps-text-3);
+}
+
+.ps-me__fav-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ps-me__follow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ps-space-3);
+}
+
+.ps-me__follow-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+}
+
+.ps-me__follow-row > div { flex: 1; min-width: 0; }
+
+.ps-me__follow-row h4 {
+  font-size: var(--ps-fs-base);
+  font-weight: 600;
+  color: var(--ps-text-1);
+}
+
+.ps-me__follow-row p {
+  font-size: 12px;
+  color: var(--ps-text-3);
+}
+
+.ps-me__follow-time {
+  font-size: 11px;
+  color: var(--ps-text-3);
+  font-family: var(--ps-font-mono);
+}
+
+.ps-me__history {
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-me__history li {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  padding: var(--ps-space-3) var(--ps-space-2);
+  border-bottom: 1px dashed var(--ps-border-1);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+  font-size: var(--ps-fs-sm);
+}
+
+.ps-me__history li:last-child { border: 0; }
+.ps-me__history li:hover { background: var(--ps-color-primary-soft); }
+
+.ps-me__history-keyword {
+  flex: 1;
+  min-width: 0;
+  color: var(--ps-text-1);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ps-me__history-meta {
+  font-family: var(--ps-font-mono);
+  font-size: 11px;
+  color: var(--ps-text-3);
+}
+
+@media screen and (max-width: 1024px) {
+  .ps-me__layout {
+    grid-template-columns: 1fr;
+  }
+  .ps-me__sidebar { position: static; }
+}
+
+@media screen and (max-width: 720px) {
+  .ps-me { padding: var(--ps-space-4); }
+  .ps-me__hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .ps-me__hero-main {
+    flex-direction: column;
     text-align: center;
-    font-size: 30px;
-    margin-bottom: 30px;
-}
-
-.authenticate-btn {
-    font-size: 16px;
-    margin-top: 10px;
-    margin-left: auto;
-}
-
-input[type="file"] {
-    display: none;
-}
-
-.edit-input-nickname {
-    width: 80%;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.edit-input-real-name {
-    width: 80%;
-    margin-top: 10px;
-    height: 30px;
-    font-style: 16px;
-    text-align: center;
-}
-
-.edit-input-text {
-    width: 80%;
-    height: 40px;
-}
-
-.url-input {
-    width: 70%;
-    height: 30px;
-    font-weight: normal !important;
-    font-size: 16px !important;
-    color: var(--default-text-color) !important;
-}
-
-.add-url {
-    position: relative;
-}
-
-.add-url svg:last-of-type {
-    position: absolute;
-    cursor: pointer;
-    right: 10px;
-    top: 0;
-    width: 30px;
-    height: 30px;
-    margin-right: 9px;
-    fill: var(--theme-color) !important;
-}
-
-label {
-    margin-right: 10px;
-}
-
-.btn-wrapper {
-    width: 80%;
-    display: flex;
-    justify-content: space-around;
-}
-
-.btn-wrapper button {
-    margin: 20px 0;
-}
-
-@media screen and (max-width: 1450px) {
-    .personal-info {
-        justify-content: center;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .main-part {
-        width: 100%;
-        /* border: 1px solid red; */
-        margin-left: 0;
-    }
-
-    .personal-info {
-        width: 80%;
-        margin-left: 10%;
-        /* border: 1px solid red; */
-        margin-bottom: 30px;
-    }
-
-    .info-tag-list {
-        display: block;
-        width: 100%;
-    }
-
-    .personal-info-text {
-        width: 80%;
-        min-height: 300px;
-    }
-
-    .personal-image {
-        margin-left: 0px;
-    }
-
-    .personal-info {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .tag-and-list {
-        width: 100%;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .list {
-        width: 80%;
-    }
-
-    .personal-tag {
-        width: 80%;
-    }
-}
-
-@media screen and (max-width: 700px) {
-    .personal-info {
-        justify-content: center;
-    }
-
-    .personal-image {
-        margin-left: 0px;
-    }
-
-    .personal-info-text {
-        margin-left: 0px;
-    }
-}
-
-@media screen and (max-width: 600px) {
-    .main-part {
-        width: 100%;
-        margin-left: 0;
-    }
-}
-
-@media screen and (max-width: 450px) {
-
-    .download,
-    .collect {
-        display: none;
-    }
-
-    .more {
-        display: block;
-    }
+  }
+  .ps-me__follow-grid { grid-template-columns: 1fr; }
 }
 </style>

@@ -132,3 +132,63 @@
     - 动画`tooltip-zoomOut`：tooltip 离场动画
     - 类选择器`.tooltip-appear`：tooltip 出场样式
     - 类选择器`.tooltip-disappear`：tooltip 离场样式
+
+### 6 设计系统（Premium Institution）
+
+2026 年 5 月起接入了一套全新的设计语言："高端机构风"，深紫罗兰 + 学术金（Playfair Display + Inter + Noto SC）。它**完全向后兼容**老的 `.basic-btn` / `.basic-input` / `.huge-input` 等类名（已用新 token 重写），同时提供更现代的组件库。
+
+- **Tokens** 在 [src/styles/tokens.css](src/styles/tokens.css) 集中声明：
+  - 主色：`--ps-color-primary` (#2D1B69)、金强调：`--ps-color-accent` (#D4AF37)
+  - 表面：`--ps-bg-page` / `--ps-bg-elevated` / `--ps-bg-sunken`
+  - 文字：`--ps-text-1/2/3`、`--ps-text-inverse`
+  - 边框：`--ps-border-1/2`
+  - 状态：`--ps-color-success/warning/danger/info`（及 `*-soft` 变体）
+  - 圆角：`--ps-radius-xs/sm/md/lg/xl/pill`
+  - 间距：`--ps-space-1..10`（4-pt 网格）
+  - 阴影：`--ps-shadow-1/2/3` + 主题专属 `--ps-shadow-violet/gold/focus`
+  - 字体：`--ps-font-display/sans/mono`，字号 `--ps-fs-xs..6xl`
+  - 动效：`--ps-motion-fast/base/slow`、`--ps-ease-out/in-out`
+  - 布局：`--ps-nav-height` 64px、`--ps-content-max` 1280px
+
+- **暗色模式**：在 `<html>` 上加 `data-theme="dark"` 即生效（NavBar 中的「月亮 / 太阳」图标会切换，并写入 `localStorage.ps-theme`），所有 token 在 `:root[data-theme='dark']` 下重新覆盖一遍，业务代码无需任何改动。
+
+- **全局样式入口**：`src/main.js` 顶部 `import './styles/tokens.css'` + `import './styles/global.css'`，老的 `/css/index.css` 现在只是空文件占位（用于兼容直接 `<link>` 的外部资源）。
+
+- **共享组件库** 位于 [src/components/ui/](src/components/ui)，导出通过 `import { AppCard, AppStat, ... } from '@/components/ui'`（或相对路径）：
+
+  | 组件 | 作用 |
+  | --- | --- |
+  | `AppCard` | 统一卡片壳：`title/subtitle/header/actions/footer` 插槽，`elevation`/`hover`/`interactive`/`accent` props |
+  | `AppIcon` | `@vicons/ionicons5` 包装，按 ionicons 类名即可使用（如 `Search`、`Bookmark`） |
+  | `AppStat` | 大数字 + 单位 + 趋势小标签，路演必备 |
+  | `AppTagChip` | 关键词/标签/学科芯片，6 种变体 `subtle/solid/outline/gold/success/warning/danger`，可点击/可删除 |
+  | `AppMetricBadge` | 圆角小徽章（高被引、OA、IF…） |
+  | `AppAvatar` | 圆形头像，无图片时根据 id 生成稳定渐变 + 首字母 |
+  | `AppSectionHeader` | 二级标题 + 副标题 + 右侧 action |
+  | `AppEmptyState` | 空状态：插画 + 文案 + actions slot |
+  | `AppSkeleton` / `AppSkeletonCard` | 骨架屏（与 mock 的 220–520ms 延迟配合演示） |
+  | `AppBreadcrumb` | 详情页面包屑 |
+  | `AppGradientHero` | 深紫渐变 hero 区，`variant=dark/soft/gold` |
+  | `AppKbdHint` | ⌘K 之类的快捷键贴片 |
+  | `AppIconButton` | 圆形/方形图标按钮，含 tooltip |
+  | `AppSparkline` | SVG 迷你折线，可放进 Stat / 列表项 |
+
+- **图标命名**：直接使用 `@vicons/ionicons5` 的 ES 导出名（PascalCase）。例如 `<AppIcon name="FlameOutline" :size="14" />`。
+
+### 7 Mock 数据模式
+
+后端尚未部署，前端默认运行在 **mock 模式**。原理：
+
+- `src/mock/index.js` 集中导出 18 篇真实风格论文、15 位学者、10 所机构、10 种期刊、6 个主题、5 条系统消息、4 条审核记录等。
+- `src/api/*.js` 中每个方法都改成 `if (USE_MOCK) return mockResponse(...)` 模式，**方法签名与后端契约保持一致**，未来接入真后端只需切换开关，无需改业务代码。
+- 切换开关：项目根目录新建 `.env.local`，加入 `VITE_USE_MOCK=false` 即可让所有请求走真后端。
+- 模拟延时：`src/mock/delay.js` 默认 220–520ms 随机延时，骨架屏因此能正常展示（路演加分项）。
+- 想要扩充演示数据，往 `src/mock/papers.js` / `authors.js` / `institutions.js` 中追加即可，schema 注释见各文件顶部。
+
+### 8 路演 / PK 检查清单
+
+- 路由覆盖：`/`（首页）、`/search_result?search=&search_type=1`（论文检索）、`/paper_detail/W2024-001`（详情页）、`/scholar_portal/A001`（学者主页）、`/institution_detail/I001`（机构页）、`/tag_detail/C1`（学科）、`/personal_homepage`、`/message`、`/auth`、`/admin`
+- 演示用账号：mock 模式下任意邮箱密码登录即可，自动写 cookie，可直接体验关注/收藏/消息中心。
+- 暗色模式：点 NavBar 月亮图标，所有页面同步切换。
+- 多语言：点 NavBar 地球图标，中英切换 + 全屏淡入淡出过渡。
+- ⌘K 快捷键：任何页面按 `Cmd+K` / `Ctrl+K` 自动聚焦顶栏检索框。

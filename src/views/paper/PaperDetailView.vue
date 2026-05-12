@@ -1,143 +1,218 @@
-<template>  <div class="paper-area">
-    <div>
-      <div class="paper-header">
-        <div>{{ $t('public_date') }}{{ this.date }}</div>
-        <div class="button-container">
-          <div class="button-circle" @click="collectPaper">
-            <svg t="1703230769981" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="6848" width="200" height="200">
-              <path
-                d="M512 800.427L290.859 892.8a42.667 42.667 0 0 1-58.966-42.965l20.054-236.928L95.659 433.195a42.667 42.667 0 0 1 22.528-69.547l233.088-54.23 124.288-203.86a42.667 42.667 0 0 1 72.874 0l124.246 203.86 233.088 54.187a42.667 42.667 0 0 1 22.528 69.547L772.01 612.907l20.096 236.928A42.667 42.667 0 0 1 733.14 892.8L512 800.47z m-189.141-13.44L512 707.968l189.141 79.019-17.194-202.838 133.461-153.472-198.912-46.293L512 209.749 405.504 384.384l-198.912 46.293L340.053 584.15 322.86 786.987z"
-                p-id="6849"></path>
-            </svg>
+<template>
+  <div class="ps-paper-root">
+  <div class="ps-paper">
+    <AppGradientHero variant="dark" class="ps-paper__hero">
+      <AppBreadcrumb :items="breadcrumbs" class="ps-paper__crumbs" />
+      <div class="ps-paper__hero-grid">
+        <div class="ps-paper__hero-main">
+          <div class="ps-paper__hero-chips">
+            <AppTagChip
+              v-if="venue"
+              variant="gold"
+              size="md"
+              icon="BookOutline"
+            >{{ venue }}</AppTagChip>
+            <AppTagChip
+              v-for="(c, idx) in (concepts || []).slice(0, 3)"
+              :key="idx"
+              variant="outline"
+              size="md"
+            >{{ c.display_name }}</AppTagChip>
           </div>
-          <div class="button-circle" @click="citePaper">
-            <svg t="1703230919351" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="12214" width="200" height="200">
-              <path
-                d="M563.2 607.168a52.224 52.224 0 0 1 0-0.192v-0.064-0.192a460.48 460.48 0 0 1 223.104-394.56 51.2 51.2 0 0 1 52.928 87.68A359.04 359.04 0 0 0 699.648 454.4 153.472 153.472 0 1 1 563.2 607.168z m-409.6 0a52.224 52.224 0 0 1 0-0.192v-0.064-0.192a460.48 460.48 0 0 1 223.104-394.56 51.2 51.2 0 0 1 52.928 87.68A359.04 359.04 0 0 0 290.048 454.4 153.472 153.472 0 1 1 153.6 607.168z"
-                p-id="12215"></path>
-            </svg>
-          </div>
-          <div class="button-circle" @click="sharePaper">
-            <svg t="1703230967193" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="14131" width="200" height="200">
-              <path
-                d="M769.714 589.547c-51.754 0-97.702 24.851-126.571 63.269L394.479 528.059c3.93-13.798 6.034-28.364 6.034-43.424 0-16.496-2.527-32.399-7.211-47.35l247.724-124.288c28.71 40.052 75.647 66.151 128.687 66.151 87.388 0 158.229-70.84 158.229-158.229 0-87.388-70.841-158.229-158.229-158.229-87.389 0-158.229 70.841-158.229 158.229 0 6.046 0.352 12.009 1.011 17.88L351.22 369.884c-28.371-26.943-66.723-43.479-108.938-43.479-87.388 0-158.229 70.84-158.229 158.229s70.84 158.229 158.229 158.229c43.752 0 83.354-17.758 111.997-46.459l258.676 129.779c-0.964 7.062-1.474 14.266-1.474 21.592 0 87.389 70.84 158.229 158.229 158.229s158.229-70.84 158.229-158.229C927.938 660.388 857.103 589.547 769.714 589.547L769.714 589.547z"
-                p-id="14132"></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class="paper-body">
-        <div class="paper-head">
-          <h3 class="paper-title">
-            {{ this.title }}
-          </h3>
-          <div class="author-container">
-            <div class="paper-author" v-for="(authorship, idx) in this.authorships" :key="idx"
-              @click="gotoAuthorPage(authorship.author.id)">
-              {{ authorship.author.display_name }}
-            </div>
-          </div>
-          <div class="paper-institution" v-for="(institution, idx) in this.institutions" :key="idx"
-            @click="gotoInstitutionPage(institution.id)">
-            {{ institution.display_name }}
-          </div>
-        </div>
-        <div class="paper-content">
-          <div class="paper-abstract">
-            <h4 class="little-title">
-              {{ $t("paper_detail_abstract") }}
-            </h4>
-            <p class="abstract-wrapper">
-              {{ this.abstract }}
-            </p>
-            <!-- <vue-latex :displayMode="true"  :expression="this.displayAbstract"></vue-latex> -->
-            <!-- <p v-html=this.displayAbstract></p> -->
-          </div>
-          <div class="paper-keywords" v-if="keywords.length != 0">
-            <h4 class="little-title">
-              {{ $t('paper_detail_keywords') }}
-            </h4>
-            <span class="paper-keyword" v-for="(keyword, idx) in this.keywords" :key="idx">
-              {{ keyword }}
+          <h1 class="ps-paper__title">{{ title || $t('untitled') || '暂无标题' }}</h1>
+          <p class="ps-paper__authors">
+            <span
+              v-for="(a, idx) in authorships"
+              :key="idx"
+              class="ps-paper__author"
+              @click="gotoAuthorPage(a.author && a.author.id)"
+            >
+              {{ a.author && a.author.display_name }}
+              <span v-if="idx < authorships.length - 1">,</span>
             </span>
-          </div>
-          <div class="paper-doi" v-if="doi != ''">
-            <h4 class="little-title">
-              {{ $t('paper_detail_doi') }}
-            </h4>
-            <a :href="doi" target="_blank"> {{ this.doi }} </a>
-          </div>
-          <div class="paper-articles" v-if="doi != ''">
-            <h4 class="little-title">
-              {{ $t('paper_detail_relevant_articles') }}
-            </h4>
-            <div class="relevant-articles" v-for="(article, idx) in this.relevantArticles" :key="idx"
-              @click="gotoAnotherPaper(article)">
-              {{ article.title }}
-            </div>
-          </div>
-          <div class="paper-source" v-if="source != ''">
-            <h4 class="little-title">
-              {{ $t('paper_detail_source') }}
-            </h4>
-            {{ this.source }}
-          </div>
-
-          <button class="basic-btn-outline function-btn" @click="gotoPaperLandingURL">
-            {{ $t('paper_detail_read_online') }}
-          </button>
-          <button class="basic-btn-outline function-btn" v-if="pdf_url != ''" @click="gotoPdfURL">
-            {{ $t('paper_detail_readPDF') }}
-          </button>
-          <button class="basic-btn-outline function-btn" v-if="pdf_url != ''" @click="downloadPaper">
-            {{ $t('paper_detail_downloadPDF') }}
-          </button>
+          </p>
+          <p v-if="institutions.length" class="ps-paper__institutions">
+            <AppIcon name="School" :size="14" />
+            {{ institutions.map((i) => i.display_name).join(' · ') }}
+          </p>
         </div>
+
+        <aside class="ps-paper__hero-stats">
+          <div class="ps-paper__stat">
+            <span class="ps-paper__stat-num">{{ formattedCited }}</span>
+            <span class="ps-paper__stat-label">被引用次数</span>
+          </div>
+          <div class="ps-paper__stat">
+            <span class="ps-paper__stat-num">{{ date || '—' }}</span>
+            <span class="ps-paper__stat-label">发表日期</span>
+          </div>
+          <div class="ps-paper__stat">
+            <span class="ps-paper__stat-num">{{ relatedCount }}</span>
+            <span class="ps-paper__stat-label">相关工作</span>
+          </div>
+          <div class="ps-paper__action-row">
+            <button class="ps-paper__action ps-paper__action--gold" @click="collectPaper">
+              <AppIcon name="Bookmark" :size="16" />
+              收藏
+            </button>
+            <button class="ps-paper__action" @click="citePaper">
+              <AppIcon name="Create" :size="16" />
+              生成引用
+            </button>
+            <button class="ps-paper__action" @click="sharePaper">
+              <AppIcon name="Share" :size="16" />
+              分享
+            </button>
+          </div>
+        </aside>
       </div>
+    </AppGradientHero>
+
+    <div class="ps-paper__layout">
+      <article class="ps-paper__article">
+        <AppCard>
+          <AppSectionHeader title="摘要" subtitle="Abstract" tag="h2" />
+          <p class="ps-paper__abstract">{{ abstract || '该论文暂无可用摘要。' }}</p>
+        </AppCard>
+
+        <AppCard v-if="keywords.length">
+          <AppSectionHeader title="关键词" subtitle="Keywords" tag="h2" />
+          <div class="ps-paper__keywords">
+            <AppTagChip
+              v-for="(k, idx) in keywords"
+              :key="idx"
+              variant="subtle"
+              size="md"
+            >{{ k }}</AppTagChip>
+          </div>
+        </AppCard>
+
+        <AppCard v-if="relevantArticles.length">
+          <AppSectionHeader title="相关论文" subtitle="Related works" tag="h2">
+            <template #actions>
+              <span class="ps-paper__hint">{{ relevantArticles.length }} 项</span>
+            </template>
+          </AppSectionHeader>
+          <ul class="ps-paper__related">
+            <li
+              v-for="(a, idx) in relevantArticles"
+              :key="idx"
+              @click="gotoAnotherPaper(a)"
+            >
+              <span class="ps-paper__related-idx">{{ String(idx + 1).padStart(2, '0') }}</span>
+              <div class="ps-paper__related-body">
+                <h4>{{ a.title }}</h4>
+                <p v-if="a.authorships && a.authorships.length">
+                  {{ a.authorships.slice(0, 2).map((x) => x.author && x.author.display_name).join(' · ') }}
+                </p>
+              </div>
+              <AppIcon name="ChevronForward" :size="16" />
+            </li>
+          </ul>
+        </AppCard>
+      </article>
+
+      <aside class="ps-paper__sidebar">
+        <AppCard accent="violet">
+          <AppSectionHeader title="操作" tag="h3" />
+          <div class="ps-paper__cta-list">
+            <button
+              v-if="doi"
+              class="ps-paper__cta basic-btn"
+              @click="gotoPaperLandingURL"
+            >
+              <AppIcon name="GlobeOutline" :size="16" />
+              访问原文
+            </button>
+            <button
+              v-if="pdf_url"
+              class="ps-paper__cta basic-btn-outline"
+              @click="gotoPdfURL"
+            >
+              <AppIcon name="Document" :size="16" />
+              在线 PDF
+            </button>
+            <button
+              v-if="pdf_url"
+              class="ps-paper__cta basic-btn-outline"
+              @click="downloadPaper"
+            >
+              <AppIcon name="Cloud" :size="16" />
+              下载 PDF
+            </button>
+          </div>
+        </AppCard>
+
+        <AppCard>
+          <AppSectionHeader title="元数据" tag="h3" />
+          <dl class="ps-paper__meta-list">
+            <div v-if="doi">
+              <dt>DOI</dt>
+              <dd>
+                <a :href="doi" target="_blank" rel="noopener" class="ps-paper__meta-link">
+                  {{ doiShort }}
+                  <AppIcon name="ChevronForward" :size="12" />
+                </a>
+              </dd>
+            </div>
+            <div v-if="source">
+              <dt>来源</dt>
+              <dd>{{ source }}</dd>
+            </div>
+            <div v-if="date">
+              <dt>日期</dt>
+              <dd>{{ date }}</dd>
+            </div>
+            <div>
+              <dt>类型</dt>
+              <dd>{{ workType }}</dd>
+            </div>
+          </dl>
+        </AppCard>
+
+        <AppCard v-if="tags.length" accent="gold">
+          <AppSectionHeader title="学科分类" tag="h3" />
+          <div class="ps-paper__keywords">
+            <AppTagChip
+              v-for="(t, idx) in tags"
+              :key="idx"
+              size="sm"
+              variant="gold"
+            >{{ t.display_name }}</AppTagChip>
+          </div>
+        </AppCard>
+      </aside>
     </div>
   </div>
   <ChooseFavoriteModal :paperId="paperId" :show="collectModalShouldShow" @close="collectModalShouldShow = false" />
   <CiteModal :citations="citations" :show="citeModalShouldShow" @close="citeModalShouldShow = false" />
+  </div>
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
-import { Search } from "../../api/search";
-import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue';
-import CiteModal from '../../components/modals/CiteModal.vue';
-
-
-// import katex from 'katex';
-// import 'katex/dist/katex.css'
-// import { VueLatex } from "vatex";
+import { Search } from '../../api/search'
+import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue'
+import CiteModal from '../../components/modals/CiteModal.vue'
+import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppBreadcrumb } from '../../components/ui'
 
 export default {
+  name: 'PaperDetailView',
   components: {
     ChooseFavoriteModal,
     CiteModal,
-  },
-  watch: {
-    '$route.params.id': {
-      immediate: true,
-      handler(newVal, oldVal) {
-        this.getPaperDetail()
-      },
-    },
+    AppCard,
+    AppIcon,
+    AppTagChip,
+    AppSectionHeader,
+    AppGradientHero,
+    AppBreadcrumb
   },
   data() {
     return {
-      displayLoading: false,
-      progress: 0,
-      isReal: false,
-      accelerate: false,
-
       paperId: undefined,
-      title: "暂无标题",
+      title: '',
       authorships: [],
-      institution: '暂无机构',
+      institutions: [],
       abstract: '',
       keywords: [],
       doi: '',
@@ -149,303 +224,414 @@ export default {
       collectModalShouldShow: false,
       citeModalShouldShow: false,
       relevantArticles: [],
+      related_works_count: 0,
+      workType: 'article',
+      concepts: [],
+      cited_by_count: 0,
+      isOpenAccess: false
     }
   },
-  created() {
-    this.getPaperDetail()
+  watch: {
+    '$route.params.id': {
+      immediate: true,
+      handler() { this.getPaperDetail() }
+    }
+  },
+  computed: {
+    venue() {
+      return this.source
+    },
+    breadcrumbs() {
+      return [
+        { label: '首页', to: '/' },
+        { label: '检索结果', to: '/search_result?search_type=1' },
+        { label: this.title || '论文详情' }
+      ]
+    },
+    formattedCited() {
+      const n = this.cited_by_count
+      if (typeof n !== 'number') return n || 0
+      if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1) + 'K'
+      return n.toLocaleString('en-US')
+    },
+    relatedCount() {
+      return this.related_works_count || this.relevantArticles.length
+    },
+    doiShort() {
+      if (!this.doi) return ''
+      return String(this.doi).replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
+    }
   },
   methods: {
     getPaperDetail() {
-      this.progress = 0
-      this.displayLoading = true
       this.paperId = this.$route.params.id
-      if (this.paperId) {
-        Search.workRetrieve(this.paperId).then(
-          (response) => {
-            // console.log(response)
-            // console.log(1111)
-            this.title = response.data.title
-            this.authorships = response.data.authorships
-            this.institutions = response.data.authorships.institutions
-            if (response.data.abstract != null) {
-              this.abstract = response.data.abstract
-            }
-            this.keywords = response.data.keywords
-            if (response.data.doi != null) {
-              this.doi = response.data.doi
-            }
-            if (response.data.primary_location.source != null) {
-              var result = response.data.primary_location.source.display_name.replace(/=/g, "");
-              this.source = result
-            }
-            this.tags = response.data.concepts
-            this.date = response.data.publication_date
-            if (response.data.primary_location.pdf_url != null) {
-              this.pdf_url = response.data.primary_location.pdf_url
-            }
-            this.citations = response.data.citations
-            this.related_works_count = response.data.related_works_count
-            if (response.data.related_works_count > 0) {
-              this.getRelatedArticles(response.data.related_works_api_url)
-            }
-            this.progress = 100
+      if (!this.paperId) return
+      Search.workRetrieve(this.paperId).then(
+        (response) => {
+          const data = (response && response.data) || {}
+          this.title = data.title || ''
+          this.authorships = data.authorships || []
+          this.institutions = ((data.authorships || []).flatMap((a) => a.institutions || [])).filter(Boolean)
+          if (data.abstract != null) this.abstract = data.abstract
+          this.keywords = data.keywords || []
+          if (data.doi != null) this.doi = data.doi
+          this.cited_by_count = data.cited_by_count || 0
+          this.concepts = data.concepts || []
+          if (data.primary_location && data.primary_location.source) {
+            const name = data.primary_location.source.display_name || ''
+            this.source = name.replace(/=/g, '')
           }
-        )
-      }
-    },
-    // formatAbstract() {
-    //   // 转换LaTeX公式的特殊字符
-
-    //   var regex = /\$/g;
-    //   this.abstract = this.abstract.replace(regex, "");
-
-    // },
-
-    // renderFormula() {
-    //   this.$el.innerHTML = "\\[ " + this.abstract + " \\]";
-    //   MathJax.typeset([this.$el]);
-    // },
-
-    collectPaper() {
-      this.collectModalShouldShow = true
-    },
-    citePaper() {
-      this.citeModalShouldShow = true
-    },
-    sharePaper() {
-      var text = window.location.href;
-      const type = "text/plain";
-      const blob = new Blob([text], { type });
-      const data = [new ClipboardItem({ [type]: blob })];
-      navigator.clipboard.writeText(text);
-      this.$bus.emit('message', { title: this.$t('already_copied'), content: text, time: 3000 })
-      // alert("已复制到剪切板");
-    },
-    downloadPaper(event) {
-      // event.preventDefault()
-      const link = document.createElement('a')
-      link.style.display = 'none'
-      link.href = 'https://www.isound.live/api/download?url=' + this.pdf_url + '&filename=' + this.title + '.pdf'
-
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+          this.tags = data.concepts || []
+          this.date = data.publication_date || ''
+          if (data.primary_location && data.primary_location.pdf_url) {
+            this.pdf_url = data.primary_location.pdf_url
+          }
+          this.citations = data.citations || []
+          this.related_works_count = data.related_works_count || 0
+          this.workType = data.type || 'article'
+          this.isOpenAccess = !!data.open_access
+          if (data.related_works_count > 0 && data.related_works_api_url) {
+            this.getRelatedArticles(data.related_works_api_url)
+          }
+        },
+        () => {}
+      )
     },
     getRelatedArticles(url) {
       Search.getEntities(url).then(
         (response) => {
-          console.log(response)
-          // console.log(222)
-          // console.log(this.institutionAuthors)
-          this.relevantArticles = []
-          if (this.related_works_count <= 3) {
-            this.relevantArticles = response.data.results
-          }
-          else {
-            for (let i = 0; i < 3; i++) {
-              this.relevantArticles.push(response.data.results[i])
-            }
-          }
-          console.log(this.relevantArticles)
-          this.progress = 100
-        }
+          const data = (response && response.data) || {}
+          const list = data.results || []
+          this.relevantArticles = list.slice(0, 6)
+        },
+        () => {}
       )
     },
-    gotoAuthorPage(id) {
-      this.$router.push('/scholar_portal/' + id);
+    collectPaper() { this.collectModalShouldShow = true },
+    citePaper() { this.citeModalShouldShow = true },
+    sharePaper() {
+      try {
+        navigator.clipboard.writeText(window.location.href)
+        this.$bus.emit('message', { title: '已复制到剪贴板', content: window.location.href, time: 2000 })
+      } catch (e) {}
     },
-    gotoInstitutionPage(id) {
-
+    downloadPaper() {
+      if (!this.pdf_url) return
+      const link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = this.pdf_url
+      link.setAttribute('download', this.title + '.pdf')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
+    gotoAuthorPage(id) {
+      if (id) this.$router.push('/scholar_portal/' + id)
     },
     gotoPaperLandingURL() {
-      window.open(this.doi, "_blank")
+      window.open(this.doi, '_blank', 'noopener')
     },
     gotoPdfURL() {
-      window.open(this.pdf_url, "_blank")
+      window.open(this.pdf_url, '_blank', 'noopener')
     },
     gotoAnotherPaper(article) {
-      this.$router.push('/paper_detail/' + article.id);
-    },
+      this.$router.push('/paper_detail/' + article.id)
+    }
   }
 }
 </script>
 
 <style scoped>
-.paper-area {
-  display: flex;
-  justify-content: center;
-  width: 80%;
+.ps-paper {
+  max-width: var(--ps-content-max);
   margin: 0 auto;
-  /* border: 2px solid red; */
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
 }
 
-.paper-header {
-  margin-top: 20px;
+.ps-paper__hero {
+  margin-bottom: var(--ps-space-7);
+}
+
+.ps-paper__crumbs {
+  margin-bottom: var(--ps-space-5);
+}
+
+.ps-paper__crumbs :deep(.ps-breadcrumb a),
+.ps-paper__crumbs :deep(.ps-breadcrumb__current),
+.ps-paper__crumbs :deep(.ps-breadcrumb__sep) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ps-paper__crumbs :deep(.ps-breadcrumb__current) {
+  color: var(--ps-color-accent);
+}
+
+.ps-paper__hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 280px);
+  gap: var(--ps-space-7);
+  align-items: flex-start;
+}
+
+.ps-paper__hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--ps-space-4);
+}
+
+.ps-paper__hero-chips :deep(.ps-chip--outline) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #FFFFFF;
+}
+
+.ps-paper__title {
+  font-family: var(--ps-font-display);
+  font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+  margin-bottom: var(--ps-space-4);
+}
+
+.ps-paper__authors {
+  font-size: var(--ps-fs-md);
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-paper__author {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ps-color-accent);
+  margin-right: 4px;
+}
+
+.ps-paper__author:hover { color: #FFFFFF; text-decoration: underline; }
+
+.ps-paper__institutions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ps-fs-sm);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ps-paper__hero-stats {
+  background: rgba(15, 14, 26, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-5);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-3);
+}
+
+.ps-paper__stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.ps-paper__stat:last-of-type { border: 0; }
+
+.ps-paper__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-xl);
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.ps-paper__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ps-color-accent);
+}
+
+.ps-paper__action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: var(--ps-space-3);
+}
+
+.ps-paper__action {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--ps-radius-md);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-paper__action:hover { background: rgba(255, 255, 255, 0.14); }
+
+.ps-paper__action--gold {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: rgba(212, 175, 55, 0.5);
+  color: var(--ps-color-accent);
+}
+
+/* ── Layout ────────────────────────────────────────────── */
+.ps-paper__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--ps-space-6);
+  align-items: flex-start;
+}
+
+.ps-paper__article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-5);
+  min-width: 0;
+}
+
+.ps-paper__abstract {
+  font-family: var(--ps-font-sans);
+  font-size: var(--ps-fs-md);
+  line-height: var(--ps-lh-relaxed);
+  color: var(--ps-text-1);
+}
+
+.ps-paper__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ps-paper__hint {
+  font-size: var(--ps-fs-xs);
+  color: var(--ps-text-3);
+  font-family: var(--ps-font-mono);
+}
+
+.ps-paper__related {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
+}
+
+.ps-paper__related li {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  padding: var(--ps-space-3) var(--ps-space-4);
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    transform var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-paper__related li:hover {
+  background: var(--ps-color-primary-soft);
+  transform: translateX(4px);
+}
+
+.ps-paper__related-idx {
+  font-family: var(--ps-font-mono);
+  font-size: 11px;
+  color: var(--ps-text-3);
+  width: 22px;
+  flex: none;
+}
+
+.ps-paper__related-body { flex: 1; min-width: 0; }
+
+.ps-paper__related-body h4 {
+  font-size: var(--ps-fs-base);
+  font-weight: 600;
+  color: var(--ps-text-1);
+  margin-bottom: 2px;
+}
+
+.ps-paper__related-body p {
+  font-size: var(--ps-fs-xs);
+  color: var(--ps-text-3);
+}
+
+/* ── Sidebar ──────────────────────────────────────────── */
+.ps-paper__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-4));
+}
+
+.ps-paper__cta-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
+}
+
+.ps-paper__cta {
   width: 100%;
-  /* border: 2px solid red;  */
+  height: 42px;
+  font-size: var(--ps-fs-sm);
+  gap: 8px;
+}
+
+.ps-paper__meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-3);
+}
+
+.ps-paper__meta-list div {
   display: flex;
   justify-content: space-between;
-}
-
-.paper-header :first-child {
-  font-size: 15px;
-  font-weight: bold;
-  color: var(--theme-color-60)
-}
-
-.paper-head {
-  display: flex;
-  margin-top: 10px;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.paper-body {
-  width: 100%;
-}
-
-.paper-title {
-  width: 80%;
-  margin: 0 auto;
-  text-align: center;
-  font-size: 35px;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.author-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.paper-author {
-  text-align: center;
-  cursor: pointer;
-  /* border: 2px solid red; */
-  min-width: 100px;
-  /* width: 100px; */
-  color: var(--theme-color);
-  margin-right: 20px;
-}
-
-.paper-author:hover {
-  text-decoration: underline;
-}
-
-.paper-author :hover {
-  text-decoration: underline;
-}
-
-.paper-institution {
-  text-align: center;
-}
-
-.button-container {
-  display: flex;
-}
-
-.button-circle {
-  margin: 0 10px;
-  width: 40px;
-  height: 40px;
-  background: var(--theme-mode-slight-contrast);
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  transition: .5s cubic-bezier(0.075, 0.82, 0.165, 1);
+  gap: var(--ps-space-3);
+  font-size: var(--ps-fs-sm);
 }
 
-.button-circle:hover {
-  background: var(--theme-mode-contrast);
-  transform: translate(-3px, -3px) scale(1.2);
+.ps-paper__meta-list dt {
+  color: var(--ps-text-3);
+  font-size: var(--ps-fs-xs);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
 }
 
-.button-circle:hover svg {
-  transition: .5s cubic-bezier(0.075, 0.82, 0.165, 1);
-  scale: 1.05;
+.ps-paper__meta-list dd {
+  color: var(--ps-text-1);
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
 }
 
-/* .button-long {
-  margin: 0 10px;
-  width: 40px;
-  height: 40px;
-  background-color: var(--theme-mode-slight-contrast);
-  width: 90px;
-} */
-.icon {
-  width: 25px;
-  height: 25px;
-  fill: var(--theme-color)
+.ps-paper__meta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ps-color-primary);
+  font-family: var(--ps-font-mono);
+  font-size: 12px;
 }
 
-.paper-content {
-  width: 80%;
-  margin: 30px auto;
-  /* border: 2px red solid; */
-  box-sizing: border-box;
-  padding: 25px 40px;
-  background-color: var(--theme-mode-like);
-  box-shadow: 5px 5px 5px var(--theme-mode-contrast);
-  border-radius: 10px;
+@media screen and (max-width: 1024px) {
+  .ps-paper__hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .ps-paper__layout {
+    grid-template-columns: 1fr;
+  }
+  .ps-paper__sidebar { position: static; }
 }
 
-.little-title {
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.paper-keywords {
-  margin-top: 30px;
-  border-top: 1px solid var(--theme-mode-high-contrast);
-}
-
-.paper-keywords h4 {
-  margin-top: 30px;
-}
-
-.paper-doi,
-.paper-source,
-.paper-tags {
-  margin-top: 10px;
-}
-
-.paper-source {
-  margin-bottom: 20px;
-}
-
-.paper-keywords h4,
-.paper-doi h4,
-.paper-articles h4,
-.paper-source h4 {
-  display: inline-block;
-  margin-right: 20px;
-}
-
-.function-btn {
-  font-size: 16px;
-}
-
-.function-btn:not(:last-of-type) {
-  margin-right: 10px;
-}
-
-p.abstract-wrapper {
-  /* overflow-wrap: break-word; */
-  word-wrap: break-word;
-  /* word-break: break-all; */
-}
-
-.relevant-articles {
-  margin-bottom: 5px;
-  color: var(--theme-color);
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.paper-articles :hover {
-  text-decoration: underline;
+@media screen and (max-width: 720px) {
+  .ps-paper { padding: var(--ps-space-4); }
 }
 </style>

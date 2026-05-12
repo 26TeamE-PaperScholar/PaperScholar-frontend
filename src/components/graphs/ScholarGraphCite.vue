@@ -1,7 +1,7 @@
 <template>
   <div>
     <slot></slot>
-    <div id="scholar-graph" style="width: 80%; height: 40vh; margin:0 auto;"></div>
+    <div ref="chartEl" id="scholar-graph" style="width: 80%; height: 40vh; margin:0 auto;"></div>
   </div>
 </template>
   
@@ -15,6 +15,9 @@ export default {
   props: ["info"],
   mounted() {
     this.initChart();
+    if (Array.isArray(this.info) && this.info.length > 0) {
+      this.applyInfo(this.info)
+    }
   },
   data() {
     return {
@@ -76,16 +79,50 @@ export default {
       },
     };
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    window.removeEventListener("resize", this.manualResize);
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
     this.destroyChart();
   },
   methods: {
+    containerIsVisible() {
+      const dom = this.$refs.chartEl;
+      return !!dom && dom.clientWidth > 0 && dom.clientHeight > 0;
+    },
     initChart() {
       // 引入需要使用的组件和渲染器
       echarts.use([TooltipComponent, GridComponent, BarChart, CanvasRenderer]);
 
       // 获取图表容器
-      const chartDom = document.getElementById("scholar-graph");
+      const chartDom = this.$refs.chartEl;
+      if (!chartDom) return;
+
+      // 若组件挂载时其所在 tab 仍处于 display:none 状态，DOM 尺寸为 0，
+      // 直接 init 会触发 ECharts 的 "Can't get DOM width or height" 警告。
+      // 用 ResizeObserver 等待容器获得真实尺寸后再初始化。
+      if (!this.containerIsVisible()) {
+        if (typeof ResizeObserver !== "undefined") {
+          this.resizeObserver = new ResizeObserver(() => {
+            if (this.containerIsVisible() && !this.chart) {
+              this.resizeObserver.disconnect();
+              this.resizeObserver = null;
+              this.initChart();
+              // 初始化时所在 tab 还隐藏，info watcher 的 immediate 调用
+              // 已经因 chart 为空而 no-op；这里在真正初始化后再应用一次数据
+              if (Array.isArray(this.info) && this.info.length > 0) {
+                this.applyInfo(this.info);
+              }
+            } else if (this.chart) {
+              this.manualResize();
+            }
+          });
+          this.resizeObserver.observe(chartDom);
+        }
+        return;
+      }
 
       // 初始化图表
       this.chart = echarts.init(chartDom);
@@ -113,68 +150,49 @@ export default {
     },
 
     destroyChart() {
-      // 销毁图表
       if (this.chart) {
         this.chart.dispose();
         this.chart = null;
       }
     },
     manualResize() {
-      this.chart.resize();
+      if (this.chart) this.chart.resize();
     },
+    applyInfo(newVal) {
+      if (!this.chart) return
+      this.option.xAxis[0].data = []
+      this.option.series[0].data = []
+      this.option.series[1].data = []
+
+      const sorted = [...newVal].sort((a, b) => (a.year || 0) - (b.year || 0))
+      const tail = sorted.slice(-6)
+
+      let maxWorksCount = 0
+      let maxCitedByCount = 0
+      tail.forEach((item) => {
+        if (!item) return
+        this.option.xAxis[0].data.push(item.year)
+        this.option.series[0].data.push(item.works_count || 0)
+        this.option.series[1].data.push(item.cited_by_count || 0)
+        if ((item.works_count || 0) > maxWorksCount) maxWorksCount = item.works_count
+        if ((item.cited_by_count || 0) > maxCitedByCount) maxCitedByCount = item.cited_by_count
+      })
+
+      this.option.yAxis[0].max = Math.max(1, Math.ceil(maxCitedByCount * 1.1))
+      this.option.yAxis[1].max = Math.max(1, Math.ceil(maxWorksCount * 1.1))
+
+      this.chart.setOption(this.option)
+    }
   },
 
   watch: {
-    info(oldVal, newVal) {
-      // var len = this.info.length;
-      if (!newVal || !Array.isArray(newVal)) {
-        return;
+    info: {
+      immediate: true,
+      handler(newVal) {
+        if (!Array.isArray(newVal)) return
+        this.$nextTick(() => this.applyInfo(newVal))
       }
-
-      console.log(this.info, "!!!!!!!");
-      // const reversedInfo = newVal.reverse();
-      // const sortedInfo = reversedInfo.sort((a, b) => a.year - b.year);
-      this.option.xAxis[0].data = [];
-      this.option.series[0].data = [];
-      this.option.series[1].data = [];
-
-      var len = newVal.length;
-      var i = 5;
-      if (!len) i = 0;
-      else if (len < i) i = len;
-
-      // console.log(len, "?????");
-      let maxWorksCount = 0;
-      let maxCitedByCount = 0;
-      for (; i >= 0; i--) {
-        this.option.xAxis[0].data.push(newVal[i].year);
-        this.option.series[0].data.push(newVal[i].works_count);
-        this.option.series[1].data.push(newVal[i].cited_by_count);
-
-        if (newVal[i].works_count > maxWorksCount) {
-          maxWorksCount = newVal[i].works_count;
-        }
-        if (newVal[i].cited_by_count > maxCitedByCount) {
-          maxCitedByCount = newVal[i].cited_by_count;
-        }
-      }
-
-      // 根据需要调整最大值，例如增加一些额外空间
-      maxWorksCount = Math.ceil(maxWorksCount * 1.1);
-      maxCitedByCount = Math.ceil(maxCitedByCount * 1.1);
-
-      this.option.yAxis[0].max = maxCitedByCount; // 引用数量的 Y 轴
-      this.option.yAxis[1].max = maxWorksCount; // 成果数量的 Y 轴
-
-      console.log(this.option.xAxis[0].data, "!!!!!!!");
-      // newVal.forEach((element) => {
-      //   this.option.xAxis[0].data.push(element.year);
-      //   this.option.series[0].data.push(element.works_count);
-      //   this.option.series[1].data.push(element.cited_by_count);
-      // });
-
-      this.chart.setOption(this.option);
-    },
+    }
   },
 };
 </script>
