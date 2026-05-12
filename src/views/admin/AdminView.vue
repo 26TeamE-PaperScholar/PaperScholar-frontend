@@ -1,234 +1,280 @@
 <template>
-    <div class="container">
-        <!-- <button @click="displayTutorial = true">{{ $t('admin_view_instruction') }}</button>
-        <button @click="handleLoading">{{ $t('admin_view_loading') }}</button> -->
-        <tutorial-view :display="displayTutorial" @stop-display="displayTutorial = false"></tutorial-view>
-        <div class="status-select-container">
-            <span class="select-tip">{{ $t('select_audit_status') }}</span>
-            <select v-model="selectStatus">
-                <option :value="-1" selected>{{ $t('all_status') }}</option>
-                <option :value="0">{{ $t('not_reviewed') }}</option>
-                <option :value="1">{{ $t('access') }}</option>
-                <option :value="2">{{ $t('not_access') }}</option>
-                <option :value="3">{{ $t('not_confirmed') }}</option>
-            </select>
-        </div>        <div class="audit-list">
-
-            <ul>
-                <li v-if="auditDatas.length === 0" class="no-result-tip">{{ $t('no_audit_results') }}</li>
-                <pagination :items-per-page="itemsPerPage" :total-pages="totalPages" :current-page="currentPage"
-                    @change-page="handleChangePage" @change-item-per-page="handleChangePerPage">
-                    <li v-for="data in auditDatas" :key="data.submitTime">
-                        <audit-detail-view v-bind="data" @back="data.isDetail = false" @show-detail="data.isDetail = true"
-                            @approve="data.status = 3" @disapprove="data.status = 2"></audit-detail-view>
-                    </li>
-                </pagination>
-            </ul>
+  <div class="ps-admin">
+    <AppGradientHero variant="soft" compact class="ps-admin__hero">
+      <div class="ps-admin__hero-content">
+        <div>
+          <p class="ps-admin__eyebrow">管理后台 · ADMIN</p>
+          <h1 class="ps-admin__title">身份认证审核</h1>
+          <p class="ps-admin__lede">审阅、审批与驳回学者身份认证申请，维护平台学术生态的真实性。</p>
         </div>
+        <aside class="ps-admin__hero-stats">
+          <div class="ps-admin__stat">
+            <span class="ps-admin__stat-num">{{ countByLegacyStatus(0) }}</span>
+            <span class="ps-admin__stat-label">待审核</span>
+          </div>
+          <div class="ps-admin__stat">
+            <span class="ps-admin__stat-num">{{ countByLegacyStatus(1) }}</span>
+            <span class="ps-admin__stat-label">已通过</span>
+          </div>
+          <div class="ps-admin__stat">
+            <span class="ps-admin__stat-num">{{ countByLegacyStatus(2) }}</span>
+            <span class="ps-admin__stat-label">已驳回</span>
+          </div>
+          <button class="basic-btn-outline ps-admin__tutorial-btn" @click="displayTutorial = true">
+            <AppIcon name="HelpCircle" :size="14" />
+            查看教程
+          </button>
+        </aside>
+      </div>
+    </AppGradientHero>
+
+    <AppCard class="ps-admin__filters">
+      <div class="ps-admin__filter-row">
+        <label class="ps-admin__filter-label">
+          <AppIcon name="FilterOutline" :size="14" />
+          状态
+        </label>
+        <div class="ps-admin__chips">
+          <button
+            v-for="s in statusOptions"
+            :key="s.value"
+            class="ps-admin__chip"
+            :class="{ 'ps-admin__chip--active': selectStatus === s.value }"
+            @click="selectStatus = s.value"
+          >{{ s.label }}</button>
+        </div>
+        <button class="basic-btn-outline ps-admin__refresh" @click="load">
+          <AppIcon name="Refresh" :size="14" />
+          刷新
+        </button>
+      </div>
+    </AppCard>
+
+    <div class="ps-admin__list">
+      <AppEmptyState
+        v-if="!filteredRows.length"
+        title="没有匹配的申请"
+        description="当前筛选条件下未发现申请记录。"
+      />
+      <ul v-else>
+        <li v-for="data in filteredRows" :key="data.id">
+          <AuditDetailView
+            :userId="data.userId"
+            :auditId="data.auditId"
+            :userName="data.userName"
+            :realName="data.realName"
+            :institution="data.institution"
+            :position="data.position"
+            :workEmail="data.workEmail"
+            :concepts="data.concepts"
+            :content="data.content"
+            :submitTime="data.submitTime"
+            :status="data.status"
+            :applicationType="data.applicationType"
+            :images="data.images || []"
+            :rejectReason="data.rejectReason"
+            :isDetail="!!data.isDetail"
+            @back="data.isDetail = false"
+            @show-detail="data.isDetail = true"
+            @approve="data.status = 1"
+            @disapprove="data.status = 2"
+          />
+        </li>
+      </ul>
     </div>
+    <TutorialView :display="displayTutorial" @stop-display="displayTutorial = false" />
+  </div>
 </template>
+
 <script>
-import i18n from '../../language';
-import { Application } from '../../api/applications';
-import Pagination from '../../components/pagination/Pagination.vue';
-import AuditDetailView from './AuditDetailView.vue';
-import TutorialView from '../tutorialView/TutorialView.vue';
+import { Application } from '../../api/applications'
+import AuditDetailView from './AuditDetailView.vue'
+import TutorialView from '../tutorialView/TutorialView.vue'
+import { AppCard, AppIcon, AppGradientHero, AppEmptyState } from '../../components/ui'
+
 export default {
-    name: 'AdminView',
-    components: {
-        Pagination,
-        AuditDetailView,
-        i18n,
-        TutorialView,
-    },
-    data() {
-        return {
-            isReal: false,
-            accelerate: false,
-            displayLoading: false,
-            progress: 0,
-            displayTutorial: false,
-            AvailableStatus: [-1, 0, 1, 2, 3],
-            selectStatus: -1,
-            currentPage: 1,
-            itemsPerPage: 1,
-            totalPages: 1,
-            auditDatas: []
-        }
-    },
-    methods: {
-        parseStatus(statusString) {
-            let statusNumber
-            switch (statusString) {
-                case 'processing':
-                    statusNumber = 0
-                    break
-                case 'approved':
-                    statusNumber = 1
-                    break
-                case 'failed':
-                    statusNumber = 2
-                    break
-                case 'unconfirmed':
-                    statusNumber = 3
-                    break
-                default:
-                    statusNumber = 0
-                    break
-            }
-            return statusNumber
-        },
-        packStatus(statusNumber) {
-            let statusString
-            switch (statusNumber) {
-                case 0:
-                    statusString = 'processing'
-                    break
-                case 1:
-                    statusString = 'approved'
-                    break
-                case 2:
-                    statusString = 'failed'
-                    break
-                case 3:
-                    statusString = 'unconfirmed'
-                    break
-                default:
-                    statusString = 'processing'
-                    break
-            }
-            return statusString
-        },
-        handleChangePage(page) {
-            this.currentPage = page
-            const param = {
-                limit: this.itemsPerPage,
-                offset: this.itemsPerPage * (this.currentPage - 1)
-            }
-            this.getResult(param, false)
-        },
-        handleChangePerPage(perPage) {
-            this.itemsPerPage = perPage
-            const param = {
-                limit: this.itemsPerPage,
-                offset: 0
-            }
-            this.getResult(param, false)
-        },
-        getResult(param, accelerate) {
-            this.displayLoading = true
-            this.accelerate = accelerate
-            this.progress = 0
-            Application.getAuditedList(param).then((data) => {
-                this.totalPages = Math.ceil(data.data.count / this.itemsPerPage)
-                console.log(this.totalPages)
-                this.auditDatas = data.data.results.map((result) => {
-                    let statusNumber = this.parseStatus(result.status)
-                    let image = []
-                    if (result.image1 !== null) {
-                        image.push(result.image1)
-                    }
-                    if (result.image2 !== null) {
-                        image.push(result.image2)
-                    }
-                    if (result.image3 !== null) {
-                        image.push(result.image3)
-                    }
-                    return {
-                        auditId: result.id,
-                        userId: result.applicant.id,
-                        userName: result.applicant.username,
-                        isDetail: false,
-                        institution: result.institution,
-                        realName: result.real_name,
-                        applicationType: '学者门户认证',
-                        status: statusNumber,
-                        position: result.position,
-                        workEmail: result.work_email,
-                        content: result.content,
-                        submitTime: result.timestamp,
-                        concepts: result.concepts,
-                        images: image,
-                        rejectReason: result.failed_reason
-                    }
-                })
-                this.progress = 100
-            }, (err) => {
-                // alert(err) 
-            })
-        },
-        handleLoading() {
-            this.progress = 0
-            this.displayLoading = true
-            // for (let i = 1; i <= 100; i++) {
-            //     setTimeout(() => {
-            //         this.progress++
-            //     }, i * 50)
-            // }
-            setTimeout(() => {
-                this.progress = 100
-            }, 12000);
-        },
-    },
-    mounted() {
-        const param = {
-            limit: this.itemsPerPage,
-            offset: this.itemsPerPage * (this.currentPage - 1)
-        }
-        this.getResult(param)
-    },
-    watch: {
-        selectStatus(value) {
-            this.currentPage = 1
-            const param = {
-                limit: this.itemsPerPage,
-                offset: 0,
-            }
-            if (value >= 0) {
-                param.status = this.packStatus(value)
-            }
-            this.getResult(param, false)
-        }
+  name: 'AdminView',
+  components: {
+    AuditDetailView,
+    TutorialView,
+    AppCard,
+    AppIcon,
+    AppGradientHero,
+    AppEmptyState
+  },
+  data() {
+    return {
+      displayTutorial: false,
+      selectStatus: -1,
+      statusOptions: [
+        { value: -1, label: '全部' },
+        { value: 0, label: '待审核' },
+        { value: 1, label: '已通过' },
+        { value: 2, label: '已驳回' },
+        { value: 3, label: '未确认' }
+      ],
+      rows: []
     }
+  },
+  computed: {
+    filteredRows() {
+      if (this.selectStatus === -1) return this.rows
+      return this.rows.filter((r) => r.status === this.selectStatus)
+    }
+  },
+  mounted() { this.load() },
+  methods: {
+    load() {
+      Application.getAuditedList({}).then((res) => {
+        const data = (res && res.data) || {}
+        // 让每行带一个 UI 局部 state `isDetail`，由内层组件 show-detail/back 切换
+        this.rows = (data.results || []).map((row) => ({ ...row, isDetail: false }))
+      })
+    },
+    countByLegacyStatus(s) {
+      return this.rows.filter((r) => r.status === s).length
+    }
+  }
 }
-</script >
+</script>
+
 <style scoped>
-.container {
-    position: relative;
+.ps-admin {
+  max-width: var(--ps-content-max);
+  margin: 0 auto;
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
 }
 
-.audit-list {
-    margin: 0 20%;
-    background: var(--theme-color-10);
-    padding: 20px;
-    border-radius: 15px;
-    position: relative;
+.ps-admin__hero { margin-bottom: var(--ps-space-6); }
+
+.ps-admin__hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ps-space-5);
+  flex-wrap: wrap;
 }
 
-.status-select-container {
-    display: flex;
-    justify-content: end;
-    margin: 2% 3%;
+.ps-admin__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ps-color-accent-strong);
+  font-weight: 700;
+  margin-bottom: var(--ps-space-2);
 }
 
-select {
-    background: var(--theme-mode);
-    color: var(--theme-color);
-    border-radius: 5px;
-    cursor: pointer;
+.ps-admin__title {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-3xl);
+  color: var(--ps-text-1);
+  font-weight: 700;
 }
 
-.select-tip {
-    color: var(--theme-color);
-    font-weight: 700;
-    margin-right: 2%;
+.ps-admin__lede {
+  color: var(--ps-text-2);
+  font-size: var(--ps-fs-sm);
+  margin-top: 4px;
 }
 
-.no-result-tip {
-    color: var(--theme-color);
-    font-size: 25px;
-    font-weight: 700;
-    margin: 5%;
-    text-align: center;
+.ps-admin__hero-stats {
+  display: flex;
+  gap: var(--ps-space-5);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ps-admin__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--ps-space-3) var(--ps-space-5);
+  border-left: 3px solid var(--ps-color-primary);
+  background: var(--ps-bg-elevated);
+  border-radius: var(--ps-radius-md);
+  min-width: 100px;
+}
+
+.ps-admin__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-2xl);
+  font-weight: 700;
+  color: var(--ps-text-1);
+}
+
+.ps-admin__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ps-text-3);
+}
+
+.ps-admin__tutorial-btn {
+  height: 38px;
+  gap: 6px;
+}
+
+/* ── Filters ───────────────────────────────────── */
+.ps-admin__filters { margin-bottom: var(--ps-space-4); }
+
+.ps-admin__filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  flex-wrap: wrap;
+}
+
+.ps-admin__filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ps-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ps-text-3);
+  font-weight: 700;
+}
+
+.ps-admin__chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ps-admin__chip {
+  padding: 6px 12px;
+  font-size: var(--ps-fs-xs);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  background: var(--ps-bg-sunken);
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
+}
+
+.ps-admin__chip:hover { background: var(--ps-color-primary-soft); color: var(--ps-color-primary); }
+.ps-admin__chip--active { background: var(--ps-color-primary); color: var(--ps-text-inverse); }
+
+.ps-admin__refresh {
+  margin-left: auto;
+  height: 36px;
+  gap: 6px;
+  font-size: var(--ps-fs-sm);
+}
+
+.ps-admin__list ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+}
+
+@media screen and (max-width: 1024px) {
+  .ps-admin__hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ps-admin__hero-stats { width: 100%; }
+}
+
+@media screen and (max-width: 720px) {
+  .ps-admin { padding: var(--ps-space-4); }
 }
 </style>

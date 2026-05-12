@@ -1,215 +1,161 @@
 <template>
-    <div :class="['out-border', { 'out-border-full': isExpanded }]">
-      <h3 @click="jumpDetailView" class="title">
+  <AppCard hover interactive class="ps-scholar-item" @click="jumpDetailView">
+    <div class="ps-scholar-item__main">
+      <AppAvatar :name="infoItem.display_name" :id="infoItem.id" size="lg" />
+      <div class="ps-scholar-item__body">
+        <h3 class="ps-scholar-item__name">
           {{ infoItem.display_name }}
-      </h3>
-      <br>
-      <span class="profile">
-        {{ $t('institution_region') }}{{ infoItem.country_code }}
-      </span>
-      <span class="profile">
-        {{ $t('institution_works_count') }}{{ infoItem.works_count }}
-      </span>
-      <span class="profile">
-        {{ $t('institution_cited_by_count') }}{{ infoItem.cited_by_count }}
-      </span>
+          <span v-if="infoItem.display_name_alt" class="ps-scholar-item__alt">{{ infoItem.display_name_alt }}</span>
+        </h3>
+        <p v-if="institutionName" class="ps-scholar-item__institution">
+          <AppIcon name="School" :size="14" />
+          {{ institutionName }}
+        </p>
+        <div class="ps-scholar-item__interests">
+          <AppTagChip
+            v-for="(interest, idx) in (infoItem.research_interests || []).slice(0, 4)"
+            :key="idx"
+            size="sm"
+            variant="subtle"
+          >
+            {{ interest }}
+          </AppTagChip>
+        </div>
+      </div>
+      <div class="ps-scholar-item__stats">
+        <div class="ps-scholar-item__stat">
+          <span class="ps-scholar-item__stat-num">{{ infoItem.h_index || 0 }}</span>
+          <span class="ps-scholar-item__stat-label">h-index</span>
+        </div>
+        <div class="ps-scholar-item__stat">
+          <span class="ps-scholar-item__stat-num">{{ formatNumber(infoItem.works_count) }}</span>
+          <span class="ps-scholar-item__stat-label">{{ $t('institution_works_count') || '发表' }}</span>
+        </div>
+        <div class="ps-scholar-item__stat">
+          <span class="ps-scholar-item__stat-num">{{ formatNumber(infoItem.cited_by_count) }}</span>
+          <span class="ps-scholar-item__stat-label">{{ $t('institution_cited_by_count') || '被引' }}</span>
+        </div>
+      </div>
     </div>
+  </AppCard>
 </template>
 
 <script>
-import i18n from '../../language'
+import { AppCard, AppAvatar, AppIcon, AppTagChip } from '../ui'
 
 export default {
-  props: ['infoItem'],
-    components: {
-        i18n
+  name: 'ScholarListItem',
+  components: { AppCard, AppAvatar, AppIcon, AppTagChip },
+  props: { infoItem: { type: Object, required: true } },
+  computed: {
+    institutionName() {
+      const i = this.infoItem.last_known_institution
+      return i ? i.display_name : ''
+    }
+  },
+  methods: {
+    formatNumber(n) {
+      if (typeof n !== 'number') return n || 0
+      if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1) + 'K'
+      if (Math.abs(n) >= 1_000) return n.toLocaleString('en-US')
+      return n.toString()
     },
-    data() {
-      return {
-        isExpanded: false,
-      }
-    },
-    mounted() {
-      //  console.log(this.infoItem)
-    },
-    methods: {
-      jumpDetailView(){
-        this.$router.push({
-          path: "/scholar_portal/" + this.infoItem.id
-        })
-      }
-    },
-    computed: {
-    
+    jumpDetailView() {
+      this.$router.push('/scholar_portal/' + this.infoItem.id)
+    }
   }
 }
 </script>
 
 <style scoped>
-.out-border {
-    /* border: 1px solid red; */
-    width: 100%;
-    min-height: 86px;
-    position: relative;
-    border-bottom: var(--border-soft);
-    margin-bottom: 0;
-    padding: 22px 0;
-    background: transparent;
-    box-shadow: none;
-    transition: .2s ease;
-}
-.out-border:hover {
-    border-color: #c9c9c9;
-    transform: none;
-}
-.out-border-full {
-  /* border: 1px solid red; */
-    width: 700px;
-    height: unset;
-}
-.title {
-    font-size: 20px;
-    line-height: 1.35;
-    font-weight: 650;
-    color: var(--theme-mode-very-high-contrast);
-    /* display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 1; 
-    line-clamp: 1; */
-    cursor: pointer;
-    display: inline-block;
+.ps-scholar-item {
+  margin-bottom: var(--ps-space-4);
 }
 
-.title:hover {
-  color: var(--theme-mode-very-high-contrast);
-  text-decoration: none;
-}
-
-.profile {
-    font-size: 14px;
-    color: var(--theme-mode-high-contrast);
-    display: inline-block;
-    margin-top: 12px;
-    padding: 0;
-    border-radius: 0;
-    background: transparent;
-    font-weight: 600;
-}
-
-.profile:not(:first-of-type) {
-  margin-left: 10px;
-}
-
-.excerpt {
-    font-size: 14px;
-    color: var(--theme-mode-high-contrast);
-    /* width: 855px; */
-    /* display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 2;
-    line-clamp: 2; */
-}
-
-.excerpt.full {
-  -webkit-line-clamp: unset; 
-  line-clamp: unset;
-}
-.info {
-    display: flex;
-    /* margin-bottom: 20px; */
-    color: blue;
-}
-.download {
-    margin-right: 10px;
-
-    font-size: 15px;
-}
-.collect {
-    margin-right: 10px;
-    font-size: 15px;
-}
-.time-cited {
-    margin-right: 10px;
-    color: rgb(26,14,171);
-    font-size: 15px;
-}
-.related {
-    margin-right: 10px;
-    color: rgb(26,14,171);
-    font-size: 15px;
-    cursor: pointer;
-}
-.more {
-    display: none;
-    color: rgb(3,122,255);
-    font-size: 15px;
-    position: relative;
-    transition: .5s cubic-bezier(0.075, 0.82, 0.165, 1);
-  }
-
-.icon {
-  /* border: 2px red solid; */
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-.dropdown-list {
-  position: absolute;
-  border: 1px solid var(--theme-mode-very-high-contrast);
-  top: calc(100%);
-  right: -0px;
-  padding: 10px;
-  background: var(--theme-mode-like);
-  border-radius: 5px;
-  display: none;
-  z-index: 999;
-}
-
-.dropdown-list-div {
+.ps-scholar-item__main {
   display: flex;
-}
-.dropdown-list-icon {
-  margin-right: 10px;
-}
-.dropdown-list li:first-child {
-  margin-bottom: 10px;
+  align-items: center;
+  gap: var(--ps-space-5);
 }
 
-.dropdown-list li:hover {
-  scale: 1.05;
+.ps-scholar-item__body {
+  flex: 1;
+  min-width: 0;
 }
 
-.more:hover .dropdown-list {
-  display: block;
+.ps-scholar-item__name {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-lg);
+  font-weight: 700;
+  color: var(--ps-text-1);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
 }
 
-@media screen and (max-width: 1000px) {
-  .out-border {
-    width: 90%;
-  }
-  .more {
-    display: none;
-  }
+.ps-scholar-item__alt {
+  font-family: var(--ps-font-sans);
+  font-size: var(--ps-fs-sm);
+  font-weight: 500;
+  color: var(--ps-text-3);
 }
 
-@media screen and (max-width: 800px) {
-  .download, .collect {
-    display: none;
-  }
-  .more {
-    display: block;
-  }
+.ps-scholar-item__institution {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
+  margin-bottom: var(--ps-space-3);
 }
-@media screen and (max-width: 450px) {
-  .download, .collect {
-    display: none;
-  }
-  .more {
-    display: block;
+
+.ps-scholar-item__interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ps-scholar-item__stats {
+  display: flex;
+  gap: var(--ps-space-5);
+  padding-left: var(--ps-space-5);
+  border-left: 1px solid var(--ps-border-1);
+  flex: none;
+}
+
+.ps-scholar-item__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+}
+
+.ps-scholar-item__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-2xl);
+  font-weight: 700;
+  color: var(--ps-text-1);
+  line-height: 1.0;
+}
+
+.ps-scholar-item__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ps-text-3);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+@media screen and (max-width: 720px) {
+  .ps-scholar-item__main { flex-wrap: wrap; }
+  .ps-scholar-item__stats {
+    border-left: 0;
+    border-top: 1px solid var(--ps-border-1);
+    padding-left: 0;
+    padding-top: var(--ps-space-3);
+    width: 100%;
+    justify-content: space-around;
   }
 }
 </style>

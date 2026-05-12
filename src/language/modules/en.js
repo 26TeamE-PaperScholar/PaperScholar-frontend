@@ -11,6 +11,11 @@ export default {
     language: 'English',
     huge_input_placeholder: 'Search anything and more',
 
+    nav_home: 'Home',
+    nav_explore: 'Explore',
+    nav_my: 'My',
+    change_lang: 'Switch language',
+
     login_prompt: ': to explore more',
     email_text: 'Email',
     password_text: 'Password',
@@ -115,7 +120,6 @@ export default {
     advanced_search_publish_keyword_isTitle: 'Is the word title or not?',
     advanced_search_publish_keyword_isTitle_yes: 'yes',
     advanced_search_publish_keyword_isTitle_no: 'no',
-    ipaper_scholar_text: 'iPaper Scholar',
     recommend_for_you: 'Recommendation',
     hotspots: 'Hotspots',
 
@@ -211,14 +215,6 @@ export default {
 
 
 
-    /**
-     * Filter
-Filter by Time
-No Time Limit
-Since 2023
-Since 2022
-Since 2021
-     */
     // Search filter
     filter: 'Filter',
     filte_by_time: 'Filter by Time',
@@ -249,7 +245,6 @@ Since 2021
     top_scholar: 'Top Scholar',
 
     reset_password: 'Reset Your Password',
-    sort_by_date: 'Sort by Date',
     ascending_sort: 'Ascending Sort',
     descending_sort: 'Descending Sort',
     sort_by_citation: 'Sort by Citation',

@@ -1,0 +1,380 @@
+/**
+ * Global stylesheet — built on top of tokens.css
+ * 复用旧类名 (.basic-btn / .basic-input / .huge-input) 以最大化兼容老代码。
+ */
+
+* {
+  box-sizing: border-box;
+  font-family: var(--ps-font-sans);
+  letter-spacing: 0;
+}
+
+/* RouterView 路由切换的过渡样式 —— 必须放在全局，
+   否则 scoped CSS 的 data-attr 永远匹配不到子组件根元素，
+   会导致 <transition mode="out-in"> 卡死、新页面留白。 */
+.ps-route-enter-active,
+.ps-route-leave-active {
+  transition: opacity var(--ps-motion-base) var(--ps-ease-out),
+    transform var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.ps-route-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.ps-route-enter-to,
+.ps-route-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ps-route-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+html,
+body,
+#app {
+  background: var(--ps-bg-page);
+  color: var(--ps-text-1);
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  font-size: var(--ps-fs-base);
+  line-height: var(--ps-lh-normal);
+  color: var(--ps-text-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--ps-motion-slow) var(--ps-ease-out),
+    color var(--ps-motion-slow) var(--ps-ease-out);
+}
+
+/**
+ * Form controls don't inherit `color` from their ancestors by default;
+ * force inheritance so they follow the theme correctly. Anything that
+ * needs a specific color should set it via a class.
+ */
+input,
+textarea,
+select,
+optgroup,
+option {
+  color: inherit;
+}
+
+::selection {
+  background: var(--ps-color-accent-soft);
+  color: var(--ps-text-1);
+}
+
+html {
+  scrollbar-color: var(--ps-border-2) transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ps-border-2);
+  border-radius: var(--ps-radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ps-text-3);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ── Headings ──────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--ps-font-display);
+  color: var(--ps-text-1);
+  font-weight: 700;
+  line-height: var(--ps-lh-tight);
+}
+
+h4, h5, h6 {
+  font-family: var(--ps-font-sans);
+  color: var(--ps-text-1);
+  font-weight: 650;
+  line-height: var(--ps-lh-snug);
+}
+
+/* ── Links ─────────────────────────────────────────────── */
+a {
+  color: var(--ps-text-link);
+  cursor: pointer;
+  transition: color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+a:hover {
+  color: var(--ps-text-link-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Reset native buttons / inputs to be unopinionated ─── */
+button {
+  font-family: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 0;
+  box-shadow: var(--ps-shadow-focus);
+  border-radius: var(--ps-radius-sm);
+}
+
+/* ── Buttons (legacy class wrappers) ───────────────────── */
+.basic-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ps-space-2);
+  height: 40px;
+  padding: 0 var(--ps-space-6);
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+  border-radius: var(--ps-radius-pill);
+  font-weight: 600;
+  font-size: var(--ps-fs-base);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: var(--ps-shadow-1);
+  transition: background var(--ps-motion-base) var(--ps-ease-out),
+    transform var(--ps-motion-base) var(--ps-ease-out),
+    box-shadow var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.basic-btn:hover {
+  background: var(--ps-color-primary-strong);
+  box-shadow: var(--ps-shadow-violet);
+  transform: translateY(-1px);
+}
+
+.basic-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--ps-shadow-1);
+}
+
+.basic-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ps-space-2);
+  height: 40px;
+  padding: 0 var(--ps-space-6);
+  background: transparent;
+  color: var(--ps-color-primary);
+  border: 1px solid var(--ps-color-primary);
+  border-radius: var(--ps-radius-pill);
+  font-weight: 600;
+  font-size: var(--ps-fs-base);
+  cursor: pointer;
+  transition: background var(--ps-motion-base) var(--ps-ease-out),
+    color var(--ps-motion-base) var(--ps-ease-out),
+    transform var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.basic-btn-outline:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
+  transform: translateY(-1px);
+}
+
+/* ── Inputs ────────────────────────────────────────────── */
+.basic-input {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--ps-space-5);
+  font-size: var(--ps-fs-base);
+  color: var(--ps-text-1);
+  caret-color: var(--ps-color-primary);
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+  transition: border-color var(--ps-motion-fast) var(--ps-ease-out),
+    box-shadow var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.basic-input::placeholder {
+  color: var(--ps-text-3);
+}
+
+.basic-input:hover {
+  border-color: var(--ps-border-2);
+}
+
+.basic-input:focus {
+  border-color: var(--ps-color-primary);
+  box-shadow: var(--ps-shadow-focus);
+}
+
+/* ── Huge hero input (legacy class) ───────────────────── */
+.huge-input-wrapper {
+  position: relative;
+  width: 720px;
+  max-width: 100%;
+  height: 64px;
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-pill);
+  box-shadow: var(--ps-shadow-2);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: box-shadow var(--ps-motion-base) var(--ps-ease-out),
+    border-color var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.huge-input-wrapper:focus-within {
+  border-color: var(--ps-color-primary);
+  box-shadow: var(--ps-shadow-violet);
+}
+
+.huge-input {
+  flex: 1;
+  height: 100%;
+  padding: 0 var(--ps-space-7);
+  padding-right: 88px;
+  font-size: var(--ps-fs-xl);
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  color: var(--ps-text-1);
+  outline: 0;
+}
+
+.huge-input::placeholder {
+  color: var(--ps-text-3);
+  font-weight: 400;
+}
+
+@media screen and (max-width: 850px) {
+  .huge-input-wrapper {
+    width: 86vw;
+  }
+
+  .huge-input {
+    font-size: var(--ps-fs-lg);
+    padding: 0 var(--ps-space-5);
+    padding-right: 64px;
+  }
+}
+
+/* ── Tooltip / fade transitions ───────────────────────── */
+@keyframes tooltip-zoomIn {
+  from {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes tooltip-zoomOut {
+  from { opacity: 1; }
+  50% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  to { opacity: 0; }
+}
+
+.tooltip-appear {
+  animation: tooltip-zoomIn 0.3s forwards;
+}
+
+.tooltip-disappear {
+  animation: tooltip-zoomOut 0.3s forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.document-fade-out *:not(body) {
+  animation: fade-out 0.6s linear forwards;
+}
+
+.document-fade-in *:not(body) {
+  animation: fade-in 0.6s linear forwards;
+}
+
+/* ── Page enter animation ─────────────────────────────── */
+@keyframes ps-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ps-rise {
+  animation: ps-rise var(--ps-motion-slow) var(--ps-ease-out) both;
+}
+
+.ps-rise-1 { animation-delay: 0.05s; }
+.ps-rise-2 { animation-delay: 0.10s; }
+.ps-rise-3 { animation-delay: 0.15s; }
+.ps-rise-4 { animation-delay: 0.20s; }
+.ps-rise-5 { animation-delay: 0.25s; }
+
+/* ── Visually-hidden helper for a11y ──────────────────── */
+.ps-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Legacy fragments preserved from old index.css ────── */
+pre * {
+  font-family: var(--ps-font-mono) !important;
+  font-size: var(--ps-fs-xs) !important;
+  background: var(--ps-bg-sunken) !important;
+  border-radius: var(--ps-radius-sm) !important;
+}
+
+pre *::-webkit-scrollbar {
+  display: none !important;
+}
+
+.dialog-bubble * {
+  font-size: var(--ps-fs-base);
+  font-family: var(--ps-font-mono) !important;
+  line-height: 2em;
+}

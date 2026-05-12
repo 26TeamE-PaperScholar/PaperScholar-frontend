@@ -1,344 +1,320 @@
 <template>
-  <div :class="['out-border', { 'out-border-full': isExpanded }]">
-    <h3 class="title" @click="jumpArticle(infoItem.url)" v-html="highlightedText(infoItem.keyword, infoItem.title)"></h3>
-    <div class="author" v-ellipsis="{ maxLine: 1, maxWidth: '100%', wrappable: true }">
-      <span v-for="(author, idx) in infoItem.authorships" :key="idx">
-        {{ author.author.display_name }}
-      </span>
-    </div>
-    <!-- <div class="author">
-          <span v-for="(author, idx) in infoItem.authorships" :key="idx">
-            {{ author.author.display_name }}
-          </span>  
-        </div> -->
-    <p v-html="highlightedText(infoItem.keyword, infoItem.abstract)" class="excerpt"
-      v-ellipsis="{ maxLine: 2, maxWidth: '80%', wrappable: true }">
-    </p>
-    <!-- <p v-html="highlightedText(infoItem.keyword, infoItem.abstract)" class="excerpt">
-    </p> -->
-    <div class="info">
-      <!-- <div class="download" @click="downloadPaper">
-        <svg t="1702361941375" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-          p-id="1181" width="200" height="200">
-          <path
-            d="M128 576.64v192a64 64 0 0 0 64 64h640a64 64 0 0 0 64-64v-192h64v192a128 128 0 0 1-128 128H192a128 128 0 0 1-128-128v-192h64zM511.392 128.64a32 32 0 0 1 32 32V564.16l138.752-136.544a32 32 0 0 1 42.272-2.304l3.008 2.688a32 32 0 0 1-0.384 45.248l-193.184 190.144a32 32 0 0 1-44.96-0.096l-192-190.112a32 32 0 1 1 45.024-45.472l137.504 136.128V160.608a32 32 0 0 1 28.256-31.776l3.712-0.224z"
-            p-id="1182" fill="#1A0EAB"></path>
-        </svg>
-      </div> -->
-      <div class="collect" @click="showCollectModal">
-        <svg t="1702362218021" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-          p-id="1461" width="200" height="200">
-          <path
-            d="M572.032 132.256l95.84 201.28 220.768 28.8c11.104 1.472 21.6 5.824 30.432 12.608l6.304 5.504a63.584 63.584 0 0 1 0 89.92l-159.36 159.36 38.56 221.536c1.92 11.2 0.832 22.72-3.104 33.248l-3.52 7.744a63.584 63.584 0 0 1-86.08 25.952l-196.928-105.632-203.456 106.56c-9.92 5.216-20.992 7.68-32.096 7.232l-8.32-0.896a63.584 63.584 0 0 1-51.744-73.568L257.92 629.76l-159.296-159.36a63.584 63.584 0 0 1-16.448-28.512l-1.632-8.224a63.584 63.584 0 0 1 54.848-71.264l221.12-28.896L457.728 131.2c5.088-10.144 12.768-18.688 22.176-24.832l7.36-4.16a63.584 63.584 0 0 1 84.8 30.08z m-57.44 28.288l-100.832 201.6a64 64 0 0 1-48.96 34.816l-220.352 28.736 158.72 158.784a64 64 0 0 1 18.56 50.592l-0.736 5.6-38.464 221.376 202.688-106.176a64 64 0 0 1 54.784-2.208l5.184 2.496 196.16 105.248-38.4-220.704a64 64 0 0 1 13.984-52.064l3.84-4.16 158.752-158.784-219.936-28.672a64 64 0 0 1-46.976-31.2l-2.528-4.768-95.488-200.512z"
-            p-id="1462"></path>
-        </svg>
-      </div>
-      <div class="time-cited">
-        {{ $t('search_result_cited_times') }}{{ infoItem.cited_by_count }}
-      </div>
-      <!-- <div class="related">
-        {{ $t('search_result_related_work') }}{{ infoItem.related_works_count }}
-      </div> -->
-
-      <!-- 没搞懂这个是干嘛的 -->
-      <!-- <div class="more">
-        <svg t="1702362669780" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-          p-id="1832" id="mx_n_1702362669781" width="200" height="200">
-          <path
-            d="M480 800h64a48 48 0 0 1 48 48v64A48 48 0 0 1 544 960h-64a48 48 0 0 1-48-48v-64A48 48 0 0 1 480 800z m0-368h64a48 48 0 0 1 48 48v64a48 48 0 0 1-48 48h-64a48 48 0 0 1-48-48v-64a48 48 0 0 1 48-48zM480 64h64a48 48 0 0 1 48 48v64A48 48 0 0 1 544 224h-64a48 48 0 0 1-48-48v-64A48 48 0 0 1 480 64z"
-            p-id="1833" fill="#1A0EAB"></path>
-        </svg>
-        <div class="dropdown-list">
-          <div class="dropdown-list-div">
-            <svg @click="showCollectModal" t="1702362218021" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="1461" width="200" height="200">
-              <path
-                d="M572.032 132.256l95.84 201.28 220.768 28.8c11.104 1.472 21.6 5.824 30.432 12.608l6.304 5.504a63.584 63.584 0 0 1 0 89.92l-159.36 159.36 38.56 221.536c1.92 11.2 0.832 22.72-3.104 33.248l-3.52 7.744a63.584 63.584 0 0 1-86.08 25.952l-196.928-105.632-203.456 106.56c-9.92 5.216-20.992 7.68-32.096 7.232l-8.32-0.896a63.584 63.584 0 0 1-51.744-73.568L257.92 629.76l-159.296-159.36a63.584 63.584 0 0 1-16.448-28.512l-1.632-8.224a63.584 63.584 0 0 1 54.848-71.264l221.12-28.896L457.728 131.2c5.088-10.144 12.768-18.688 22.176-24.832l7.36-4.16a63.584 63.584 0 0 1 84.8 30.08z m-57.44 28.288l-100.832 201.6a64 64 0 0 1-48.96 34.816l-220.352 28.736 158.72 158.784a64 64 0 0 1 18.56 50.592l-0.736 5.6-38.464 221.376 202.688-106.176a64 64 0 0 1 54.784-2.208l5.184 2.496 196.16 105.248-38.4-220.704a64 64 0 0 1 13.984-52.064l3.84-4.16 158.752-158.784-219.936-28.672a64 64 0 0 1-46.976-31.2l-2.528-4.768-95.488-200.512z"
-                p-id="1462" fill="#1A0EAB"></path>
-            </svg>
-          </div>
+  <AppCard class="ps-result-item" hover interactive @click="jumpArticle">
+    <div class="ps-result-item__head">
+      <div class="ps-result-item__index" aria-hidden="true">{{ paddedIndex }}</div>
+      <div class="ps-result-item__head-main">
+        <h3 class="ps-result-item__title" v-html="highlightedText(infoItem.keyword, infoItem.title)"></h3>
+        <div class="ps-result-item__authors">
+          <AppAvatar
+            v-for="(a, idx) in displayedAuthors"
+            :key="idx"
+            :name="a.author.display_name"
+            :id="a.author.id"
+            size="xs"
+          />
+          <span class="ps-result-item__authors-text">
+            <template v-for="(a, idx) in displayedAuthors" :key="idx">
+              <span
+                class="ps-result-item__author-link"
+                @click.stop="jumpAuthor(a.author.id)"
+              >{{ a.author.display_name }}</span>
+              <span v-if="idx < displayedAuthors.length - 1">、</span>
+            </template>
+            <span v-if="moreAuthors > 0" class="ps-result-item__author-more"> +{{ moreAuthors }} 位作者</span>
+          </span>
         </div>
-      </div> -->
+      </div>
+      <div class="ps-result-item__actions" @click.stop>
+        <AppIconButton
+          icon="Bookmark"
+          variant="soft"
+          tooltip="收藏到我的收藏夹"
+          aria-label="收藏"
+          @click="showCollectModal"
+        />
+        <AppIconButton
+          icon="Share"
+          variant="ghost"
+          tooltip="分享"
+          aria-label="分享"
+          @click="sharePaper"
+        />
+      </div>
     </div>
-  </div>
+
+    <p
+      class="ps-result-item__excerpt"
+      v-html="highlightedText(infoItem.keyword, infoItem.abstract)"
+    ></p>
+
+    <div class="ps-result-item__meta">
+      <AppMetricBadge
+        :value="infoItem.cited_by_count"
+        :label="$t('search_result_cited_times') || '引用'"
+        tone="violet"
+        icon="FlameOutline"
+      />
+      <AppMetricBadge
+        v-if="infoItem.publication_date"
+        :value="infoItem.publication_date"
+        label="发表"
+        tone="neutral"
+        icon="Calendar"
+      />
+      <AppMetricBadge
+        v-if="infoItem.open_access"
+        value="OA"
+        label="开放获取"
+        tone="success"
+        icon="GlobeOutline"
+      />
+      <AppMetricBadge
+        v-if="venueName"
+        :value="venueName"
+        tone="gold"
+        icon="BookOutline"
+      />
+
+      <div class="ps-result-item__concepts">
+        <AppTagChip
+          v-for="c in (infoItem.concepts || []).slice(0, 3)"
+          :key="c.id"
+          size="sm"
+          variant="subtle"
+        >
+          {{ c.display_name }}
+        </AppTagChip>
+      </div>
+
+      <a
+        v-if="infoItem.primary_location && infoItem.primary_location.pdf_url"
+        class="ps-result-item__pdf"
+        :href="infoItem.primary_location.pdf_url"
+        target="_blank"
+        rel="noopener"
+        @click.stop
+      >
+        <AppIcon name="Document" :size="13" />
+        PDF
+      </a>
+    </div>
+  </AppCard>
   <ChooseFavoriteModal :paperId="infoItem.id" :show="collectModalShouldShow" @close="collectModalShouldShow = false" />
 </template>
 
 <script>
-import i18n from '../../language'
 import ChooseFavoriteModal from '../modals/ChooseFavoriteModal.vue'
+import { AppCard, AppIcon, AppAvatar, AppTagChip, AppMetricBadge, AppIconButton } from '../ui'
 
 export default {
-  props: ['infoItem'],
+  name: 'SearchResultListItem',
   components: {
-    i18n,
-    ChooseFavoriteModal
+    ChooseFavoriteModal,
+    AppCard,
+    AppIcon,
+    AppAvatar,
+    AppTagChip,
+    AppMetricBadge,
+    AppIconButton
+  },
+  props: {
+    infoItem: { type: Object, required: true },
+    index: { type: Number, default: 0 }
   },
   data() {
     return {
-      isExpanded: false,
       collectModalShouldShow: false
     }
   },
+  computed: {
+    displayedAuthors() {
+      return (this.infoItem.authorships || []).slice(0, 3)
+    },
+    moreAuthors() {
+      return Math.max(0, (this.infoItem.authorships || []).length - 3)
+    },
+    paddedIndex() {
+      return String(this.index + 1).padStart(2, '0')
+    },
+    venueName() {
+      const loc = this.infoItem.primary_location
+      if (!loc || !loc.source) return ''
+      return loc.source.display_name || ''
+    }
+  },
   methods: {
-    toggleTextContainer() {
-      this.isExpanded = !this.isExpanded;
-      console.log("clicked");
-    },
     highlightedText(matcher, str) {
-      if (!matcher || !str) {
-        return str;
+      if (!matcher || !str) return str || ''
+      try {
+        const safe = String(matcher).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const regex = new RegExp(safe, 'gi')
+        return String(str).replace(regex, (m) => `<mark class="ps-hit">${m}</mark>`)
+      } catch (e) {
+        return str
       }
-      const regex = new RegExp(matcher, 'gi');
-      return str.replace(regex, match => `<em style="color: var(--theme-color); font-size: inherit;">${match}</em>`);
     },
-    jumpArticle(url) {
-      this.$router.push({
-        path: "/paper_detail/" + this.infoItem.id,
-        url: this.url
-      })
+    jumpArticle() {
+      this.$router.push('/paper_detail/' + this.infoItem.id)
+    },
+    jumpAuthor(id) {
+      if (!id) return
+      this.$router.push('/scholar_portal/' + id)
     },
     showCollectModal() {
       this.collectModalShouldShow = true
     },
-    downloadPaper() {
-      const link = document.createElement('a')
-      link.style.display = 'none'
-      link.href = this.infoItem.primary_location.pdf_url
-      link.setAttribute('download', this.infoItem.title + '.pdf')
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+    sharePaper() {
+      const text = window.location.origin + '/paper_detail/' + this.infoItem.id
+      try {
+        navigator.clipboard.writeText(text)
+        this.$bus.emit('message', { title: '已复制链接', content: text, time: 1800 })
+      } catch (e) {
+        this.$bus.emit('message', { title: '复制失败', content: text, time: 1800 })
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-.out-border {
-  /* border: 1px solid red; */
-  width: 100%;
-  min-height: 112px;
-  position: relative;
-  padding: 22px 0;
-  margin-bottom: 0;
-  border-bottom: var(--border-soft);
-  background: transparent;
-  box-shadow: none;
-  transition: .2s ease;
-  text-align: left;
+.ps-result-item {
+  margin-bottom: var(--ps-space-4);
 }
 
-.out-border:hover {
-  border-color: #c9c9c9;
-  transform: none;
+.ps-result-item__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ps-space-4);
+  margin-bottom: var(--ps-space-3);
 }
 
-.out-border-full {
-  /* border: 1px solid red; */
-  width: 700px;
-  height: unset;
+.ps-result-item__index {
+  font-family: var(--ps-font-mono);
+  font-size: 11px;
+  color: var(--ps-text-3);
+  width: 30px;
+  flex: none;
+  padding-top: 6px;
 }
 
-.title {
-  font-size: 20px;
+.ps-result-item__head-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ps-result-item__title {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-xl);
+  font-weight: 700;
+  color: var(--ps-text-1);
   line-height: 1.35;
-  font-weight: 650;
-  color: var(--theme-mode-very-high-contrast);
-  /* display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 1;
-  line-clamp: 1; */
-  cursor: pointer;
+  margin-bottom: var(--ps-space-2);
 }
 
-.title:hover {
-  color: var(--theme-mode-very-high-contrast);
-  text-decoration: none;
-
+.ps-result-item__title :deep(.ps-hit) {
+  background: var(--ps-color-accent-soft);
+  color: var(--ps-color-accent-strong);
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
-.author {
-  /* display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  cursor: pointer; */
-}
-
-.author span {
-  font-size: 14px;
-  color: var(--theme-mode-high-contrast);
-  margin-right: 12px;
-  font-weight: 600;
-  line-height: 1.65;
-  cursor: pointer;
-}
-
-.excerpt {
-  font-size: 14px;
-  color: var(--theme-mode-high-contrast);
-  line-height: 1.7;
-  margin-top: 8px;
-  margin-left: 0;
-  margin-right: 0;
-  max-width: 760px;
-  /* display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
-  cursor: pointer; */
-}
-
-.excerpt.full {
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
-}
-
-.info {
+.ps-result-item__authors {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  margin-top: 14px;
-  margin-bottom: 0;
-  color: var(--theme-color);
+  gap: var(--ps-space-2);
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
 }
 
-.download {
-  margin-right: 10px;
-
-  font-size: 15px;
+.ps-result-item__authors :deep(.ps-avatar) {
+  margin-right: -6px;
+  box-shadow: 0 0 0 2px var(--ps-bg-elevated);
 }
 
-.collect {
-  margin-right: 0;
-  font-size: 15px;
-  cursor: default;
-  width: 30px;
-  height: 30px;
+.ps-result-item__authors :deep(.ps-avatar:last-of-type) { margin-right: 4px; }
+
+.ps-result-item__author-link {
+  color: var(--ps-text-2);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-result-item__author-link:hover {
+  color: var(--ps-color-primary);
+  text-decoration: underline;
+}
+
+.ps-result-item__author-more {
+  color: var(--ps-text-3);
+  margin-left: 4px;
+}
+
+.ps-result-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.ps-result-item__excerpt {
+  font-size: var(--ps-fs-base);
+  color: var(--ps-text-2);
+  line-height: 1.7;
+  margin-left: 42px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.ps-result-item__excerpt :deep(.ps-hit) {
+  background: var(--ps-color-accent-soft);
+  color: var(--ps-color-accent-strong);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+.ps-result-item__meta {
+  margin-top: var(--ps-space-4);
+  margin-left: 42px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ps-space-2);
+}
+
+.ps-result-item__concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: var(--ps-space-2);
+}
+
+.ps-result-item__pdf {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  background: transparent;
-  border: var(--border-soft);
-  transition: .2s ease;
-}
-
-.collect:hover {
-  background: var(--theme-mode-slight-contrast);
-}
-
-.collect:hover svg.icon {
-  fill: var(--theme-mode-very-high-contrast) !important;
-}
-
-svg.icon {
-  fill: var(--article-list-item-icon-color) !important;
-}
-
-.time-cited {
-  margin-right: 0;
-  color: var(--theme-mode-high-contrast);
-  font-size: 14px;
+  gap: 4px;
+  margin-left: auto;
+  font-size: var(--ps-fs-xs);
   font-weight: 600;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
+  color: var(--ps-color-primary);
+  padding: 4px 10px;
+  border: 1px solid var(--ps-color-primary);
+  border-radius: var(--ps-radius-pill);
 }
 
-/* .related {
-  margin-right: 10px;
-  color: rgb(26, 14, 171);
-  font-size: 15px;
-  cursor: pointer;
-} */
-
-/* .more {
-  display: none;
-  color: rgb(3, 122, 255);
-  font-size: 15px;
-  position: relative;
-  transition: .5s cubic-bezier(0.075, 0.82, 0.165, 1);
-} */
-
-.icon {
-  /* border: 2px red solid; */
-  width: 18px;
-  height: 18px;
-  /* cursor: pointer; */
+.ps-result-item__pdf:hover {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+  text-decoration: none;
 }
 
-.dropdown-list {
-  position: absolute;
-  border: 1px solid var(--theme-mode-very-high-contrast);
-  top: calc(100%);
-  right: -0px;
-  padding: 10px;
-  background: var(--theme-mode-like);
-  border-radius: 5px;
-  display: none;
-  z-index: 999;
-}
-
-.dropdown-list-div {
-  display: flex;
-}
-
-.dropdown-list-icon {
-  margin-right: 10px;
-}
-
-.dropdown-list li:first-child {
-  margin-bottom: 10px;
-}
-
-.dropdown-list li:hover {
-  scale: 1.05;
-}
-
-.more:hover .dropdown-list {
-  display: block;
-}
-
-@media screen and (max-width: 1000px) {
-  .out-border {
-    width: 100%;
+@media screen and (max-width: 720px) {
+  .ps-result-item__excerpt,
+  .ps-result-item__meta {
+    margin-left: 0;
   }
-
-  .more {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 800px) {
-
-  .download,
-  .collect {
-    display: none;
-  }
-
-  .more {
-    display: block;
-  }
-}
-
-@media screen and (max-width: 450px) {
-
-  .download,
-  .collect {
-    display: none;
-  }
-
-  .more {
-    display: block;
-  }
+  .ps-result-item__index { display: none; }
 }
 </style>

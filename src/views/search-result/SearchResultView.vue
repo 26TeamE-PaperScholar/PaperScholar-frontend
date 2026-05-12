@@ -1,1429 +1,905 @@
 <template>
-  <div class="main-area">
+  <div class="ps-results">
+    <!-- ── Top search bar ─────────────────────────────────── -->
+    <div class="ps-results__hero">
+      <div class="ps-results__search">
+        <AppIcon name="Search" :size="18" />
+        <input
+          v-model="search"
+          type="text"
+          :placeholder="placeholderText"
+          @keyup.enter="submitMainSearch"
+        />
+        <button class="ps-results__search-clear" v-if="search" @click="search = ''" aria-label="清空">
+          <AppIcon name="Close" :size="14" />
+        </button>
+        <button class="ps-results__search-btn" @click="submitMainSearch">
+          {{ $t('search_text') || '检索' }}
+        </button>
+      </div>
 
-    <div class="cond-area" style="display: vertical">
-      <section class="side-section">
-        <h3>{{ $t("search_text") }}</h3>
+      <div class="ps-results__type-tabs">
         <button
-          v-for="option in searchTypeOptions"
-          :key="option.type"
-          class="side-option"
-          :class="{ active: selectedSearchTypeOption === option.type }"
-          @click="setSearchTypeFromSidebar(option.type)"
+          v-for="t in TYPE_TABS"
+          :key="t.value"
+          type="button"
+          class="ps-results__type-tab"
+          :class="{ 'ps-results__type-tab--active': search_type == t.value }"
+          @click="setSearchTypeFromTab(t.value)"
         >
-          {{ $t(option.label) }}
+          <AppIcon :name="t.icon" :size="14" />
+          {{ t.label }}
         </button>
-        <button class="side-option" :class="{ active: showAdvancedSearch }" @click="showAdvancedSearch = !showAdvancedSearch">
-          {{ $t("advanced_search_text") }}
-        </button>
-      </section>
+      </div>
+    </div>
 
-      <section v-show="showAdvancedSearch" class="side-section advanced-search-section">
-        <label>
-          <span>{{ $t("advanced_search_author") }}</span>
-          <input class="basic-input" type="text" :placeholder="$t('advanced_search_author_example')" v-model="advancedSearchForm.author" />
-        </label>
-        <label>
-          <span>{{ $t("advanced_search_publication") }}</span>
-          <input class="basic-input" type="text" :placeholder="$t('advanced_search_publication_example')" v-model="advancedSearchForm.publication" />
-        </label>
-        <label>
-          <span>{{ $t("advanced_search_publish_time") }}</span>
-          <div class="time-range">
-            <input class="basic-input" type="text" placeholder="1997" v-model="advancedSearchForm.start_time" />
-            <span>~</span>
-            <input class="basic-input" type="text" placeholder="1998" v-model="advancedSearchForm.end_time" />
+    <div class="ps-results__layout">
+      <!-- ── Filter sidebar ─────────────────────────────── -->
+      <aside class="ps-results__sidebar">
+        <div class="ps-results__sidebar-section">
+          <h3 class="ps-results__sidebar-title">
+            <AppIcon name="FilterOutline" :size="14" />
+            筛选
+          </h3>
+          <details class="ps-results__filter" open>
+            <summary>发表时间</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in TIME_OPTIONS"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': timeFilter === opt.value }"
+                @click="setFilterTime(opt.value)"
+              >{{ opt.label }}</button>
+            </div>
+            <div v-if="timeFilter === 'custom'" class="ps-results__filter-range">
+              <input class="basic-input" type="text" placeholder="2020" v-model="search_start_time" />
+              <span>~</span>
+              <input class="basic-input" type="text" placeholder="2024" v-model="search_end_time" />
+            </div>
+          </details>
+
+          <details class="ps-results__filter" open>
+            <summary>引用次数</summary>
+            <div class="ps-results__filter-options">
+              <button
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': citeFilter === 0 }"
+                @click="filteByCount(0)"
+              >不限</button>
+              <button
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': citeFilter === 1 }"
+                @click="filteByCount(1)"
+              >&gt; <input @click.stop type="text" v-model="filte_count_value" class="ps-results__filter-input" />
+              </button>
+            </div>
+          </details>
+
+          <details v-if="search_type == 1" class="ps-results__filter" open>
+            <summary>语言</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in LANG_OPTIONS"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': langFilter === opt.value }"
+                @click="setLanguage(opt.value)"
+              >{{ opt.label }}</button>
+            </div>
+          </details>
+
+          <details v-if="search_type == 3" class="ps-results__filter">
+            <summary>来源类型</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in JOURNAL_TYPES"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': journalFilter === opt.value }"
+                @click="setJounalType(opt.value)"
+              >{{ opt.label }}</button>
+            </div>
+          </details>
+        </div>
+
+        <div class="ps-results__sidebar-section">
+          <h3 class="ps-results__sidebar-title">
+            <AppIcon name="StatsChart" :size="14" />
+            排序
+          </h3>
+          <div class="ps-results__filter-options ps-results__filter-options--column">
+            <button
+              v-for="opt in SORT_OPTIONS"
+              :key="opt.value"
+              class="ps-results__sort-row"
+              :class="{ 'ps-results__sort-row--active': activeSort === opt.value }"
+              @click="setSort(opt.value)"
+            >
+              <span>{{ opt.label }}</span>
+              <AppIcon :name="opt.icon" :size="13" />
+            </button>
           </div>
-        </label>
-        <label>
-          <span>{{ $t("advanced_search_publish_keyword") }}</span>
-          <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
-          <span>{{ $t("advanced_search_publish_keyword_isTitle") }}</span>
-        </label>
-        <button class="basic-btn advanced-submit" @click="submitAdvancedSearch">{{ $t("search_text") }}</button>
-      </section>
+        </div>
 
-      <!-- <div class="filter-card"  v-html="test_v_html"></div> -->
-      <h3 class="filter-switch" :class="{ 'filter-switch-active': show_filte }" @click="show_filte = !show_filte">
-        {{ $t("filter") }}
-      </h3>
-      <div v-show="show_filte">
-        <div v-show="search_type == 1 || search_type == 3" 
-         class="filter-card" style="
-            display: vertical;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-          ">
-          <ul>
-            <li @click="show_filte_by_time = !show_filte_by_time">
-              {{ $t("filte_by_time") }} <svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="setFilterTime(1)" v-show="show_filte_by_time" style="cursor: pointer">
-              {{ $t("no_limit_time") }}
-            </li>
-            <li @click="setFilterTime(2)" v-show="show_filte_by_time" style="cursor: pointer">
-              {{ $t("since_2023") }}
-            </li>
-            <li @click="setFilterTime(3)" v-show="show_filte_by_time" style="cursor: pointer">
-              {{ $t("since_2022") }}
-            </li>
-            <li @click="setFilterTime(4)" v-show="show_filte_by_time" style="cursor: pointer">
-              {{ $t("since_2019") }}
-            </li>
-            <li v-show="show_filte_by_time" style="cursor: pointer" @click="setFilterTime(5)">
-              
-              <div>
-                <span style="white-space: nowrap ;">{{ $t("self_define_time_range") }}</span>
-                <input @click.stop=";"
-                  class="basic-input" v-model="search_start_time" type="text" style="width: 30%;height: 25px; font-size: 14px; margin-left: 10px" />
-                ~
-                <input @click.stop=";"
-                  class="basic-input" v-model="search_end_time" type="text" style="width: 30%; height: 25px; font-size: 14px"/> 
-                <br>
-              <!-- <button class="basic-btn-outline" @click="setFilterTime(5)" style="width: 40%; margin: 10px auto; display: block;">{{$t('search_text')}}</button> -->
-                
+        <div class="ps-results__sidebar-section">
+          <h3 class="ps-results__sidebar-title">
+            <AppIcon name="Layers" :size="14" />
+            高级检索
+          </h3>
+          <button class="ps-results__advanced-toggle" @click="showAdvancedSearch = !showAdvancedSearch">
+            {{ showAdvancedSearch ? '收起表单' : '展开表单' }}
+            <AppIcon :name="showAdvancedSearch ? 'ChevronDown' : 'ChevronForward'" :size="14" />
+          </button>
+          <div v-show="showAdvancedSearch" class="ps-results__advanced">
+            <label>
+              <span>作者</span>
+              <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
+            </label>
+            <label>
+              <span>来源期刊</span>
+              <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
+            </label>
+            <label>
+              <span>年份范围</span>
+              <div class="ps-results__advanced-range">
+                <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
+                <span>~</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.end_time" placeholder="2024" />
               </div>
-            </li>
-            <!-- <li>
+            </label>
+            <label>
+              <span>关键词</span>
+              <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
+            </label>
+            <label class="ps-results__advanced-check">
+              <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
+              <span>仅匹配标题</span>
+            </label>
+            <button class="basic-btn ps-results__advanced-submit" @click="submitAdvancedSearch">
+              应用高级检索
+            </button>
+          </div>
+        </div>
+      </aside>
 
-            </li> -->
-          </ul>
+      <!-- ── Result main ──────────────────────────────────── -->
+      <section class="ps-results__main">
+        <div class="ps-results__header">
+          <div>
+            <p class="ps-results__count">
+              共 <strong>{{ totalCount }}</strong> 条结果
+              <span v-if="search" class="ps-results__count-keyword">关于 "{{ search }}"</span>
+            </p>
+            <p class="ps-results__took">耗时 {{ tookMs }} ms · 第 {{ currentPage }} / {{ totalPages }} 页</p>
+          </div>
+          <div class="ps-results__sort-quick">
+            <span>排序</span>
+            <select v-model="quickSort" @change="setSort(quickSort)">
+              <option value="cited_by_count:desc">引用 高 → 低</option>
+              <option value="cited_by_count:">引用 低 → 高</option>
+              <option value="publication_date:desc">日期 新 → 旧</option>
+              <option value="publication_date:">日期 旧 → 新</option>
+              <option value="display_name:">名称 A → Z</option>
+            </select>
+          </div>
         </div>
 
-        <div v-show="search_type == 1 || search_type == 2 || search_type == 3 || search_type == 4" class="filter-card" style="
-            display: vertical;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-          ">
-          <ul>
-            <li @click="show_filte_by_cite = !show_filte_by_cite">
-              {{ $t("filte_cite") }}<svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="filteByCount(0)" v-show="show_filte_by_cite" style="cursor: pointer">
-              {{ $t("filte_cite_no_limit") }}
-            </li>
-            <li v-show="show_filte_by_cite" style="cursor: pointer" @click="filteByCount(1)">
-              {{ $t("filte_cite_more_than") }}
-              <input  @click.stop=";"
-                class="basic-input" type="text" v-model="filte_count_value" style="width: 30%; height: 25px; font-size: 14px; margin-left: 10px" />
-              <!-- <br>
-              <button class="basic-btn-outline" style="width: 40%; margin: 10px auto;" @click="filteByCount(1)">{{$t('search_text')}}</button> -->
+        <template v-if="displayLoading">
+          <AppSkeletonCard v-for="i in 4" :key="'sk-' + i" />
+        </template>
 
-            </li>
-            <!-- <li @click="filteByCount(1)" v-show="show_filte_by_cite" style="cursor: pointer">
-              <input class="basic-input" type="text" v-model="filte_count_value" style="width: 30%" />
-            </li> -->
-            
-          </ul>
-        </div>
+        <template v-else-if="!infoItems.length">
+          <AppEmptyState title="未找到结果" description="试试更换关键词、降低筛选条件，或切换检索类型。">
+            <template #actions>
+              <button class="basic-btn-outline" @click="clearAll">清除筛选</button>
+            </template>
+          </AppEmptyState>
+        </template>
 
-        <div v-show="search_type == 1" class="filter-card" style="display: vertical; text-align: center">
-          <ul>
-            <li @click="show_filte_by_language = !show_filte_by_language" style="cursor: pointer">
-              {{ $t("filte_language") }} <svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="setLanguage(1)" v-show="show_filte_by_language" style="cursor: pointer">
-              {{ $t("no_language_limit") }}
-            </li>
-            <li @click="setLanguage(2)" v-show="show_filte_by_language" style="cursor: pointer">
-              {{ $t("chinece_language") }}
-            </li>
-            <li @click="setLanguage(3)" v-show="show_filte_by_language" style="cursor: pointer">
-              {{ $t("english_language") }}
-            </li>
-            <!-- <li>时间不限</li> -->
-          </ul>
-        </div>
+        <template v-else>
+          <component
+            :is="resultComponent"
+            v-for="(info, index) in infoItems"
+            :key="info.id || index"
+            :infoItem="info"
+            :index="(currentPage - 1) * itemsPerPage + index"
+          />
 
-        <!-- <div
-        v-if="search_type == 1"
-        class="filter-card"
-        style="display: vertical; text-align: center"
-      >
-        <ul>
-          <li style="cursor: pointer"><input type="checkbox" />包含专利</li>
-          <li style="cursor: pointer"><input type="checkbox" />包含引用</li>
-        </ul>
-      </div> -->
-        <div v-show="search_type == 3" class="filter-card" style="display: vertical; text-align: center">
-          <ul>
-            <!--  -->
-            <li @click="show_filte_publication = !show_filte_publication" style="cursor: pointer">
-              {{ $t("filte_source") }} <svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="setJounalType(0)" v-show="show_filte_publication" style="cursor: pointer">
-              {{ $t("filte_source_no_limit") }}
-            </li>
-            <li @click="setJounalType(1)" v-show="show_filte_publication" style="cursor: pointer">
-              {{ $t("filte_source_journal") }}
-            </li>
-            <li @click="setJounalType(2)" v-show="show_filte_publication" style="cursor: pointer">
-              {{ $t("filte_source_respository") }}
-            </li>
-            <li @click="setJounalType(3)" v-show="show_filte_publication" style="cursor: pointer">
-              {{ $t("filte_source_conference") }}
-            </li>
-            <!-- <li @click="setJounalType(4)" v-show="show_filte_publication" style="cursor: pointer">
-              ebook
-            </li>
-            <li @click="setJounalType(5)" v-show="show_filte_publication" style="cursor: pointer">
-              platform
-            </li>
-            <li @click="setJounalType(5)" v-show="show_filte_publication" style="cursor: pointer">
-              book series
-            </li> -->
-          </ul>
-        </div>
-      </div>
-
-      <h3 class="sort-switch" :class="{ 'sort-switch-active': show_sort }" @click="show_sort = !show_sort">
-        {{ $t("sort") }}
-      </h3>
-      <div v-show="show_sort">
-        <div v-show="search_type == 1" class="filter-card" style="display: vertical; text-align: center">
-          <ul>
-            <li v-show="search_type == 1" @click="show_sort_by_date = !show_sort_by_date">
-              {{ $t("sort_by_date") }}<svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li v-show="show_sort_by_date && search_type == 1" @click="sortByTime(2)" style="cursor: pointer">
-              {{ $t("ascending_sort") }}
-            </li>
-            <li v-show="show_sort_by_date && search_type == 1" @click="sortByTime(1)" style="cursor: pointer">
-              {{ $t("descending_sort") }}
-            </li>
-          </ul>
-        </div>
-
-        <div v-show="search_type == 1 ||
-          search_type == 2 ||
-          search_type == 3 ||
-          search_type == 4
-          " class="filter-card" style="display: vertical; text-align: center">
-          <ul>
-            <li v-show="search_type == 1 ||
-              search_type == 2 ||
-              search_type == 3 ||
-              search_type == 4
-              " @click="show_sort_by_cite = !show_sort_by_cite">
-              {{ $t("sort_by_cite_count") }}<svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="sortByCite(1)" v-show="show_sort_by_cite &&
-              (search_type == 1 ||
-                search_type == 2 ||
-                search_type == 3 ||
-                search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("ascending_sort") }}
-            </li>
-            <li @click="sortByCite(2)" v-show="show_sort_by_cite &&
-              (search_type == 1 ||
-                search_type == 2 ||
-                search_type == 3 ||
-                search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("descending_sort") }}
-            </li>
-          </ul>
-        </div>
-
-        <div v-show="search_type == 2 || search_type == 3 || search_type == 4" class="filter-card"
-          style="display: vertical; text-align: center">
-          <ul>
-            <li v-show="search_type == 2 || search_type == 3 || search_type == 4"
-              @click="show_sort_by_works_count = !show_sort_by_works_count">
-              {{ $t("sort_by_works_count") }} <svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="sortByWorksCount(1)" v-show="show_sort_by_works_count &&
-              (search_type == 2 || search_type == 3 || search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("ascending_sort") }}
-            </li>
-            <li @click="sortByWorksCount(2)" v-show="show_sort_by_works_count &&
-              (search_type == 2 || search_type == 3 || search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("descending_sort") }}
-            </li>
-          </ul>
-        </div>
-
-        <div v-show="search_type == 1 ||
-          search_type == 2 ||
-          search_type == 3 ||
-          search_type == 4
-          " class="filter-card" style="display: vertical; text-align: center">
-          <ul>
-            <li v-show="search_type == 1 ||
-              search_type == 2 ||
-              search_type == 3 ||
-              search_type == 4
-              " @click="show_sort_by_display_name = !show_sort_by_display_name">
-              {{ $t("sort_by_alpha") }}<svg  t="1703580067074" class="icon" viewBox="256 256 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4195" width="20" height="20"><path d="M680.1408 414.976c9.9328-8.704 24.2176-6.656 31.8976 4.608a27.8016 27.8016 0 0 1-4.096 35.84l-172.032 149.76a35.6352 35.6352 0 0 1-47.8208 0l-172.032-149.7088a27.8016 27.8016 0 0 1-4.096-35.9424c7.68-11.1616 22.016-13.2096 31.8976-4.608L512 561.3056l168.1408-146.2784z" fill="#17232B" p-id="4196"></path></svg>
-            </li>
-            <li @click="sortByDisplayName(1)" v-show="show_sort_by_display_name &&
-              (search_type == 1 ||
-                search_type == 2 ||
-                search_type == 3 ||
-                search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("ascending_sort") }}
-            </li>
-            <li @click="sortByDisplayName(2)" v-show="show_sort_by_display_name &&
-              (search_type == 1 ||
-                search_type == 2 ||
-                search_type == 3 ||
-                search_type == 4)
-              " style="cursor: pointer">
-              {{ $t("descending_sort") }}
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- <hr> -->
+          <div class="ps-results__pagination">
+            <PaginationBar
+              :items-per-page="itemsPerPage"
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-change="changePages"
+              @item-per-page-change="changeItemPerpage"
+            />
+          </div>
+        </template>
+      </section>
     </div>
-
-    <div class="search-container-wrapper">
-      <div class="search-container">
-        <SearchPanel ref="searchPanelRef" @senddata="handleModoleSearch" @setSearchTypeChild="handleChildSearchType">
-        </SearchPanel>
-      </div>
-      <div>
-        <ul>
-          <li v-for="(item, index) in autoCompleteLists" :key="index">
-            {{ item.display_name }}
-          </li>
-        </ul>
-      </div>
-
-      <!--     //this.$emit('change-item-per-page',itemsPerPage)
-    //this.$emit('change-page',page) -->
-      <!-- 
-       -->
-      <Pagination @change-item-per-page="changeItemPerpage" @change-page="changePages" :itemsPerPage="itemsPerPage"
-        :currentPage="currentPage" :totalPages="totalPages" class="pagination" :defaultItemsPerPage="5">
-        <div v-if="search_type == 1">
-          <SearchResultListItem v-for="(info, index) in infoItems" :key="index" :infoItem="info"></SearchResultListItem>
-        </div>
-        <div v-else-if="search_type == 2">
-          <ScholarListItem v-show="search_type == 2" v-for="(info, index) in infoItems" :key="index" :infoItem="info">
-          </ScholarListItem>
-        </div>
-        <div v-else-if="search_type == 3">
-          <JournalListItem v-for="(info, index) in infoItems" :key="index" :infoItem="info"></JournalListItem>
-        </div>
-
-        <div v-else>
-          <InstitutionListItem v-show="search_type == 4" v-for="(info, index) in infoItems" :key="index" :infoItem="info">
-          </InstitutionListItem>
-        </div>
-      </Pagination>
-    </div>
-    <!-- <ChatGPT style="display: vertical; position: sticky; top: 60px"></ChatGPT> -->
-  </div>
-  <div v-if="$cookies.get('user_id')"
-    id="chat" :class="{ chat: true, dragging: isDragging }"
-    :style="{ top: topDistance + 'px', left: leftDistance + 'px' }" @mousedown.stop="startDrag">
-    <template v-if="showChat">
-      <ChatGPT />
-      <svg class="fold-icon" @click="showChat = false" t="1703515853080" viewBox="0 0 1024 1024" version="1.1"
-        xmlns="http://www.w3.org/2000/svg" p-id="3724" width="200" height="200">
-        <path
-          d="M904.533333 674.133333l-362.666666-362.666666c-17.066667-17.066667-42.666667-17.066667-59.733334 0l-362.666666 362.666666c-17.066667 17.066667-17.066667 42.666667 0 59.733334 17.066667 17.066667 42.666667 17.066667 59.733333 0L512 401.066667l332.8 332.8c8.533333 8.533333 19.2 12.8 29.866667 12.8s21.333333-4.266667 29.866666-12.8c17.066667-17.066667 17.066667-42.666667 0-59.733334z"
-          p-id="3725"></path>
-      </svg>
-    </template>
-    <template v-else>
-      <div class="talk-hint-container">
-        <span class="talk-hint">{{ $t("talk_with_chat") }}</span>
-        <svg class="unfold-chat" @click="showChat = true" t="1703515339866" viewBox="0 0 1024 1024" version="1.1"
-          xmlns="http://www.w3.org/2000/svg" p-id="3584" width="200" height="200">
-          <path
-            d="M904.533333 311.466667c-17.066667-17.066667-42.666667-17.066667-59.733333 0L512 644.266667 179.2 311.466667c-17.066667-17.066667-42.666667-17.066667-59.733333 0-17.066667 17.066667-17.066667 42.666667 0 59.733333l362.666666 362.666667c8.533333 8.533333 19.2 12.8 29.866667 12.8s21.333333-4.266667 29.866667-12.8l362.666666-362.666667c17.066667-17.066667 17.066667-42.666667 0-59.733333z"
-            p-id="3585"></path>
-        </svg>
-      </div>
-    </template>
   </div>
 </template>
-  
+
 <script>
-import SearchResultListItem from "../../components/search-result-list/SearchResultListItem.vue";
-import Pagination from "../../components/pagination/Pagination.vue";
-import i18n from "../../language";
-import { Search } from "../../api/search.js";
-import { AutoComplete } from "../../api/autocomplete.js";
-// import AsideBar from "../../components/search-property/AsideBar.vue";
-import InstitutionListItem from "../../components/list-item/InstitutionListItem.vue";
-import JournalListItem from "../../components/list-item/JournalListItem.vue";
-import ScholarListItem from "../../components/list-item/ScholarListItem.vue";
-// import SearchModelVue
-import SearchPanel from "../search/SearchPanel.vue";
-import ChatGPT from "../../components/chat/Chat.vue";
-import { ref } from "vue";
-import FavouriteListChoosableVue from "../../components/favorites/FavouriteListChoosable.vue";
+import SearchResultListItem from '../../components/search-result-list/SearchResultListItem.vue'
+import PaginationBar from '../../components/pagination/PaginationBar.vue'
+import InstitutionListItem from '../../components/list-item/InstitutionListItem.vue'
+import JournalListItem from '../../components/list-item/JournalListItem.vue'
+import ScholarListItem from '../../components/list-item/ScholarListItem.vue'
+import { Search } from '../../api/search.js'
+import { AppCard, AppIcon, AppSkeletonCard, AppEmptyState } from '../../components/ui'
+
+const TYPE_TABS = [
+  { value: 1, label: '论文', icon: 'Document' },
+  { value: 2, label: '学者', icon: 'Person' },
+  { value: 3, label: '期刊/会议', icon: 'BookOutline' },
+  { value: 4, label: '机构', icon: 'School' }
+]
+
+const PLACEHOLDERS = {
+  1: '检索论文标题、摘要或关键词',
+  2: '检索学者姓名、ORCID 或机构',
+  3: '检索期刊或会议名称',
+  4: '检索高校与研究机构'
+}
+
+const TIME_OPTIONS = [
+  { value: 'all', label: '不限' },
+  { value: '2023', label: '近 2 年' },
+  { value: '2019', label: '近 5 年' },
+  { value: '2022', label: '2022 起' },
+  { value: 'custom', label: '自定义' }
+]
+
+const LANG_OPTIONS = [
+  { value: 'all', label: '不限' },
+  { value: 'en', label: 'English' },
+  { value: 'zh-cn', label: '中文' }
+]
+
+const JOURNAL_TYPES = [
+  { value: 0, label: '不限' },
+  { value: 1, label: '期刊' },
+  { value: 2, label: '预印本' },
+  { value: 3, label: '会议' }
+]
+
+const SORT_OPTIONS = [
+  { value: 'cited_by_count:desc', label: '引用 高 → 低', icon: 'ArrowDown' },
+  { value: 'cited_by_count:', label: '引用 低 → 高', icon: 'ArrowUp' },
+  { value: 'publication_date:desc', label: '日期 新 → 旧', icon: 'ArrowDown' },
+  { value: 'publication_date:', label: '日期 旧 → 新', icon: 'ArrowUp' },
+  { value: 'display_name:', label: '名称 A → Z', icon: 'ArrowDown' }
+]
+
 export default {
-  name: "SearchResultView",
+  name: 'SearchResultView',
   components: {
     SearchResultListItem,
-    Pagination,
-    i18n,
+    PaginationBar,
     InstitutionListItem,
     JournalListItem,
     ScholarListItem,
-    Search,
-    ChatGPT,
-    SearchPanel,
+    AppCard,
+    AppIcon,
+    AppSkeletonCard,
+    AppEmptyState
   },
   data() {
     return {
-      /***
-     * display_name
-        cited_by_count
-        works_count
-        publication_date
-        relevance_score (only exists if there's a search filter active)
-     */
-      show_sort_by_date: false,
-      show_sort_by_cite: false,
-      show_sort_by_works_count: false,
-      show_sort_by_display_name: false,
-      selectedSearchTypeOption: 0,
+      TYPE_TABS,
+      TIME_OPTIONS,
+      LANG_OPTIONS,
+      JOURNAL_TYPES,
+      SORT_OPTIONS,
       showAdvancedSearch: false,
-      searchTypeOptions: [
-        { type: 0, label: "kerword_search" },
-        { type: 1, label: "abstract_search" },
-        { type: 2, label: "full_text_search" },
-        { type: 3, label: "title_search" },
-        { type: 4, label: "author_search" },
-        { type: 5, label: "journal_search" },
-        { type: 6, label: "institution_search" },
-      ],
       advancedSearchForm: {
-        author: "",
-        publication: "",
-        start_time: "",
-        end_time: "",
-        keyword: "",
-        is_key_title: true,
+        author: '',
+        publication: '',
+        start_time: '',
+        end_time: '',
+        keyword: '',
+        is_key_title: true
       },
 
-      show_filte_by_time: false,
-      show_filte_by_cite: false,
-      show_filte_by_works_count: false,
-      show_filte_by_language: false,
-      show_filte_publication: false,
-
-      test_v_html: "",
+      timeFilter: 'all',
+      citeFilter: 0,
+      langFilter: 'all',
+      journalFilter: 0,
 
       filte_count_value: 10,
-      filte_cite_value: 100,
-
-      show_sort: true,
-      show_filte: true,
-      showChat: false,
+      activeSort: 'cited_by_count:desc',
+      quickSort: 'cited_by_count:desc',
 
       totalPages: 1,
       currentPage: 1,
       itemsPerPage: 5,
-      //加载条参数
-      accelerate: false,
-      isReal: false,
       displayLoading: false,
-      progress: 0,
+      tookMs: 0,
 
-      resultlist: null,
       infoItems: [],
-      demoInfoItems: [
-        {
-          id: "demo-work-1",
-          title: "Retrieval-Augmented Generation for Scholarly Literature Review",
-          keyword: this.search || "retrieval",
-          abstract:
-            "This paper presents a retrieval-augmented workflow for scientific literature review, combining citation-aware search, abstract summarization, and author disambiguation to support evidence-grounded academic discovery.",
-          cited_by_count: 284,
-          authorships: [
-            { author: { display_name: "Ming Chen" } },
-            { author: { display_name: "Elena Park" } },
-            { author: { display_name: "David Kumar" } },
-          ],
-          primary_location: {
-            pdf_url: "",
-          },
-        },
-        {
-          id: "demo-work-2",
-          title: "Large Language Models as Research Assistants: A Survey",
-          keyword: this.search || "language",
-          abstract:
-            "We survey recent work on language-model-based research assistants, focusing on search intent understanding, trustworthy citation generation, human feedback loops, and evaluation protocols for academic information systems.",
-          cited_by_count: 619,
-          authorships: [
-            { author: { display_name: "Sarah Williams" } },
-            { author: { display_name: "Jiahao Li" } },
-          ],
-          primary_location: {
-            pdf_url: "",
-          },
-        },
-        {
-          id: "demo-work-3",
-          title: "Graph-Based Recommendation in Academic Search Platforms",
-          keyword: this.search || "graph",
-          abstract:
-            "A heterogeneous graph model is introduced to recommend papers, scholars, institutions, and venues from sparse interaction signals. Experiments show improved coverage for early-stage researchers and interdisciplinary queries.",
-          cited_by_count: 143,
-          authorships: [
-            { author: { display_name: "Ava Thompson" } },
-            { author: { display_name: "Yuki Tanaka" } },
-            { author: { display_name: "Rafael Costa" } },
-          ],
-          primary_location: {
-            pdf_url: "",
-          },
-        },
-        {
-          id: "demo-work-4",
-          title: "Evaluating Trust and Transparency in Citation Search",
-          keyword: this.search || "citation",
-          abstract:
-            "This study proposes interface-level metrics for transparent citation search, including source provenance, result explainability, temporal coverage, and user confidence across exploratory academic tasks.",
-          cited_by_count: 87,
-          authorships: [
-            { author: { display_name: "Nora Singh" } },
-            { author: { display_name: "Michael Adams" } },
-          ],
-          primary_location: {
-            pdf_url: "",
-          },
-        },
-      ],
-      infoItem: {
-        title: "低碳经济: 人类经济发展方式的新变革",
-        author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
-        excerpt: "0",
-        timeCited: 57,
-        keyword: "经济",
-        publicationYear: 2008,
-        journalName: "中国工业经济",
-        abstract:
-          "This work discusses the new changes in human economic development towards a low carbon economy...",
-        url: "https://example.com/link-to-work",
-      },
-      searchdata: null,
+      totalCount: 0,
 
-      // search
-      filter: "",
-      search: "",
-      sort: "cited_by_count:desc",
-      per_page: "10",
-      page: "1",
-      cursor: "",
+      filter: '',
+      search: '',
+      sort: 'cited_by_count:desc',
+      per_page: '10',
+      page: '1',
+      cursor: '',
 
       search_start_time: 2020,
-      search_end_time: 2022,
-      show_range: true,
-      search_type: 1,
-
-      autoCompleteLists: [],
-      // work type
-      options: [
-        { text: "Article", value: "article" },
-        { text: "Book", value: "book" },
-        { text: "Letter", value: "letter" },
-      ],
-      selectedOption: null,
-
-      placehold: "",
-      searchPanelRef: null,
-
-      topDistance: window.innerWidth > 500 ? 200 : 215,
-      leftDistance:
-        window.innerWidth > 500
-          ? window.innerWidth - 330
-          : window.innerWidth * 0.5 - 160,
-      startX: 0,
-      startY: 0,
-      isDragging: false,
-    };
+      search_end_time: 2024,
+      search_type: 1
+    }
+  },
+  computed: {
+    placeholderText() {
+      return PLACEHOLDERS[this.search_type] || ''
+    },
+    resultComponent() {
+      switch (Number(this.search_type)) {
+        case 2: return 'ScholarListItem'
+        case 3: return 'JournalListItem'
+        case 4: return 'InstitutionListItem'
+        default: return 'SearchResultListItem'
+      }
+    }
   },
   watch: {
-    search(newValue, oldValue) {
-      if (newValue.length == 0 || newValue == this.searchdata.search) {
-        this.autoCompleteLists = [];
-      } else {
-        this.autoComplete();
-      }
-    },
-    "$route.query": {
+    '$route.query': {
       immediate: true,
-      handler(newQuery, oldQuery) {
-        const query = newQuery;
+      handler(newQuery) {
+        const q = newQuery || {}
         this.currentPage = 1
-        // alert(newQuery.search);
-        const searchdata = query;
-        this.searchdata = searchdata;
-        this.search = searchdata.search;
-        this.sort = searchdata.sort;
-        this.per_page = searchdata.per_page;
-        this.cursor = searchdata.cursor;
-        this.search_type = searchdata.search_type;
-        this.$nextTick(() => {
-          this.changeSearchPanelContent();
-        });
-
-        // this.changeSearchPanelContent();
-        if (this.searchdata && "search_type" in this.searchdata) {
-          delete this.searchdata["search_type"];
-        }
-        console.log(searchdata);
-        if (searchdata.filter != null)
-          searchdata.filter = searchdata.filter.replace(/,$/, "");
-        this.searchmethod();
-        /**
-           * 
-           *         filter: this.search_filter,
-        search: this.search_search,
-        sort: this.search_sort,
-        per_page: this.search_perpage,
-        page: this.search_page,
-        cursor: "",
-        search_type: this.search_type,
-           */
-
-        // 这里是当查询参数变化时执行的代码
-        // 比如，您可以根据新的查询参数重新加载数据
-      },
-    },
+        this.search = q.search || ''
+        this.sort = q.sort || 'cited_by_count:desc'
+        this.quickSort = this.sort
+        this.activeSort = this.sort
+        this.per_page = q.per_page || '10'
+        this.itemsPerPage = Number(this.per_page) || 5
+        this.cursor = q.cursor || ''
+        this.search_type = Number(q.search_type) || 1
+        this.filter = (q.filter || '').replace(/,$/, '')
+        this.searchmethod()
+      }
+    }
   },
   methods: {
-    // ==== CHAT ====
-    startDrag(event) {
-      const rectWidth = 320;
-      const rectHeight = 60;
-
-      const div = document.getElementById("chat");
-
-      if (
-        event.clientX <= div.getBoundingClientRect().left + rectWidth &&
-        event.clientY <= div.getBoundingClientRect().top + rectHeight
-      ) {
-        this.isDragging = true;
-        this.startX = event.clientX - this.leftDistance;
-        this.startY = event.clientY - this.topDistance;
-        document.addEventListener("mousemove", this.handleDrag);
-        document.addEventListener("mouseup", this.stopDrag);
-      }
-    },
-    handleDrag(event) {
-      if (this.isDragging) {
-        this.leftDistance = event.clientX - this.startX;
-        this.topDistance = event.clientY - this.startY;
-      }
-    },
-    stopDrag() {
-      this.isDragging = false;
-      document.removeEventListener("mousemove", this.handleDrag);
-      document.removeEventListener("mouseup", this.stopDrag);
-    },
-
-    changePages(data) {
-      this.currentPage = data;
-      this.searchmethod(true);
-    },
-    changeItemPerpage(data) {
-      this.itemsPerPage = data;
+    submitMainSearch() {
       this.currentPage = 1
-      this.searchmethod(true);
+      this.setQuery()
     },
-    // #region resultlistToInfoItems
-    resultlistToInfoItems() {
-      this.infoItems = this.demoInfoItems;
+    setSearchTypeFromTab(type) {
+      this.search_type = Number(type)
+      this.currentPage = 1
+      this.setQuery()
     },
-    showDemoResults() {
-      this.resultlist = this.demoInfoItems;
-      this.resultlistToInfoItems();
-      this.totalPages = 1;
-      this.currentPage = 1;
-      this.progress = 100;
-    },
-
-    changeSearchPanelContent() {
-      this.searchPanelRef = this.$refs.searchPanelRef.setSearchContent(
-        this.search
-      );
-    },
-    //this.$emit('change-item-per-page',itemsPerPage)
-    //this.$emit('change-page',page)
-
-    // #region AsideBar
-    showAsideBar() {
-      this.show_property_search = !this.show_property_search;
-    },
-    setSearchTypeFromSidebar(type) {
-      this.selectedSearchTypeOption = type;
-      if (this.$refs.searchPanelRef && this.$refs.searchPanelRef.setSearchType) {
-        this.$refs.searchPanelRef.setSearchType(type);
+    setFilterTime(value) {
+      this.timeFilter = value
+      if (value === 'all') {
+        this.filter = ''
+      } else if (value === 'custom') {
+        if (this.search_start_time && this.search_end_time) {
+          this.filter = 'publication_year:' + this.search_start_time + '-' + this.search_end_time
+        }
+      } else {
+        this.filter = 'publication_year:' + value + '-'
       }
-      if (type <= 3) {
-        this.search_type = 1;
-      } else if (type === 4) {
-        this.search_type = 2;
-      } else if (type === 5) {
-        this.search_type = 3;
-      } else if (type === 6) {
-        this.search_type = 4;
-      }
+      this.setQuery()
     },
-    submitAdvancedSearch() {
-      this.advsearch({ ...this.advancedSearchForm });
-    },
-    setWorkType() {
-      if (this.selectedOption != null) {
-        console.log(this.selectedOption);
+    filteByCount(type) {
+      this.citeFilter = type
+      if (type === 0) {
+        this.filter = ''
+      } else {
+        this.filter = 'cited_by_count:>' + this.filte_count_value
       }
+      this.setQuery()
     },
-    // #endregion
-
-    //! 在我重新筛选或者搜索的时候都算是搜索
-    setFilterTime(type) {
-      if (type == 1) {
-        this.filter = "";
-      } else if (type == 2) {
-        // 2023
-
-        this.filter = "publication_year:2023-";
-      } else if (type == 3) {
-        // 2022
-        this.filter = "publication_year:2022-";
-      } else if (type == 4) {
-        this.filter = "publication_year:2019-";
-      } else if (type == 5) {
-        this.filter =
-          "publication_year:" +
-          this.search_start_time +
-          "-" +
-          this.search_end_time +
-          "";
+    setLanguage(type) {
+      this.langFilter = type
+      if (type === 'all') {
+        this.filter = ''
+      } else {
+        this.filter = 'language:' + type
       }
-      this.searchdata.filter = this.filter;
-      this.setQuery();
+      this.setQuery()
     },
     setJounalType(type) {
-      if (type == 0) {
-        this.filter = "";
-      } else if (type == 1) {
-        this.filter = "type:journal";
-      } else if (type == 2) {
-        this.filter = "type:repository";
-      } else if (type == 3) {
-        this.filter = "type:conference";
-      } else if (type == 4) {
-        this.filter = "type:ebook";
-      } else if (type == 5) {
-        this.filter = "type:platform";
-      } else if (type == 6) {
-        this.filter = "type:book series";
+      this.journalFilter = type
+      if (type === 0) {
+        this.filter = ''
+      } else if (type === 1) {
+        this.filter = 'type:journal'
+      } else if (type === 2) {
+        this.filter = 'type:repository'
+      } else if (type === 3) {
+        this.filter = 'type:conference'
       }
-      this.searchdata.filter = this.filter;
-      this.setQuery();
+      this.setQuery()
     },
-
-    setLanguage(type) {
-      this.accelerate = true;
-      this.displayLoading = true;
-      this.progress = 0;
-      if (type == 1) {
-        this.filter = "";
-      } else if (type == 2) {
-        this.filter = "language:zh-cn";
-      } else if (type == 3) {
-        this.filter = "language:en";
-      }
-
-      this.searchdata.filter = this.filter;
-      this.setQuery();
+    setSort(value) {
+      this.sort = value
+      this.activeSort = value
+      this.quickSort = value
+      this.setQuery()
     },
-
-    // instit
-    filteByCount(type) {
-      if (type == 0) {
-        return;
-      }
-      if (type == 1) {
-        // alert(this.filter)
-        this.filter = "cited_by_count:>" + this.filte_count_value;
-        // alert(this.filter);
-        this.setQuery();
-      }
-    },
-    // instit
-    filteWorksCount(type) { },
-    advsearch(data) {
-      this.filter = "";
-      if (data.author) {
-        this.filter += `author.search:${encodeURIComponent(data.author)},`;
-      }
-      if (data.publication) {
-        this.filter += `source.search:${encodeURIComponent(
-          data.publication
-        )},`;
-      }
-      if (data.start_time && data.end_time) {
-        this.filter += `publication_year:${data.start_time}-${data.end_time},`;
-      }
+    submitAdvancedSearch() {
+      let f = ''
+      const data = this.advancedSearchForm
+      if (data.author) f += `author.search:${encodeURIComponent(data.author)},`
+      if (data.publication) f += `source.search:${encodeURIComponent(data.publication)},`
+      if (data.start_time && data.end_time) f += `publication_year:${data.start_time}-${data.end_time},`
       if (data.keyword) {
-        const field = data.is_key_title ? "title.search" : "abstract.search";
-        this.filter += `${field}:${encodeURIComponent(data.keyword)},`;
+        const field = data.is_key_title ? 'title.search' : 'abstract.search'
+        f += `${field}:${encodeURIComponent(data.keyword)},`
       }
-
-      console.log(this.filter);
-      this.searchdata.filter = this.filter;
-      this.setQuery();
+      this.filter = f.replace(/,$/, '')
+      this.setQuery()
     },
-
-    /***
-     * display_name
-        cited_by_count
-        works_count
-        publication_date
-        relevance_score (only exists if there's a search filter active)
-     */
+    clearAll() {
+      this.filter = ''
+      this.timeFilter = 'all'
+      this.citeFilter = 0
+      this.langFilter = 'all'
+      this.journalFilter = 0
+      this.setQuery()
+    },
     setQuery() {
       const query = {
         filter: this.filter,
         search: this.search,
         sort: this.sort,
-        per_page: this.per_page,
-        page: this.page,
-        cursor: this.cursor,
-        search_type: this.search_type,
-      };
-
-      this.$router.push({
-        query: query,
-      });
-    },
-    sortByTime(type) {
-      if (type == 1) {
-        this.sort = "publication_date:";
+        per_page: String(this.itemsPerPage),
+        page: String(this.currentPage),
+        cursor: '',
+        search_type: this.search_type
       }
-      // 晚
-      else if (type == 2) {
-        this.sort = "publication_date:desc";
-      }
-      this.setQuery();
+      this.$router.push({ query })
     },
-
-    sortByWorksCount(type) {
-      if (type == 1) {
-        this.sort = "works_count:";
-      } else if (type == 2) {
-        this.sort = "works_count:desc";
-      }
-      this.setQuery();
+    changePages(page) {
+      this.currentPage = page
+      this.setQuery()
     },
-    sortByCite(type) {
-      if (type == 1) {
-        this.sort = "cited_by_count:";
-      } else if (type == 2) {
-        this.sort = "cited_by_count:desc";
-      }
-      this.setQuery();
+    changeItemPerpage(n) {
+      this.itemsPerPage = n
+      this.currentPage = 1
+      this.setQuery()
     },
-
-    sortByDisplayName(type) {
-      if (type == 1) {
-        this.sort = "display_name:";
-      } else if (type == 2) {
-        this.sort = "display_name:desc";
-      }
-      this.setQuery();
-    },
-
-    handleChildSearchType(searchType) {
-      this.search_type = searchType;
-    },
-
-    handleModoleSearch(searchdata) {
-      // alert("data send to here");
-      console.log(searchdata);
-      this.searchdata = searchdata;
-      this.search = searchdata.search;
-      this.sort = searchdata.sort;
-      this.per_page = searchdata.per_page;
-      this.cursor = searchdata.cursor;
-      this.search_type = searchdata.search_type;
-      // this.search_type = searchdata.search_type;
-      if (this.searchdata && "search_type" in this.searchdata) {
-        delete this.searchdata["search_type"];
-      }
-
-      // console.log(searchdata);
-
-      this.searchmethod(false);
-    },
-    // 真正做搜索后端
-    // 请传入是否快加速的参数accelerate
-    searchmethod(accelerate) {
-      this.showDemoResults();
-      return;
-      if (accelerate) {
-        this.accelerate = accelerate;
-      }
-      this.displayLoading = true;
-      this.progress = 0;
-
-      this.per_page = this.itemsPerPage;
-      this.page = this.currentPage;
-      const searchdata = {
-        filter: this.filter.replace(/,$/, ""),
+    searchmethod() {
+      this.displayLoading = true
+      const started = Date.now()
+      const params = {
+        filter: this.filter,
         search: this.search,
         sort: this.sort,
-        per_page: this.per_page,
-        cursor: this.cursor,
-        page: this.page,
-      };
-
-      // alert("fuck");
-      // this.searchdata.filter = this.filter.replace(/,$/, "");
-      // this.searchdata.search = this.search;
-      // this.searchdata.sort = this.sort;
-      // this.searchdata.per_page = this.per_page;
-      // this.searchdata.cursor = this.cursor;
-      // this.searchdata.page = this.page;
-      // console.log(JSON.parse(JSON.stringify(this.searchdata)));
-      // JSON.parse(JSON.stringify(this.searchdata));
-
-      // #region search
-      if (this.search_type == 1) {
-        Search.searchWorks(searchdata).then(
-          (res) => {
-            console.log(res.data);
-
-            this.resultlist = res.data.results;
-            this.resultlistToInfoItems();
-
-            this.totalPages = Math.ceil(
-              res.data.meta.count / res.data.meta.per_page
-            );
-            this.currentPage = res.data.meta.page;
-            // this.totalPages = Math.ceil(this.totalPages/this.currentPage)
-            this.per_page = res.data.meta.per_page;
-            this.progress = 100;
-          },
-          () => {
-            this.showDemoResults();
-          }
-        );
+        per_page: this.itemsPerPage,
+        page: this.currentPage,
+        cursor: this.cursor
       }
-      // author
-      else if (this.search_type == 2) {
-        Search.searchAuthor(searchdata).then(
-          (res) => {
-            console.log(res.data);
-            this.resultlist = res.data.results;
-            this.resultlistToInfoItems();
-
-            this.totalPages = Math.ceil(
-              res.data.meta.count / res.data.meta.per_page
-            );
-            this.currentPage = res.data.meta.page;
-            // this.totalPages = Math.ceil(this.totalPages/this.currentPage)
-            this.per_page = res.data.meta.per_page;
-
-            this.progress = 100;
-          },
-          () => {
-            this.showDemoResults();
-          }
-        );
-      }
-      // 期刊
-      else if (this.search_type == 3) {
-        Search.searchSources(searchdata).then(
-          (res) => {
-            console.log(res.data.results);
-            this.resultlist = res.data.results;
-            this.resultlistToInfoItems();
-
-            this.totalPages = Math.ceil(
-              res.data.meta.count / res.data.meta.per_page
-            );
-            this.currentPage = res.data.meta.page;
-            // this.totalPages = Math.ceil(this.totalPages/this.currentPage)
-            this.per_page = res.data.meta.per_page;
-
-            this.progress = 100;
-          },
-          () => {
-            this.showDemoResults();
-          }
-        );
-      }
-      // 机构
-      else if (this.search_type == 4) {
-        Search.searchInstitutions(searchdata).then(
-          (res) => {
-            console.log(res.data.results);
-            this.resultlist = res.data.results;
-            this.resultlistToInfoItems();
-
-            this.totalPages = Math.ceil(
-              res.data.meta.count / res.data.meta.per_page
-            );
-            this.currentPage = res.data.meta.page;
-            // this.totalPages = Math.ceil(this.totalPages/this.currentPage)
-            this.per_page = res.data.meta.per_page;
-
-            this.progress = 100;
-          },
-          () => {
-            this.showDemoResults();
-          }
-        );
-      }
-    },
-    autoComplete() {
-      let data = {
-        q: this.search,
-      };
-      console.log(data);
-      if (this.search_type == 1) {
-        AutoComplete.getAutoWorks(data).then((response) => {
-          this.autoCompleteLists = response.data.results;
-        });
-      } else if (this.search_type == 2) {
-        AutoComplete.getAutoAuthor(data).then((response) => {
-          this.autoCompleteLists = response.data.results;
-        });
-      } else if (this.search_type == 3) {
-        AutoComplete.getAutoConcepts(data).then((response) => {
-          this.autoCompleteLists = response.data.results;
-        });
-      } else if (this.search_type == 4) {
-        AutoComplete.getAutoInstitutions(data).then((response) => {
-          this.autoCompleteLists = response.data.results;
-        });
-      }
-    },
-
-    // search
-  },
-
-
-
-  mounted() {
-    this.showDemoResults();
-    // let htmlString =
-    //   "<title>Depth-image-based rendering (DIBR), compression, and transmission for a new approach on 3D-TV</title>";
-    //   this.test_v_html = htmlString
-    // let parser = new DOMParser();
-    // let doc = parser.parseFromString(htmlString, "text/html");
-    // let title = doc.querySelector("title").textContent;
-    // alert(title);
-
-    // const searchdata = this.$route.query;
-    // this.searchdata = searchdata;
-    // this.search = searchdata.search;
-    // this.sort = searchdata.sort;
-    // this.per_page = searchdata.per_page;
-    // this.cursor = searchdata.cursor;
-    // this.search_type = searchdata.search_type;
-    // this.changeSearchPanelContent();
-    // if (this.searchdata && "search_type" in this.searchdata) {
-    //   delete this.searchdata["search_type"];
-    // }
-    // console.log(searchdata);
-    // if (searchdata.filter != null)
-    //   searchdata.filter = searchdata.filter.replace(/,$/, "");
-    // this.searchmethod();
-  },
-
-  computed: {
-    currentComponent() {
-      // alert(
-      //   "current search type decide the component render",
-      //   this.search_type
-      // );
-      switch (this.search_type) {
-        case 1:
-          return ref("SearchResultListItem"); // 搜索结果
-        case 2:
-          return ref("ScholarListItem"); // 学者列表项
-        case 3:
-          return ref("JournalListItem"); // 期刊列表项
-        case 4:
-          return ref("InstitutionListItem"); // 机构列表项
-        default:
-          return null; // 默认情况（可选）
-      }
-    },
-  },
-};
+      const type = Number(this.search_type)
+      let api = Search.searchWorks
+      if (type === 2) api = Search.searchAuthor
+      else if (type === 3) api = Search.searchSources
+      else if (type === 4) api = Search.searchInstitutions
+      api.call(Search, params).then(
+        (res) => {
+          const data = (res && res.data) || {}
+          this.infoItems = (data.results || []).map((r) => ({ ...r, keyword: this.search }))
+          const meta = data.meta || {}
+          this.totalCount = meta.count || this.infoItems.length
+          this.totalPages = meta.total_pages || Math.max(1, Math.ceil(this.totalCount / this.itemsPerPage))
+          this.tookMs = Date.now() - started
+          this.displayLoading = false
+        },
+        () => {
+          this.infoItems = []
+          this.totalCount = 0
+          this.totalPages = 1
+          this.tookMs = Date.now() - started
+          this.displayLoading = false
+        }
+      )
+    }
+  }
+}
 </script>
-  
+
 <style scoped>
-* {
-  box-sizing: border-box;
-  max-width: 100%;
-  /* overflow: hidden; */
+.ps-results {
+  max-width: var(--ps-content-max);
+  margin: 0 auto;
+  padding: var(--ps-space-6) var(--ps-space-6) var(--ps-space-10);
 }
 
-svg {
+.ps-results__hero {
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-xl);
+  padding: var(--ps-space-5) var(--ps-space-6);
+  box-shadow: var(--ps-shadow-1);
+  margin-bottom: var(--ps-space-6);
+}
+
+.ps-results__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  height: 52px;
+  padding: 0 var(--ps-space-3) 0 var(--ps-space-4);
+  background: var(--ps-bg-page);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-pill);
+  transition: border-color var(--ps-motion-base) var(--ps-ease-out),
+    box-shadow var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.ps-results__search:focus-within {
+  border-color: var(--ps-color-primary);
+  box-shadow: var(--ps-shadow-focus);
+}
+
+.ps-results__search input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font-size: var(--ps-fs-md);
+  color: var(--ps-text-1);
+  min-width: 0;
+}
+
+.ps-results__search input::placeholder { color: var(--ps-text-3); }
+
+.ps-results__search-clear {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ps-bg-sunken);
+  color: var(--ps-text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ps-results__search-btn {
+  height: 38px;
+  padding: 0 18px;
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+  border-radius: var(--ps-radius-pill);
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
   cursor: pointer;
 }
 
-.main-area {
-  /* border: 2px solid blue; */
+.ps-results__search-btn:hover {
+  background: var(--ps-color-primary-strong);
+}
+
+.ps-results__type-tabs {
   display: flex;
-  justify-content: flex-start;
-  gap: 28px;
-  width: calc(100% - 40px);
-  max-width: 1320px;
-  margin: 24px 0 70px 20px;
+  gap: var(--ps-space-1);
+  margin-top: var(--ps-space-4);
+  padding: 4px;
+  background: var(--ps-bg-sunken);
+  border-radius: var(--ps-radius-pill);
+  width: fit-content;
 }
 
-.cond-area {
-  width: 168px;
-  /* height: 600px; */
-  margin-top: 0;
-  margin-left: 0;
-
-  /* display: flex; */
-  justify-content: center;
+.ps-results__type-tab {
+  display: inline-flex;
   align-items: center;
-  font-size: 30px;
-  flex: none;
-  position: sticky;
-  top: 76px;
-  align-self: flex-start;
-}
-
-.side-section {
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: var(--border-soft);
-  text-align: left;
-}
-
-.side-section h3 {
-  color: var(--theme-mode-high-contrast);
-  font-size: 13px;
-  font-weight: 650;
-  margin-bottom: 10px;
-}
-
-.side-option {
-  width: 100%;
-  height: auto;
-  display: block;
-  padding: 6px 8px;
-  background: transparent;
-  color: var(--theme-mode-high-contrast);
-  text-align: left;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 6px;
-}
-
-.side-option:hover,
-.side-option.active {
-  color: var(--theme-mode-very-high-contrast);
-  background: var(--theme-mode-slight-contrast);
-  text-decoration: none;
-}
-
-.advanced-search-section {
-  display: grid;
-  gap: 12px;
-}
-
-.advanced-search-section label {
-  display: grid;
   gap: 6px;
-  text-align: left;
+  padding: 6px 14px;
+  font-size: var(--ps-fs-xs);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  background: transparent;
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
 }
 
-.advanced-search-section label span,
-.time-range span {
-  color: var(--theme-mode-high-contrast);
-  font-size: 13px;
-  line-height: 1.4;
+.ps-results__type-tab:hover { color: var(--ps-text-1); }
+
+.ps-results__type-tab--active {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+  box-shadow: var(--ps-shadow-1);
 }
 
-.advanced-search-section .basic-input {
-  width: 100%;
-  height: 38px;
-  font-size: 14px;
+/* ── Layout ──────────────────────────────────────────── */
+.ps-results__layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--ps-space-6);
+  align-items: flex-start;
 }
 
-.time-range {
+.ps-results__sidebar {
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-5));
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-5);
+}
+
+.ps-results__sidebar-section {
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-5);
+}
+
+.ps-results__sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ps-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ps-text-3);
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-results__filter {
+  border-bottom: 1px dashed var(--ps-border-1);
+  padding-bottom: var(--ps-space-3);
+  margin-bottom: var(--ps-space-3);
+}
+.ps-results__filter:last-child {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.ps-results__filter summary {
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-1);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.ps-results__filter summary::-webkit-details-marker { display: none; }
+.ps-results__filter summary::after {
+  content: '+';
+  font-size: 16px;
+  color: var(--ps-text-3);
+}
+.ps-results__filter[open] summary::after { content: '–'; }
+
+.ps-results__filter-options {
+  margin-top: var(--ps-space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ps-results__filter-options--column {
+  flex-direction: column;
+}
+
+.ps-results__filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: var(--ps-fs-xs);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  background: var(--ps-bg-sunken);
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-results__filter-chip:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
+
+.ps-results__filter-chip--active {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+}
+
+.ps-results__filter-input {
+  width: 56px;
+  font-size: var(--ps-fs-xs);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  text-align: center;
+}
+
+.ps-results__filter-range {
+  margin-top: var(--ps-space-3);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: center;
   gap: 8px;
-}
-
-.checkbox-row {
-  grid-template-columns: auto 1fr;
-  justify-content: center;
   align-items: center;
-  text-align: left;
 }
 
-.checkbox-row input {
-  width: 14px;
-  height: 14px;
-}
+.ps-results__filter-range .basic-input { height: 32px; padding: 0 10px; font-size: 13px; }
 
-.advanced-submit {
-  width: 100%;
-  height: 36px;
-  margin-top: 2px;
-}
-
-.cond-area .filter-switch,
-.cond-area .sort-switch {
-  background: transparent;
-  border-radius: 0;
-  cursor: pointer;
-  transition: all ease-in-out 0.15s;
-  text-align: left;
-  margin: 0 auto;
-  margin-bottom: 12px;
-  padding: 8px 0;
-  font-size: 13px;
-  width: 100%;
-  font-weight: 650;
-  color: var(--theme-mode-very-high-contrast);
-  box-shadow: none;
-  border-bottom: var(--border-soft);
-}
-
-.cond-area .filter-switch:hover,
-.cond-area .sort-switch:hover {
-  background: transparent;
-  color: var(--theme-mode-very-high-contrast);
-  text-decoration: none;
-  padding: 8px 0;
-}
-
-.cond-area .filter-switch-active,
-.cond-area .sort-switch-active {
-  background: transparent;
-  color: var(--theme-mode-very-high-contrast);
-}
-
-.cond-area .filter-card {
-  border: 0;
-  border-bottom: var(--border-soft);
-  margin-top: 12px;
-  margin-bottom: 12px;
-  border-radius: 0;
-  z-index: 99999;
-  background: transparent;
-  box-shadow: none;
-  overflow: hidden;
-  display: block;
-}
-.search-button{
-  display: block;
-  width: 100%;
-}
-.cond-area .filter-card li {
-  padding: 7px 0;
-  border-bottom: 0;
-  /* 条目之间的分隔线 */
-  cursor: pointer;
+.ps-results__sort-row {
   display: flex;
   align-items: center;
-  font-family: inherit;
-  transition: all ease-in-out 0.2s;
   justify-content: space-between;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--theme-mode-high-contrast);
-}
-
-.cond-area .filter-card li:hover {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 500;
+  color: var(--ps-text-2);
   background: transparent;
-  color: var(--theme-mode-very-high-contrast);
-}
-
-.search-container-wrapper {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-  height: auto;
-  overflow: visible;
-}
-
-.search-container-wrapper::-webkit-scrollbar {
-  display: none !important;
-}
-
-.search-bar {
-  /* border: 2px solid red; */
-  height: 60px;
-  /* width: 500px; */
-  margin-top: 30px;
-  /* margin-left: 30px; */
-
-  display: flex;
-  /* justify-content: center; */
-  align-items: center;
-  font-size: 30px;
-}
-
-.search-input {
-  max-width: 640px;
-  width: 80%;
-  border-color: var(--theme-mode-contrast);
-  border-width: 2px;
-}
-
-.search-btn {
-  width: 50px;
-  height: 50px;
-  margin: 0;
-  margin-left: 10px;
-}
-
-.search-btn svg {
-  width: 30px;
-  height: 30px;
-  margin: auto;
-}
-
-.pagination {
-  margin: 0 auto;
-  margin-top: 26px;
-  padding: 0;
-}
-
-.search-container {
-  padding: 0;
-  width: 100%;
-  margin-bottom: 18px;
-}
-
-.chat {
-  width: 320px;
-  display: flex;
-  align-items: flex-start;
-  position: absolute;
-  z-index: 9999;
-  box-shadow: none;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-radius: 6px;
-  background: var(--theme-mode-like);
-  border: var(--border-soft);
-}
-
-/* .chat svg {
-  fill: var(--default-text-color);
-  
-  margin-right: 10px;
+  border-radius: var(--ps-radius-sm);
   cursor: pointer;
-} */
-
-.fold-icon {
-  width: 30px;
-  height: 30px;
-  position: absolute;
-  right: 10px;
-  top: 15px;
-  z-index: 200;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
 }
 
-.talk-hint-container {
-  cursor: grab;
-  width: 100%;
+.ps-results__sort-row:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
 }
 
-.dragging .talk-hint-container {
-  cursor: grabbing;
-}
-
-.talk-hint {
-  font-size: 16px;
-  margin: 0 20px;
+.ps-results__sort-row--active {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
   font-weight: 700;
 }
 
-
-.unfold-chat {
-  width: 30px;
-  height: 30px;
-  position: absolute;
-  right: 5px;
-  top: 5px;
-  fill: var(--default-text-color);
+.ps-results__advanced-toggle {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-color-primary);
+  background: var(--ps-color-primary-soft);
+  border-radius: var(--ps-radius-sm);
+  cursor: pointer;
 }
 
-@media screen and (max-width: 1000px) {
-  .main-area {
-    display: block;
-    width: calc(100% - 32px);
-    margin-left: 16px;
-    margin-right: 16px;
-  }
+.ps-results__advanced {
+  margin-top: var(--ps-space-3);
+  display: grid;
+  gap: var(--ps-space-3);
+}
 
-  .cond-area {
-    width: 100%;
-    height: unset;
-    /* min-height: 300px; */
-    display: block;
+.ps-results__advanced label {
+  display: grid;
+  gap: 6px;
+  font-size: var(--ps-fs-xs);
+  color: var(--ps-text-2);
+}
+
+.ps-results__advanced label span { font-weight: 600; }
+
+.ps-results__advanced .basic-input { height: 34px; font-size: 13px; padding: 0 10px; }
+
+.ps-results__advanced-range {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.ps-results__advanced-check {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  grid-auto-flow: column;
+}
+
+.ps-results__advanced-check input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--ps-color-primary);
+}
+
+.ps-results__advanced-submit {
+  width: 100%;
+  height: 36px;
+}
+
+/* ── Result main ─────────────────────────────────────── */
+.ps-results__main {
+  min-width: 0;
+}
+
+.ps-results__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--ps-space-4);
+  padding: var(--ps-space-3) var(--ps-space-4);
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+}
+
+.ps-results__count {
+  font-size: var(--ps-fs-md);
+  color: var(--ps-text-1);
+}
+
+.ps-results__count strong {
+  font-family: var(--ps-font-display);
+  font-weight: 700;
+  color: var(--ps-color-primary);
+  font-size: var(--ps-fs-lg);
+}
+
+.ps-results__count-keyword {
+  color: var(--ps-text-2);
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.ps-results__took {
+  font-size: var(--ps-fs-xs);
+  color: var(--ps-text-3);
+  margin-top: 2px;
+  font-family: var(--ps-font-mono);
+}
+
+.ps-results__sort-quick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
+}
+
+.ps-results__sort-quick select {
+  height: 32px;
+  padding: 0 10px;
+  font-size: var(--ps-fs-sm);
+  background: var(--ps-bg-page);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+  color: var(--ps-text-1);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ps-results__pagination {
+  margin-top: var(--ps-space-6);
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media screen and (max-width: 1024px) {
+  .ps-results__layout {
+    grid-template-columns: 1fr;
+  }
+  .ps-results__sidebar {
     position: static;
-    margin-bottom: 20px;
-  }
-
-  .cond-area .filter-switch,
-  .cond-area .sort-switch {
-    width: 100%;
-    padding: 8px 0;
-    margin: 12px auto;
-  }
-
-  .cond-area .filter-switch:hover,
-  .cond-area .sort-switch:hover {
-    background: transparent;
-    color: var(--theme-mode-very-high-contrast);
-    text-decoration: none;
-    padding: 8px 0;
-  }
-
-  .search-container-wrapper {
-    margin: 0 auto;
-    width: 100%;
   }
 }
 
-@media screen and (max-width: 1000px) {
-  .search-container-wrapper {
-    padding-top: 18px;
+@media screen and (max-width: 720px) {
+  .ps-results { padding: var(--ps-space-4); }
+  .ps-results__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ps-space-3);
   }
 }
-
-@media screen and (max-width: 600px) {
-  .search-container-wrapper {
-    padding-left: 0;
-    padding-right: 0;
-    width: 100%;
-    margin: 0 auto ;
-  }
-
-  .main-area {
-    width: calc(100% - 24px);
-    margin-left: 12px;
-    margin-right: 12px;
-  }
-}
-
 </style>

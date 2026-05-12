@@ -1,154 +1,267 @@
 <template>
-  <div class="main-part">    <div class="info-tag-list">
-      <div class="personal-info">
-        <!-- <div class="personal-image">
-              <img :src="authorInfo.avatarUrl" alt="Personal Image">
-            </div> -->
-        <div class="personal-info-text">
-          <p class="personal-info-text-nickname">
-            <!-- {{ $t('personal_info_nick_name') }}:  -->
-            <a :href="authorInfo.orcid">{{ authorInfo.nickName }}</a>
-          </p>
-          <div>
-            <div class="follow is-follow" @click="follow" v-if="!isFollowing">
-              {{ $t('scholar_portal_follow') }}
+  <div class="ps-scholar">
+    <AppGradientHero variant="dark" class="ps-scholar__hero">
+      <AppBreadcrumb :items="breadcrumbs" class="ps-scholar__crumbs" />
+      <div class="ps-scholar__hero-grid">
+        <div class="ps-scholar__hero-main">
+          <AppAvatar :id="authorInfo.id" :name="authorInfo.nickName" size="2xl" class="ps-scholar__avatar" />
+          <div class="ps-scholar__hero-body">
+            <p v-if="authorInfo.orcid" class="ps-scholar__orcid">
+              <AppIcon name="RibbonOutline" :size="14" />
+              ORCID {{ authorInfo.orcid }}
+            </p>
+            <h1 class="ps-scholar__name">{{ authorInfo.nickName || '未知学者' }}</h1>
+            <p v-if="authorInfo.institution.name" class="ps-scholar__affil">
+              <AppIcon name="School" :size="16" />
+              <a class="ps-scholar__affil-link" @click="gotoInstitution(authorInfo.institution)">
+                {{ authorInfo.institution.name }}
+              </a>
+            </p>
+            <div class="ps-scholar__interests">
+              <AppTagChip
+                v-for="(tag, idx) in interestTag.slice(0, 5)"
+                :key="idx"
+                variant="outline"
+                size="md"
+              >{{ tag.name }}</AppTagChip>
             </div>
-            <div class="follow un-follow" @click="unfollow" v-else>
-              {{ $t('scholar_portal_unfollow') }}
+            <div class="ps-scholar__hero-actions">
+              <button
+                class="ps-scholar__follow-btn"
+                :class="{ 'ps-scholar__follow-btn--active': isFollowing }"
+                @click="toggleFollow"
+              >
+                <AppIcon :name="isFollowing ? 'Bookmark' : 'Add'" :size="14" />
+                {{ isFollowing ? '已关注' : $t('scholar_portal_follow') || '关注' }}
+              </button>
+              <button class="ps-scholar__action-secondary" @click="sharePortal">
+                <AppIcon name="Share" :size="14" />
+                分享主页
+              </button>
+              <button v-if="authorInfo.email" class="ps-scholar__action-secondary" @click="contactAuthor">
+                <AppIcon name="Mail" :size="14" />
+                {{ authorInfo.email }}
+              </button>
             </div>
           </div>
-          <p class="personal-info-text-region" v-if="authorInfo.region !== null && authorInfo.region !== ''">
-            <em>{{ $t('personal_info_region') }}</em>&nbsp;&nbsp;
-            {{ authorInfo.region }}
-          </p>
-          <p class="personal-info-text-institution" v-if="authorInfo.institution.name !== null">
-            <em>{{ $t('personal_info_institution') }}</em>&nbsp;&nbsp;
-            <a @click="gotoInstitution(authorInfo.institution)">{{ authorInfo.institution.name }}</a>
-          </p>
-          <!-- <p class="personal-info-text-major">
-                <em>{{ $t('personal_info_major') }}</em>&nbsp;&nbsp;
-                {{ authorInfo.major }}
-              </p> -->
-          <p class="personal-info-text-email" v-if="authorInfo.email !== null && authorInfo.email !== ''">
-            <em>{{ $t('personal_info_email') }}</em>&nbsp;&nbsp;
-            {{ authorInfo.email }}
-          </p>
-          <p class="personal-info-text-institution">
-            <em>{{ $t('scholar_portal_total_publications') }}</em>&nbsp;&nbsp;
-            {{ authorInfo.totalWork }}
-          </p>
-          <p class="personal-info-text-institution">
-            <em>{{ $t('scholar_portal_total_citations') }}</em>&nbsp;&nbsp;
-            {{ authorInfo.totalCitations }}
-          </p>
-          <p class="personal-info-text-institution">
-            <em>{{ $t('scholar_portal_this_year_citations') }}</em>&nbsp;&nbsp;
-            {{ authorInfo.yearCitations }}
-          </p>
-          <p class="personal-info-text-url" v-if="authorInfo.urls.length !== 0">
-            <em>{{ $t('personal_info_url') }}</em>
-          <ul class="personal-info-text-url-list">
-            <li v-for="(url, index) in authorInfo.urls" :key="index">
-              &nbsp;&nbsp;&nbsp;<svg t="1702890339983" viewBox="0 0 1024 1024" version="1.1"
-                xmlns="http://www.w3.org/2000/svg" p-id="4227">
-                <path
-                  d="M377.6 473.6C377.6 448 384 422.4 403.2 403.2l70.4-70.4 57.6-57.6c19.2-19.2 38.4-25.6 64-25.6 25.6 0 44.8 6.4 64 25.6 38.4 38.4 38.4 89.6 0 128l-128 128C512 550.4 492.8 556.8 467.2 556.8L416 608C428.8 614.4 448 620.8 467.2 620.8 512 620.8 544 601.6 576 576l128-128c57.6-57.6 57.6-153.6 0-211.2-57.6-57.6-153.6-57.6-211.2 0l-128 128C320 403.2 307.2 467.2 326.4 524.8L377.6 473.6z"
-                  p-id="4228"></path>
-                <path
-                  d="M646.4 550.4c0 25.6-6.4 51.2-25.6 70.4l-128 128c-19.2 19.2-38.4 25.6-64 25.6-25.6 0-44.8-6.4-64-25.6-38.4-38.4-38.4-89.6 0-128l128-128c19.2-19.2 44.8-25.6 70.4-25.6l51.2-51.2C588.8 409.6 576 403.2 556.8 403.2 512 403.2 473.6 422.4 448 448L320 576c-57.6 57.6-57.6 153.6 0 211.2 57.6 57.6 153.6 57.6 211.2 0l128-128c44.8-44.8 57.6-108.8 32-160L646.4 550.4z"
-                  p-id="4229"></path>
-              </svg>
-              <a :href="url" target="_blank">{{ url }}</a>
+        </div>
+
+        <aside class="ps-scholar__hero-stats">
+          <div class="ps-scholar__stat">
+            <span class="ps-scholar__stat-num">{{ authorInfo.hIndex || '—' }}</span>
+            <span class="ps-scholar__stat-label">h-index</span>
+          </div>
+          <div class="ps-scholar__stat">
+            <span class="ps-scholar__stat-num">{{ formatNumber(authorInfo.totalWork) }}</span>
+            <span class="ps-scholar__stat-label">发表数</span>
+          </div>
+          <div class="ps-scholar__stat">
+            <span class="ps-scholar__stat-num">{{ formatNumber(authorInfo.totalCitations) }}</span>
+            <span class="ps-scholar__stat-label">总被引</span>
+          </div>
+          <div class="ps-scholar__stat">
+            <span class="ps-scholar__stat-num">+{{ formatNumber(authorInfo.yearCitations) }}</span>
+            <span class="ps-scholar__stat-label">近一年</span>
+          </div>
+        </aside>
+      </div>
+    </AppGradientHero>
+
+    <div class="ps-scholar__layout">
+      <div class="ps-scholar__main">
+        <div class="ps-scholar__tabs" role="tablist">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            role="tab"
+            :aria-selected="activeTab === tab.id"
+            class="ps-scholar__tab"
+            :class="{ 'ps-scholar__tab--active': activeTab === tab.id }"
+            @click="activeTab = tab.id"
+          >
+            <AppIcon :name="tab.icon" :size="14" />
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div v-show="activeTab === 'works'" class="ps-scholar__tab-panel">
+          <SearchResultListItem
+            v-for="(info, idx) in infoItems"
+            :key="info.id || idx"
+            :infoItem="info"
+            :index="idx"
+          />
+          <AppEmptyState v-if="!infoItems.length" title="尚无发表记录" description="该学者主页还没有可展示的学术成果。" />
+          <div class="ps-scholar__pagination" v-if="infoItems.length">
+            <PaginationBar
+              :items-per-page="paginationInfo.itemsPerPage"
+              :current-page="paginationInfo.currentPage"
+              :total-pages="paginationInfo.totalPages"
+              @page-change="handleChangePage"
+              @item-per-page-change="handleChangePerPage"
+            />
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'trend'" class="ps-scholar__tab-panel">
+          <AppCard>
+            <AppSectionHeader
+              title="发表与引用趋势"
+              subtitle="按年聚合，反映学者活跃度与影响力轨迹"
+              tag="h2"
+            />
+            <!-- 恢复原 ECharts 双轴柱状图 -->
+            <ScholarGraphCite v-if="counts_by_year.length" :info="counts_by_year" />
+            <AppEmptyState
+              v-else
+              title="暂无趋势数据"
+              description="该学者尚未提供逐年统计信息。"
+            />
+          </AppCard>
+        </div>
+
+        <div v-show="activeTab === 'network'" class="ps-scholar__tab-panel">
+          <AppCard>
+            <AppSectionHeader title="合作网络" subtitle="基于共同发表论文构建" tag="h2" />
+            <!-- 恢复原 relation-graph 关系网络可视化 -->
+            <AuthorRelationGraph v-if="relationList && relationList.length" :relationList="relationList" />
+            <AppEmptyState
+              v-else
+              title="暂无合作者数据"
+              description="此学者主页还没有可展示的合作网络。"
+            />
+            <div v-if="collaboratorPreview.length" class="ps-scholar__network">
+              <h3 class="ps-scholar__network-title">部分合作者一览</h3>
+              <div class="ps-scholar__network-grid">
+                <div
+                  v-for="(node, idx) in collaboratorPreview"
+                  :key="idx"
+                  class="ps-scholar__network-node"
+                  @click="gotoScholar(node.id)"
+                >
+                  <AppAvatar :id="node.id" :name="node.display_name" size="md" />
+                  <div>
+                    <h4>{{ node.display_name }}</h4>
+                    <p>{{ node.last_known_institution && node.last_known_institution.display_name }}</p>
+                  </div>
+                  <AppMetricBadge :value="node.h_index || '—'" label="h" tone="violet" />
+                </div>
+              </div>
+            </div>
+          </AppCard>
+        </div>
+      </div>
+
+      <aside class="ps-scholar__sidebar">
+        <AppCard accent="gold">
+          <AppSectionHeader title="研究方向" tag="h3" />
+          <div class="ps-scholar__keywords">
+            <AppTagChip
+              v-for="(tag, idx) in interestTag"
+              :key="idx"
+              variant="gold"
+              size="md"
+              clickable
+              @click="gotoTag(tag)"
+            >{{ tag.name }}</AppTagChip>
+          </div>
+        </AppCard>
+
+        <AppCard v-if="authorInfo.urls.length">
+          <AppSectionHeader title="对外链接" tag="h3" />
+          <ul class="ps-scholar__links">
+            <li v-for="(url, idx) in authorInfo.urls" :key="idx">
+              <AppIcon name="GlobeOutline" :size="14" />
+              <a :href="url" target="_blank" rel="noopener">{{ url }}</a>
             </li>
           </ul>
-          </p>
-        </div>
+        </AppCard>
 
-
-
-        <div class="focus-area">
-          <h3>{{ $t('scholar_portal_focus_areas') }}</h3>
-          <div class="tag-container">
-            <a v-for="(tag, index) in interestTag" :key="index" class="tag-item" @click="gotoTag(tag)">
-              {{ tag.name }}
-            </a>
+        <AppCard>
+          <AppSectionHeader title="主页二维码" subtitle="路演分享方便" tag="h3" />
+          <div class="ps-scholar__qr" aria-hidden="true">
+            <svg viewBox="0 0 100 100" width="120" height="120">
+              <rect width="100" height="100" fill="#FFFFFF" />
+              <g fill="#0F0E1A">
+                <rect x="6" y="6" width="22" height="22" />
+                <rect x="72" y="6" width="22" height="22" />
+                <rect x="6" y="72" width="22" height="22" />
+                <rect x="12" y="12" width="10" height="10" fill="#FFFFFF" />
+                <rect x="78" y="12" width="10" height="10" fill="#FFFFFF" />
+                <rect x="12" y="78" width="10" height="10" fill="#FFFFFF" />
+                <rect x="36" y="6" width="6" height="6" />
+                <rect x="48" y="6" width="6" height="6" />
+                <rect x="60" y="6" width="6" height="6" />
+                <rect x="36" y="18" width="6" height="6" />
+                <rect x="54" y="18" width="6" height="6" />
+                <rect x="36" y="30" width="6" height="6" />
+                <rect x="48" y="30" width="6" height="6" />
+                <rect x="66" y="30" width="6" height="6" />
+                <rect x="6" y="36" width="6" height="6" />
+                <rect x="18" y="36" width="6" height="6" />
+                <rect x="42" y="42" width="6" height="6" />
+                <rect x="54" y="42" width="6" height="6" />
+                <rect x="72" y="42" width="6" height="6" />
+                <rect x="84" y="42" width="6" height="6" />
+                <rect x="30" y="48" width="6" height="6" />
+                <rect x="42" y="48" width="6" height="6" />
+                <rect x="60" y="48" width="6" height="6" />
+                <rect x="78" y="48" width="6" height="6" />
+                <rect x="36" y="60" width="6" height="6" />
+                <rect x="54" y="60" width="6" height="6" />
+                <rect x="66" y="60" width="6" height="6" />
+                <rect x="42" y="72" width="6" height="6" />
+                <rect x="60" y="72" width="6" height="6" />
+                <rect x="78" y="72" width="6" height="6" />
+                <rect x="36" y="84" width="6" height="6" />
+                <rect x="54" y="84" width="6" height="6" />
+                <rect x="72" y="84" width="6" height="6" />
+              </g>
+            </svg>
           </div>
-        </div>
-      </div>
-      <div class="tag-and-list">
-        <div class="list">
-          <div class="favourites-header">
-            <div class="favourites-subscribe-tab">
-              <h3>{{ $t('scholar_portal_articles') }}</h3>
-            </div>
-          </div>
-          <div class="favorites-list">            <Pagination :itemsPerPage="this.paginationInfo.itemsPerPage" :currentPage="this.paginationInfo.currentPage"
-              :totalPages="this.paginationInfo.totalPages" @change-page="handleChangePage"
-              @change-item-per-page="handleChangePerPage">
-              <SearchResultListItem v-for="(info, index) in infoItems" :key="index" :infoItem="info">
-              </SearchResultListItem>
-            </Pagination>
-          </div>
-        </div>
-
-      </div>
+        </AppCard>
+      </aside>
     </div>
   </div>
-  <ScholarGraphCite :info="authorInfo.counts_by_year">  </ScholarGraphCite>
-  <div class="relation-network">    <h3>{{ $t('scholar_portal_net') }}</h3>
-    <AuthorRelationGraph :relationList="relationList"></AuthorRelationGraph>
-
-  </div>
-  <!-- <EchartGraph :relationList="relationList"></EchartGraph> -->
 </template>
-  
+
 <script>
-import AuthorRelationGraph from '../../components/relation-graph/RelationGraph.vue'
-import InstitutionListItem from '../../components/list-item/InstitutionListItem.vue'
-import ScholarListItem from '../../components/list-item/ScholarListItem.vue'
-import JournalListItem from '../../components/list-item/JournalListItem.vue'
 import SearchResultListItem from '../../components/search-result-list/SearchResultListItem.vue'
-import Pagination from '../../components/pagination/Pagination.vue'
-import FavouriteListItem from '../../components/favorites/FavouriteListItem.vue'
-import i18n from '../../language'
-import FavouriteList from '../../components/favorites/FavouriteList.vue'
+import PaginationBar from '../../components/pagination/PaginationBar.vue'
+import ScholarGraphCite from '../../components/graphs/ScholarGraphCite.vue'
+import AuthorRelationGraph from '../../components/relation-graph/RelationGraph.vue'
 import { Search } from '../../api/search.js'
 import { History } from '../../api/history.js'
-// import { Article } from '../../api/article.js'
-import FollowList from '../../components/follow-list/FollowList.vue'
-import ScholarGraphCite from '../../components/graphs/ScholarGraphCite.vue'
-// import EchartGraph from '../../components/relation-graph/EchartGraph.vue'
 import { User } from '../../api/users'
+import { mockAuthors } from '../../mock/authors'
+import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState, AppMetricBadge, AppBreadcrumb } from '../../components/ui'
+
 export default {
+  name: 'ScholarPortalView',
   components: {
-    FavouriteListItem,
-    FavouriteList,
-    FollowList,
     SearchResultListItem,
-    ScholarListItem,
-    JournalListItem,
-    Pagination,
-    InstitutionListItem,
-    AuthorRelationGraph,
-    // EchartGraph,
-    i18n,
+    PaginationBar,
     ScholarGraphCite,
+    AuthorRelationGraph,
+    AppCard,
+    AppIcon,
+    AppTagChip,
+    AppSectionHeader,
+    AppGradientHero,
+    AppAvatar,
+    AppEmptyState,
+    AppMetricBadge,
+    AppBreadcrumb
   },
   data() {
     return {
-      isReal: false,
-      displayMainLoading: false,
-      mainProgress: 0,
-      mainAccelerate: false,
-
-      displayPageLoading: false,
-      pageProgress: 0,
-      pageAccelerate: true,
-
       isFollowing: false,
-      isArticle: true,
-      isFocusArea: false,
-      isRelationNetwork: false,
+      activeTab: 'works',
+      tabs: [
+        { id: 'works', label: '代表论文', icon: 'Document' },
+        { id: 'trend', label: '引用趋势', icon: 'TrendingUp' },
+        { id: 'network', label: '合作网络', icon: 'GitBranch' }
+      ],
       authorInfo: {
         id: '',
         orcid: '',
@@ -156,11 +269,7 @@ export default {
         nickName: '',
         realName: '',
         region: '',
-        institution: {
-          id: '',
-          ror: '',
-          name: '',
-        },
+        institution: { id: '', ror: '', name: '' },
         email: '',
         gender: '',
         urls: [],
@@ -168,836 +277,538 @@ export default {
         totalCitations: 0,
         totalWork: 0,
         yearCitations: 0,
+        hIndex: 0
       },
-      paginationInfo: {
-        itemsPerPage: 5,
-        currentPage: 1,
-        totalPages: 3,
-      },
-      infoItems: [
-        //   {
-        //     title: "低碳经济: 人类经济发展方式的新变革",
-        //     author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
-        //     excerpt: "低碳经济(Low-carbon Economy)是未来经济发展方式的新选择.本文从大时空跨度和能源利用方conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利式上,分析了人类经济发展形态演变历程;探讨了低碳经济… 了低碳经济产生与发展.本文研究了低碳",
-        //     timeCited: 57,
-        //     keyword: "经济"
-        // },
-        // {
-        //     title: "低碳经济: 人类经济发展方式的新变革",
-        //     author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
-        //     excerpt: "低碳经济(Low-carbon Economy)是未来经济发展方式的新选择.本文从大时空跨度和能源利用方conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利式上,分析了人类经济发展形态演变历程;探讨了低碳经济… 了低碳经济产生与发展.本文研究了低碳",
-        //     timeCited: 57,
-        //     keyword: "经济"
-        // },
-        // {
-        //     title: "低碳经济: 人类经济发展方式的新变革",
-        //     author: "鲍健强， 苗阳， 陈锋 - 中国工业经济, 2008 - cqvip.com",
-        //     excerpt: "低碳经济(Low-carbon Economy)是未来经济发展方式的新选择.本文从大时空跨度和能源利用方conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利conomy)是未来经济发展方式的新选择.本文从大时空跨度和能源利式上,分析了人类经济发展形态演变历程;探讨了低碳经济… 了低碳经济产生与发展.本文研究了低碳",
-        //     timeCited: 57,
-        //     keyword: "经济"
-        // },
-      ],
-      journalListItemInfo: {
-        id: "S4306525036",
-        display_name: "PubMed",
-        type: "repository",
-        country_code: "US",
-        homepage_url: "https://pubmed.ncbi.nlm.nih.gov",
-        works_count: 33075868,
-        cited_by_count: 951448677,
-      },
-      scholarInfo: {
-        id: "A5040654425",
-        display_name: "George M Garrity",
-        country_code: 'US',
-        // country_code 从last_known_institution.country_code获得
-        works_count: 96223,
-        cited_by_count: 40117,
-      },
-      institutionInfo: {
-        id: "I1294671590",
-        display_name_zh: '法国国家科学研究中心',
-        display_name: 'French National Centre for Scientific Research',
-        country_code: 'FR',
-        works_count: 993011,
-        cited_by_count: 29396266,
-        ror: "https://ror.org/02feahw73",
-        homepage_url: "https://www.cnrs.fr",
-      },
-      isCreating: false,
-      moveVisible: false,
-      isFavourite: true,
-      favouritesInfo: [
-        // {
-        //   name: "感兴趣的内容",
-        //   showContextMenu: false
-        // },
-        // {
-        //   name: "我的收藏",
-        //   showContextMenu: false
-        // }, 
-        // {
-        //   name: "我的收藏",
-        //   showContextMenu: false
-        // },  
-        // {
-        //   name: "我的收藏",
-        //   showContextMenu: false
-        // }, 
-        // {
-        //   name: "量子力学",
-        //   showContextMenu: false
-        // }, 
-        // {
-        //   name: "有机化学",
-        //   showContextMenu: false
-        // }, 
-        // {
-        //   name: "Diffusion model",
-        //   showContextMenu: false
-        // }, 
-        // {
-        //   name: "CV",
-        //   showContextMenu: false
-        // }
-      ],
-      interestTag: [
-        {
-          name: '量子力学',
-          wikidata: '',
-          id: '',
-        },
-        {
-          name: '扩散模型',
-          wikidata: '',
-          id: '',
-        },
-        {
-          name: '语义分割',
-          wikidata: '',
-          id: '',
-        },
-        {
-          nawatme: '全景视觉',
-          link: '',
-          id: '',
-        },
-
-      ],
-      resultlist: [],
-      relationList: [],
+      paginationInfo: { itemsPerPage: 5, currentPage: 1, totalPages: 1 },
+      infoItems: [],
+      interestTag: [],
+      counts_by_year: [],
+      relationList: []
+    }
+  },
+  computed: {
+    breadcrumbs() {
+      return [
+        { label: '首页', to: '/' },
+        { label: '学者', to: '/search_result?search_type=2' },
+        { label: this.authorInfo.nickName || '学者主页' }
+      ]
+    },
+    maxCitations() {
+      const max = Math.max(...this.counts_by_year.map((c) => c.cited_by_count || 0), 1)
+      return max
+    },
+    collaboratorPreview() {
+      return mockAuthors.filter((a) => a.id !== this.authorInfo.id).slice(0, 6)
     }
   },
   watch: {
-    '$route.params': {
+    '$route.params.id': {
       immediate: true,
-      handler(newParams) {
-        this.authorInfo.id = this.$route.params.id
+      handler(newId) {
+        if (!newId) return
+        this.authorInfo.id = newId
+        this.activeTab = 'works'
+        this.paginationInfo.currentPage = 1
+        this.infoItems = []
+        this.counts_by_year = []
+        this.relationList = []
+        this.interestTag = []
         this.getAuthorInfo()
         this.getRelationMap()
       }
     }
   },
-  created() {
-    this.authorInfo.id = this.$route.params.id
-    this.getAuthorInfo()
-    // this.getRelationMap()
-  },
-  mounted() {
-
-  },
   methods: {
-    async getAuthorInfo() {
-      //get author id
-      // let authorID = 'A5040654425'
-      // this.authorInfo.id = authorID
-      this.mainProgress = 0
-      this.mainAccelerate = false
-      this.displayMainLoading = true
-
-      if (this.authorInfo.id) {
-        Search.searchAuthorInfo(this.authorInfo.id).then(
-          (response) => {
-            console.log(response)
-            // console.log(response.data.username)
-            this.authorInfo.nickName = response.data.display_name
-            this.authorInfo.orcid = response.data.orcid
-            this.isFollowing = response.data.is_followed
-            if (response.data.last_known_institution !== null) {
-              this.authorInfo.region = response.data.last_known_institution.country_code
-              this.authorInfo.institution.id = response.data.last_known_institution.id
-              this.authorInfo.institution.ror = response.data.last_known_institution.ror
-              this.authorInfo.institution.name = response.data.last_known_institution.display_name
+    getAuthorInfo() {
+      if (!this.authorInfo.id) return
+      Search.searchAuthorInfo(this.authorInfo.id).then(
+        (res) => {
+          const data = (res && res.data) || {}
+          this.authorInfo.nickName = data.display_name || ''
+          this.authorInfo.realName = data.display_name_alt || ''
+          this.authorInfo.totalWork = data.works_count || 0
+          this.authorInfo.totalCitations = data.cited_by_count || 0
+          this.authorInfo.hIndex = data.h_index || 0
+          this.authorInfo.orcid = data.orcid || ''
+          if (data.last_known_institution) {
+            this.authorInfo.institution = {
+              id: data.last_known_institution.id || '',
+              name: data.last_known_institution.display_name || '',
+              ror: data.last_known_institution.ror || ''
             }
-            this.authorInfo.works_api_url = response.data.works_api_url
-            this.authorInfo.totalWork = response.data.works_count
-            if (response.data.cited_by_count !== null) {
-              this.authorInfo.totalCitations = response.data.cited_by_count
-            }
-            if (response.data.counts_by_year.length !== 0) {
-              this.authorInfo.yearCitations = response.data.counts_by_year[0].cited_by_count
-              this.authorInfo.counts_by_year = response.data.counts_by_year
-            }
-
-            this.interestTag.splice(0, this.interestTag.length)
-            for (let i = 0; i < response.data.x_concepts.length; i++) {
-              this.interestTag.push({
-                id: response.data.x_concepts[i].id,
-                name: response.data.x_concepts[i].display_name,
-                wikidata: response.data.x_concepts[i].wikidata
-              })
-            }
-            // this.getRelationMap()
-            this.getAuthorArticle(this.paginationInfo.currentPage, this.paginationInfo.itemsPerPage)
-          },
-          (error) => {
-            console.log(error)
           }
-        )
-      }
-    },
-    gotoInstitution(institution) {
-      this.$router.push('/institution_detail/' + institution.id)
-      // location.reload()
-    },
-    gotoTag(tag) {
-      //路由跳转到领域详情页 
-      this.$router.push('/tag_detail/' + tag.id)
-    },
-    getAuthorArticle(page, perPage, isPageLoading) {
-      if (isPageLoading) {
-        this.pageProgress = 0
-        this.displayPageLoading = true
-      }
-      console.log(this.authorInfo.works_api_url)
-      var startIndex = this.authorInfo.works_api_url.indexOf('filter=')
-      var filter = this.authorInfo.works_api_url.substring(startIndex + 7)
-      console.log(filter)
-      let data = {
-        filter: filter,
-        per_page: perPage,
-        page: page
-      }
-      Search.searchWorks(data).then(
-        (response) => {
-          console.log(111)
-          console.log(response)
-          // console.log(response.data.username)
-          this.paginationInfo.totalPages = Math.ceil(response.data.meta.count / this.paginationInfo.itemsPerPage)
-          this.resultlist = response.data.results;
-          // console.log(this.resultlist)
-          this.resultlistToInfoItems();
-
-          this.mainProgress = 100
-          this.pageProgress = 100
+          this.authorInfo.email = data.email || ''
+          this.authorInfo.urls = data.urls || data.websites || []
+          this.interestTag = (data.research_interests || []).map((n) => ({ name: n, id: '' }))
+          this.counts_by_year = data.counts_by_year || []
+          const latest = (data.counts_by_year || []).slice(-1)[0]
+          if (latest) this.authorInfo.yearCitations = latest.cited_by_count
+          this.loadWorks()
         },
-        (error) => {
-          console.log(error)
-        }
+        () => {}
       )
     },
-    resultlistToInfoItems() {
-      this.infoItems = this.resultlist.map((item) => {
-        // console.log(item.authorships[0].author.display_name);
-        // console.log(item.abstract);
-        return {
-          // title: item,s
-          title: item.title,
-          author:
-            item.authorships[0] != null
-              ? item.authorships[0].author.display_name
-              : "unkown",
-          // author: "author",
-          excerpt: "0",
-          id: item.id,
-          timeCited: item.cited_by_count,
-          keyword: "经济",
-          related_times: item.related_works_count,
-          publicationYear: item.publication_year,
-          journalName: item.host_venue
-            ? item.host_venue.display_name
-            : "unknown",
-          abstract: item.abstract,
-          url: item.url,
-          language: item.language,
-        };
-      });
-    },
-    getRelationMap() {
-      // console.log(this.authorInfo.id)
-      // console.log(222)
-      // this.authorInfo.id = 'A5040654425'
-      History.getRelationMap(this.authorInfo.id).then(
-        (response) => {
-          // console.log(111222)
-          console.log(response)
-          // console.log(response.data.username)
-          this.relationList = response.data.authors
-          console.log(this.relationList)
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
-    },
-    handleMove() {
-      this.moveVisible = true
-    },
-    handleMoveClick(index) {
-      this.moveVisible = false
-    },
-    cancelCreation() {
-      this.isCreating = false
-    },
-    updateCreation(name) {
-      this.isCreating = false
-      let data = {
-        name: name
-      }
-      User.createFavorite(0, data).then(
-        (response) => {
-          console.log(response)
-          // console.log(response.data.username)
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
-      this.favouritesInfo.unshift({
-        name: name,
-        showContextMenu: false
+    loadWorks() {
+      Search.searchWorks({
+        search: this.authorInfo.nickName,
+        per_page: this.paginationInfo.itemsPerPage,
+        page: this.paginationInfo.currentPage,
+        sort: 'cited_by_count:desc'
+      }).then((res) => {
+        const data = (res && res.data) || {}
+        this.infoItems = (data.results || []).map((r) => ({ ...r, keyword: '' }))
+        const meta = data.meta || {}
+        this.paginationInfo.totalPages = meta.total_pages || 1
       })
     },
-    returnToMainPage() {
-      this.$router.push('/')
-    },
-    selectArticle() {
-      this.isArticle = true
-      this.isFocusArea = false
-      this.isRelationNetwork = false
-    },
-    selectFocusArea() {
-      this.isArticle = false
-      this.isFocusArea = true
-      this.isRelationNetwork = false
-    },
-    selectRelationNetwork() {
-      this.isArticle = false
-      this.isFocusArea = false
-      this.isRelationNetwork = true
-    },
-    follow() {
-      this.isFollowing = true
-      let data = {
-        followed: this.authorInfo.id
-      }
-      User.followUser(data).then(
-        (response) => {
-          console.log(response)
-          // console.log(response.data.username)
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
-    },
-    unfollow() {
-      this.isFollowing = false
-      let data = {
-        followed: this.authorInfo.id
-      }
-      User.cancelFollowUser(data).then(
-        (response) => {
-          console.log(response)
-          // console.log(response.data.username)
-        },
-        (error) => {
-          console.log(error)
-        }
+    getRelationMap() {
+      if (!this.authorInfo.id) return
+      History.getRelationMap(this.authorInfo.id).then(
+        (res) => { this.relationList = (res && res.data) || [] },
+        () => {}
       )
     },
     handleChangePage(page) {
       this.paginationInfo.currentPage = page
-      this.getAuthorArticle(this.paginationInfo.currentPage, this.paginationInfo.itemsPerPage,true)
+      this.loadWorks()
     },
-    handleChangePerPage(perPage) {
-      this.paginationInfo.itemsPerPage = perPage
-      this.getAuthorArticle(this.paginationInfo.currentPage, this.paginationInfo.itemsPerPage,true)
+    handleChangePerPage(n) {
+      this.paginationInfo.itemsPerPage = n
+      this.paginationInfo.currentPage = 1
+      this.loadWorks()
     },
-  },
-}
-window.addEventListener('scroll', function () {
-  var container = document.querySelector('.model')
-
-  if (container === null || getComputedStyle(container).display === 'none') {
-    return;
+    toggleFollow() {
+      if (this.isFollowing) this.unfollow()
+      else this.follow()
+    },
+    follow() {
+      User.followUser({ user_id: this.authorInfo.id }).then(() => {
+        this.isFollowing = true
+        this.$bus.emit('message', { title: '关注成功', content: this.authorInfo.nickName, time: 1500 })
+      })
+    },
+    unfollow() {
+      User.cancelFollowUser({ user_id: this.authorInfo.id }).then(() => {
+        this.isFollowing = false
+        this.$bus.emit('message', { title: '已取消关注', content: '', time: 1500 })
+      })
+    },
+    sharePortal() {
+      try {
+        navigator.clipboard.writeText(window.location.href)
+        this.$bus.emit('message', { title: '已复制学者主页链接', content: window.location.href, time: 1800 })
+      } catch (e) {}
+    },
+    contactAuthor() {
+      if (this.authorInfo.email) window.location.href = 'mailto:' + this.authorInfo.email
+    },
+    gotoInstitution(inst) {
+      if (inst && inst.id) this.$router.push('/institution_detail/' + inst.id)
+    },
+    gotoTag(tag) {
+      if (tag && tag.id) this.$router.push('/tag_detail/' + tag.id)
+    },
+    gotoScholar(id) {
+      if (id) this.$router.push('/scholar_portal/' + id)
+    },
+    formatNumber(n) {
+      if (typeof n !== 'number') return n || 0
+      if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1) + 'K'
+      return n.toLocaleString('en-US')
+    },
+    pct(value) {
+      return Math.max(2, Math.round(((value || 0) / this.maxCitations) * 100))
+    },
+    barStyle() {
+      return {}
+    }
   }
-
-  var scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  var windowHeight = window.innerHeight;
-
-  var topPosition = scrollTop + (windowHeight / 2)
-  container.style.top = topPosition + 'px'
-});
+}
 </script>
-  
+
 <style scoped>
-* {
-  box-sizing: border-box;
-  max-width: 100%;
+.ps-scholar {
+  max-width: var(--ps-content-max);
+  margin: 0 auto;
+  padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
 }
 
-em {
-  font-weight: bold;
+.ps-scholar__hero { margin-bottom: var(--ps-space-7); }
+
+.ps-scholar__crumbs { margin-bottom: var(--ps-space-5); }
+
+.ps-scholar__crumbs :deep(.ps-breadcrumb a),
+.ps-scholar__crumbs :deep(.ps-breadcrumb__current),
+.ps-scholar__crumbs :deep(.ps-breadcrumb__sep) {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.return-part {
+.ps-scholar__crumbs :deep(.ps-breadcrumb__current) {
+  color: var(--ps-color-accent);
+}
+
+.ps-scholar__hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  gap: var(--ps-space-7);
+  align-items: center;
+}
+
+.ps-scholar__hero-main {
   display: flex;
-  width: 80px;
+  gap: var(--ps-space-6);
+  align-items: center;
+}
+
+.ps-scholar__avatar :deep(.ps-avatar__initials) {
+  font-size: 38px !important;
+}
+
+.ps-scholar__avatar {
+  border: 3px solid rgba(212, 175, 55, 0.5);
+  box-shadow: var(--ps-shadow-gold);
+}
+
+.ps-scholar__hero-body { flex: 1; min-width: 0; }
+
+.ps-scholar__orcid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: var(--ps-radius-pill);
+  font-size: 11px;
+  font-family: var(--ps-font-mono);
+  color: var(--ps-color-accent);
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-scholar__name {
+  font-family: var(--ps-font-display);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.1;
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-scholar__affil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ps-fs-md);
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: var(--ps-space-4);
+}
+
+.ps-scholar__affil-link {
+  color: #FFFFFF;
+  font-weight: 600;
   cursor: pointer;
-  height: 35px;
 }
 
-.icon {
-  width: 30px;
-  height: 30px;
-  background-size: cover;
-  cursor: pointer;
-  transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
-  fill: #666;
-}
+.ps-scholar__affil-link:hover { color: var(--ps-color-accent); }
 
-.return-text {
-  font-size: 20px;
-  /* color: #666; */
-  margin-top: 2px;
-}
-
-.main-part {
-  /* min-height: 800px; */
-  width: 100%;
-  /* min-width: 500px; */
+.ps-scholar__interests {
   display: flex;
-  justify-content: center;
-  margin-top: 30px;
-  /* margin-left: 10%; */
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--ps-space-5);
 }
 
-.title-part {
+.ps-scholar__interests :deep(.ps-chip--outline) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #FFFFFF;
+}
+
+.ps-scholar__hero-actions {
   display: flex;
-  /* margin-top: 50px; */
-  /* margin-left: 80px; */
-  justify-content: space-around;
+  gap: var(--ps-space-2);
   flex-wrap: wrap;
 }
 
-.title {
-  display: flex;
-  width: 300px;
-  height: 80px;
-  justify-content: center;
+.ps-scholar__follow-btn {
+  display: inline-flex;
   align-items: center;
-  font-size: 30px;
+  gap: 6px;
+  padding: 0 18px;
+  height: 38px;
+  background: var(--ps-color-accent);
+  color: #1B1147;
+  border-radius: var(--ps-radius-pill);
+  font-size: var(--ps-fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--ps-motion-base) var(--ps-ease-out);
 }
 
-.info-tag-list {
+.ps-scholar__follow-btn:hover { background: var(--ps-color-accent-strong); }
+
+.ps-scholar__follow-btn--active {
+  background: rgba(212, 175, 55, 0.18);
+  color: var(--ps-color-accent);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.ps-scholar__action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  border-radius: var(--ps-radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ps-scholar__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+
+.ps-scholar__hero-stats {
+  background: rgba(15, 14, 26, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--ps-radius-lg);
+  padding: var(--ps-space-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ps-space-3) var(--ps-space-5);
+  backdrop-filter: blur(10px);
+}
+
+.ps-scholar__stat {
   display: flex;
-  width: 80%;
-  justify-content: space-around;
-
+  flex-direction: column;
+  gap: 4px;
 }
 
-.personal-info {
-  /* border: 1px solid red; */
-  width: 300px;
+.ps-scholar__stat-num {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-2xl);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.0;
+}
+
+.ps-scholar__stat-label {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ps-color-accent);
+}
+
+/* ── Layout ─────────────────────────────────────────── */
+.ps-scholar__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--ps-space-6);
+  align-items: flex-start;
+}
+
+.ps-scholar__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: var(--ps-space-4);
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-pill);
+  width: fit-content;
+}
+
+.ps-scholar__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  background: transparent;
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
+}
+
+.ps-scholar__tab:hover { color: var(--ps-text-1); }
+
+.ps-scholar__tab--active {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+}
+
+.ps-scholar__pagination {
+  margin-top: var(--ps-space-5);
+  display: flex;
+  justify-content: center;
+}
+
+.ps-scholar__trend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ps-scholar__trend-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 100px 60px;
+  align-items: center;
+  gap: var(--ps-space-3);
+  font-size: var(--ps-fs-sm);
+}
+
+.ps-scholar__trend-year {
+  font-family: var(--ps-font-mono);
+  font-weight: 600;
+  color: var(--ps-text-2);
+}
+
+.ps-scholar__trend-bar {
+  height: 8px;
+  background: var(--ps-bg-sunken);
+  border-radius: var(--ps-radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+
+.ps-scholar__trend-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ps-color-primary), var(--ps-color-accent));
+  border-radius: inherit;
+  transition: width var(--ps-motion-slow) var(--ps-ease-out);
+}
+
+.ps-scholar__trend-val {
+  font-weight: 600;
+  color: var(--ps-text-1);
+}
+
+.ps-scholar__trend-val--mini {
+  color: var(--ps-text-3);
+  font-size: 12px;
+}
+
+.ps-scholar__network {
+  margin-top: var(--ps-space-6);
+}
+
+.ps-scholar__network-title {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-md);
+  color: var(--ps-text-1);
+  font-weight: 700;
+  margin-bottom: var(--ps-space-3);
+}
+
+.ps-scholar__network-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ps-space-3);
+}
+
+.ps-scholar__network-node {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-3);
+  padding: var(--ps-space-3) var(--ps-space-4);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    border-color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-scholar__network-node:hover {
+  background: var(--ps-color-primary-soft);
+  border-color: var(--ps-color-primary);
+}
+
+.ps-scholar__network-node > div { flex: 1; min-width: 0; }
+
+.ps-scholar__network-node h4 {
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-1);
+  margin-bottom: 2px;
+}
+
+.ps-scholar__network-node p {
+  font-size: 12px;
+  color: var(--ps-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Sidebar ────────────────────────────────────────── */
+.ps-scholar__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-4);
+  position: sticky;
+  top: calc(var(--ps-nav-height) + var(--ps-space-4));
+}
+
+.ps-scholar__keywords {
   display: flex;
   flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: center;
+  gap: 6px;
 }
 
-.personal-image img {
-  height: 250px;
-  width: 250px;
-  border-radius: 50%;
-}
-
-.personal-info-text {
-  /* min-height: 400px; */
-  width: 300px;
-  margin-top: 10px;
-}
-
-.personal-info-text p:not(:nth-child(1), :nth-child(2)) {
-  background: var(--theme-mode-like);
-  padding-left: 20px;
-  padding-top: 15px;
-}
-
-.personal-info-text p:nth-child(3) {
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-}
-
-.personal-info-text p:last-child {
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  padding-bottom: 15px;
-}
-
-.personal-info-text * {
-  color: var(--default-text-color);
-}
-
-.personal-info-text-nickname {
-  font-size: 30px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.personal-info-text-nickname a {
-  font-size: 30px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.personal-info-text-real-name {
-  font-size: 16px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.personal-info-text-url-list li {
-  margin-left: 5px;
-  margin-bottom: 10px;
+.ps-scholar__links li {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-2);
+  border-bottom: 1px dashed var(--ps-border-1);
 }
 
-.personal-info-text-url-list li svg {
-  width: 30px;
-  height: 30px;
-  fill: var(--default-text-color);
+.ps-scholar__links li:last-child { border: 0; }
+
+.ps-scholar__links a {
+  color: var(--ps-color-primary);
+  font-size: 13px;
+  word-break: break-all;
 }
 
-.personal-info-text-url-list li:last-child {
-  margin-bottom: 0;
-}
-
-.personal-info-text-url-list li:hover * {
-  font-size: 17px;
-  font-weight: bold;
-  color: var(--theme-color);
-  fill: var(--theme-color);
-}
-
-
-/* .personal-info-text-item {
-  margin-bottom: 5px;
-  margin-left: 20px;
-} */
-.tag-and-list {
-  width: 60%;
-}
-
-.focus-area {
-  min-height: 100px;
-  width: 100%;
-  /* border: 2px solid red; */
-  /* width: 50%;  */
-}
-
-.focus-area h3 {
-  font-size: 25px;
-  font-weight: bold;
-  margin-top: 20px;
-}
-
-.tag-container {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.tag-item {
-  margin-top: 10px;
-  margin-right: 10px;
-  color: var(--theme-color);
-  cursor: pointer;
-}
-
-.tag-item :hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.list {
-  margin-top: 0;
-
-  /* display: flex; */
-  /* justify-content: space-around;
-  flex-wrap: wrap; */
-  /* width: 50%; */
-  min-height: 300px;
-
-}
-
-.favourites-subscribe-tab {
-  display: flex;
-}
-
-.favourites-subscribe-tab h3 {
-  font-size: 25px;
-  font-weight: bold;
-}
-
-.favourites-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.follow {
-  height: 40px;
-  font-size: 18px;
-  color: white;
+.ps-scholar__qr {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 10px;
+  padding: var(--ps-space-4);
+  background: linear-gradient(135deg, #FFFFFF, var(--ps-bg-sunken));
+  border-radius: var(--ps-radius-md);
 }
 
-.follow:last-of-type {
-  margin-top: 10px;
-  /* margin-left: 20px; */
+.ps-scholar__qr svg {
+  border-radius: var(--ps-radius-sm);
+  box-shadow: var(--ps-shadow-1);
 }
 
-.is-follow {
-  background-color: var(--theme-color);
-  font-weight: bold;
-}
-
-.is-follow:hover {
-  background-color: var(--theme-color-80);
-}
-
-.un-follow {
-  color: var(--default-text-color);
-  background-color: var(--theme-mode-contrast);
-}
-
-.un-follow:hover {
-  background-color: var(--theme-mode-high-contrast);
-}
-
-.tab {
-  height: 40px;
-  font-size: 18px;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* .tab {
-  margin-left: 20px;
-} */
-.tab+.tab {
-  margin-left: 20px;
-}
-
-.tab-selected {
-  background-color: var(--theme-color);
-  font-weight: bold;
-}
-
-.tab-selected:hover {
-  background-color: var(--theme-color-80);
-}
-
-.tab-not-selected {
-  color: var(--default-text-color);
-  background-color: var(--theme-mode-contrast);
-}
-
-.tab-not-selected:hover {
-  background-color: var(--theme-mode-high-contrast);
-}
-
-.favourites-creation {
-  background-color: rgb(98, 186, 70);
-  width: 120px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  /* margin-right: 70px; */
-  cursor: pointer;
-  color: white;
-}
-
-.favourites-creation:hover {
-  background-color: rgb(131, 192, 113);
-  color: white;
-}
-
-.model {
-  background-color: white;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 600px;
-  min-height: 400px;
-  border-radius: 20px;
-  position: absolute;
-  padding-top: 25px;
-  padding-bottom: 25px;
-  padding-left: 30px;
-  padding-right: 30px;
-  display: flex;
-  justify-content: center;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-
-  transition: opacity 0.5s linear 0s;
-}
-
-.inner-box {
-  width: 70%;
-}
-
-.move-title {
-  color: black;
-  text-align: center;
-  font-size: 30px;
-  margin-bottom: 30px;
-}
-
-.relation-network {
-  width: 80%;
-  margin-left: 10%;
-}
-
-.relation-network h3 {
-  font-size: 25px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-@media screen and (max-width: 1450px) {
-  .personal-info {
-    justify-content: center;
+@media screen and (max-width: 1024px) {
+  .ps-scholar__hero-grid,
+  .ps-scholar__layout {
+    grid-template-columns: 1fr;
   }
+  .ps-scholar__sidebar { position: static; }
 }
 
-
-@media screen and (max-width: 900px) {
-  .personal-image {
-    /* margin-left: 30px; */
+@media screen and (max-width: 720px) {
+  .ps-scholar { padding: var(--ps-space-4); }
+  .ps-scholar__hero-main {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
   }
-
-}
-
-@media screen and (max-width: 768px) {
-  .main-part {
-    width: 100%;
-    /* border: 1px solid red; */
-    margin-left: 0;
-  }
-
-  .personal-info {
-    width: 80%;
-    margin-left: 10%;
-    /* border: 1px solid red; */
-    margin-bottom: 30px;
-  }
-
-  .info-tag-list {
-    display: block;
-    width: 100%;
-  }
-
-  .personal-info-text {
-    width: 80%;
-    min-height: 300px;
-  }
-
-  .personal-image {
-    margin-left: 0px;
-  }
-
-  .personal-info {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .tag-and-list {
-    width: 100%;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .list {
-    width: 80%;
-  }
-
-  .focus-area {
-    width: 80%;
-  }
-}
-
-@media screen and (max-width: 700px) {
-  .personal-info {
-    justify-content: center;
-  }
-
-  .personal-image {
-    margin-left: 0px;
-  }
-
-  .personal-info-text {
-    margin-left: 0px;
-  }
-}
-
-@media screen and (max-width: 600px) {
-  .main-part {
-    width: 100%;
-    margin-left: 0;
-  }
-}
-
-@media screen and (max-width: 450px) {
-
-  .download,
-  .collect {
-    display: none;
-  }
-
-  .more {
-    display: block;
+  .ps-scholar__network {
+    grid-template-columns: 1fr;
   }
 }
 </style>

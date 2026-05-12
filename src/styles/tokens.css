@@ -1,0 +1,171 @@
+/**
+ * PaperScholar Design Tokens
+ * Palette: Premium Institution (Deep violet + Gold)
+ * 所有可视化变量都收敛在此处，业务样式禁止使用十六进制硬编码。
+ */
+
+:root {
+  /* ── Brand ─────────────────────────────────────────── */
+  --ps-color-primary: #2D1B69;
+  --ps-color-primary-strong: #1B1147;
+  --ps-color-primary-soft: rgba(45, 27, 105, 0.08);
+  --ps-color-primary-hover: rgba(45, 27, 105, 0.12);
+  --ps-color-primary-active: rgba(45, 27, 105, 0.18);
+
+  --ps-color-accent: #D4AF37;
+  --ps-color-accent-strong: #B8932C;
+  --ps-color-accent-soft: rgba(212, 175, 55, 0.14);
+
+  /* hero / brand-rich surfaces */
+  --ps-bg-hero-from: #0B0B1F;
+  --ps-bg-hero-mid: #1A1A3E;
+  --ps-bg-hero-to: #2D1B69;
+
+  /* ── Page surfaces ─────────────────────────────────── */
+  --ps-bg-page: #FAF9F6;
+  --ps-bg-elevated: #FFFFFF;
+  --ps-bg-sunken: #F0EEE7;
+  --ps-bg-overlay: rgba(11, 11, 31, 0.45);
+
+  /* ── Text ──────────────────────────────────────────── */
+  --ps-text-1: #0F0E1A;
+  --ps-text-2: #4A4860;
+  --ps-text-3: #8580A0;
+  --ps-text-inverse: #FFFFFF;
+  --ps-text-link: #2D1B69;
+  --ps-text-link-hover: #1B1147;
+
+  /* ── Border ────────────────────────────────────────── */
+  --ps-border-1: #E5E2D8;
+  --ps-border-2: #D5D0C0;
+  --ps-border-strong: #2D1B69;
+
+  /* ── Status ────────────────────────────────────────── */
+  --ps-color-success: #15803D;
+  --ps-color-success-soft: rgba(21, 128, 61, 0.10);
+  --ps-color-warning: #B45309;
+  --ps-color-warning-soft: rgba(180, 83, 9, 0.10);
+  --ps-color-danger: #B91C1C;
+  --ps-color-danger-soft: rgba(185, 28, 28, 0.10);
+  --ps-color-info: #1D4ED8;
+  --ps-color-info-soft: rgba(29, 78, 216, 0.10);
+
+  /* ── Radii ─────────────────────────────────────────── */
+  --ps-radius-xs: 4px;
+  --ps-radius-sm: 8px;
+  --ps-radius-md: 12px;
+  --ps-radius-lg: 18px;
+  --ps-radius-xl: 24px;
+  --ps-radius-pill: 999px;
+
+  /* ── Spacing scale (4-pt) ─────────────────────────── */
+  --ps-space-1: 4px;
+  --ps-space-2: 8px;
+  --ps-space-3: 12px;
+  --ps-space-4: 16px;
+  --ps-space-5: 20px;
+  --ps-space-6: 24px;
+  --ps-space-7: 32px;
+  --ps-space-8: 40px;
+  --ps-space-9: 56px;
+  --ps-space-10: 80px;
+
+  /* ── Shadows (tuned for warm cream background) ─────── */
+  --ps-shadow-1: 0 1px 2px rgba(15, 14, 26, 0.05), 0 1px 1px rgba(15, 14, 26, 0.04);
+  --ps-shadow-2: 0 4px 12px -2px rgba(15, 14, 26, 0.08), 0 2px 4px rgba(15, 14, 26, 0.04);
+  --ps-shadow-3: 0 16px 40px -12px rgba(15, 14, 26, 0.18), 0 6px 18px -8px rgba(15, 14, 26, 0.10);
+  --ps-shadow-gold: 0 8px 28px -12px rgba(212, 175, 55, 0.40);
+  --ps-shadow-violet: 0 18px 50px -16px rgba(45, 27, 105, 0.45);
+  --ps-shadow-focus: 0 0 0 3px rgba(45, 27, 105, 0.18);
+
+  /* ── Typography ────────────────────────────────────── */
+  --ps-font-display: 'Playfair Display', 'Noto Serif SC', 'Source Han Serif SC',
+    'Songti SC', Georgia, 'Times New Roman', serif;
+  --ps-font-sans: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Helvetica Neue',
+    'Helvetica', 'Arial', 'Microsoft YaHei', sans-serif;
+  --ps-font-mono: 'JetBrains Mono', Monaco, Menlo, Consolas, 'Courier New',
+    monospace;
+
+  --ps-fs-xs: 12px;
+  --ps-fs-sm: 13px;
+  --ps-fs-base: 14px;
+  --ps-fs-md: 15px;
+  --ps-fs-lg: 17px;
+  --ps-fs-xl: 20px;
+  --ps-fs-2xl: 24px;
+  --ps-fs-3xl: 30px;
+  --ps-fs-4xl: 38px;
+  --ps-fs-5xl: 48px;
+  --ps-fs-6xl: 60px;
+
+  --ps-lh-tight: 1.2;
+  --ps-lh-snug: 1.35;
+  --ps-lh-normal: 1.55;
+  --ps-lh-relaxed: 1.75;
+
+  /* ── Motion ────────────────────────────────────────── */
+  --ps-motion-fast: 0.12s;
+  --ps-motion-base: 0.22s;
+  --ps-motion-slow: 0.45s;
+  --ps-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ps-ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+  /* ── Layout ────────────────────────────────────────── */
+  --ps-nav-height: 64px;
+  --ps-content-max: 1280px;
+  --ps-content-narrow: 880px;
+
+  /* ── Legacy aliases (向后兼容旧 class) ─────────────── */
+  --theme-mode: var(--ps-bg-page);
+  --theme-mode-translucent: rgba(250, 249, 246, 0.85);
+  --theme-mode-like: var(--ps-bg-elevated);
+  --theme-mode-slight-contrast: var(--ps-bg-sunken);
+  --theme-mode-contrast: var(--ps-border-1);
+  --theme-mode-high-contrast: var(--ps-text-2);
+  --theme-mode-very-high-contrast: var(--ps-text-1);
+  --default-text-color: var(--ps-text-1);
+  --theme-color: var(--ps-color-primary);
+  --theme-color-80: rgba(45, 27, 105, 0.8);
+  --theme-color-60: rgba(45, 27, 105, 0.6);
+  --theme-color-50: rgba(45, 27, 105, 0.5);
+  --theme-color-30: rgba(45, 27, 105, 0.28);
+  --theme-color-10: var(--ps-color-primary-soft);
+  --theme-accent: var(--ps-color-accent);
+  --theme-accent-soft: var(--ps-color-accent-soft);
+  --surface-shadow: var(--ps-shadow-1);
+  --surface-shadow-soft: var(--ps-shadow-2);
+  --border-soft: 1px solid var(--ps-border-1);
+  --article-list-item-icon-color: var(--ps-color-primary);
+}
+
+:root[data-theme='dark'] {
+  --ps-color-primary: #B5A0FF;
+  --ps-color-primary-strong: #D2C3FF;
+  --ps-color-primary-soft: rgba(181, 160, 255, 0.14);
+  --ps-color-primary-hover: rgba(181, 160, 255, 0.20);
+  --ps-color-primary-active: rgba(181, 160, 255, 0.28);
+
+  --ps-color-accent: #E6C766;
+  --ps-color-accent-strong: #D4AF37;
+  --ps-color-accent-soft: rgba(230, 199, 102, 0.18);
+
+  --ps-bg-page: #0B0B1F;
+  --ps-bg-elevated: #15152F;
+  --ps-bg-sunken: #07071A;
+  --ps-bg-overlay: rgba(0, 0, 0, 0.65);
+
+  --ps-text-1: #F5F3FF;
+  --ps-text-2: #B3AFCC;
+  --ps-text-3: #6E6A8A;
+  --ps-text-link: #B5A0FF;
+  --ps-text-link-hover: #D2C3FF;
+
+  --ps-border-1: #2A2A50;
+  --ps-border-2: #3A3A6E;
+
+  --ps-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --ps-shadow-2: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --ps-shadow-3: 0 20px 50px -10px rgba(0, 0, 0, 0.70);
+
+  --theme-mode-translucent: rgba(11, 11, 31, 0.78);
+}

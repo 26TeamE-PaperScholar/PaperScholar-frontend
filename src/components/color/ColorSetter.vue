@@ -1,69 +1,95 @@
 <template>
-  <div class="color-container">
-    <button class="color-mode-switch" @click="changeColorMode" aria-label="Toggle color mode"></button>
-  </div>
+  <button
+    type="button"
+    class="ps-color-setter"
+    :aria-label="theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'"
+    @click="toggleColorMode"
+  >
+    <svg v-if="theme === 'dark'" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.5" fill="currentColor" />
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="2.5" x2="12" y2="5" />
+        <line x1="12" y1="19" x2="12" y2="21.5" />
+        <line x1="2.5" y1="12" x2="5" y2="12" />
+        <line x1="19" y1="12" x2="21.5" y2="12" />
+        <line x1="5" y1="5" x2="6.8" y2="6.8" />
+        <line x1="17.2" y1="17.2" x2="19" y2="19" />
+        <line x1="19" y1="5" x2="17.2" y2="6.8" />
+        <line x1="6.8" y1="17.2" x2="5" y2="19" />
+      </g>
+    </svg>
+    <svg v-else viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  </button>
 </template>
 
 <script>
+/**
+ * ColorSetter
+ * 浅色 / 深色主题切换器。
+ *
+ * 行为：
+ * - 点击切换 `<html data-theme="dark|light">`，整套 design tokens 自动跟着切换
+ * - 选择写入 localStorage，刷新仍生效
+ * - 在 NavBar 中、PersonalHomepage 等任何位置可独立放置
+ *
+ * 与原 ColorSetter 保持一致的可见效果（一个开关按钮），但底层不再手动 set
+ * 一堆 `--theme-mode-*` 变量，而是统一通过 `[data-theme='dark']` 选择器在
+ * tokens.css 中覆盖。
+ */
 export default {
   name: 'ColorSetter',
+  data() {
+    return {
+      theme: 'light'
+    }
+  },
+  mounted() {
+    const stored = (typeof localStorage !== 'undefined' && localStorage.getItem('ps-theme')) || 'light'
+    this.theme = stored === 'dark' ? 'dark' : 'light'
+    this.applyTheme()
+  },
   methods: {
+    toggleColorMode() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark'
+      this.applyTheme()
+      try { localStorage.setItem('ps-theme', this.theme) } catch (e) {}
+      this.$emit('change', this.theme)
+    },
+    /**
+     * 兼容旧 API：原 ColorSetter 暴露的方法名是 `changeColorMode`。
+     */
     changeColorMode() {
-      let mode = getComputedStyle(document.documentElement).getPropertyValue('--theme-mode')
-      if (mode === '#181818') {
-        document.documentElement.style.setProperty('--theme-mode', '#ffffff')
-        document.documentElement.style.setProperty('--theme-mode-translucent', '#fffffff2')
-        document.documentElement.style.setProperty('--theme-mode-like', '#ffffff')
-        document.documentElement.style.setProperty('--theme-mode-slight-contrast', '#f7f7f7')
-        document.documentElement.style.setProperty('--theme-mode-contrast', '#e5e5e5')
-        document.documentElement.style.setProperty('--theme-mode-high-contrast', '#6f6f6f')
-        document.documentElement.style.setProperty('--theme-mode-very-high-contrast', '#111111')
-        document.documentElement.style.setProperty('--default-text-color', '#111111')
-        document.documentElement.style.setProperty('--article-list-item-icon-color', '#111111')
-      } else {
-        document.documentElement.style.setProperty('--theme-mode', '#181818')
-        document.documentElement.style.setProperty('--theme-mode-translucent', '#181818d9')
-        document.documentElement.style.setProperty('--theme-mode-like', '#22262c')
-        document.documentElement.style.setProperty('--theme-mode-slight-contrast', '#2b3138')
-        document.documentElement.style.setProperty('--theme-mode-contrast', '#3a424c')
-        document.documentElement.style.setProperty('--theme-mode-high-contrast', '#b4beca')
-        document.documentElement.style.setProperty('--theme-mode-very-high-contrast', '#edf1f5')
-        document.documentElement.style.setProperty('--default-text-color', '#e6ebf0')
-        document.documentElement.style.setProperty('--article-list-item-icon-color', 'rgb(135, 186, 222)')
-      }
+      this.toggleColorMode()
+    },
+    applyTheme() {
+      document.documentElement.setAttribute('data-theme', this.theme)
     }
   }
 }
 </script>
 
 <style scoped>
-.color-container {
-  position: relative;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.color-mode-switch {
+.ps-color-setter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 6px;
+  border-radius: var(--ps-radius-md);
   background: transparent;
-  border: var(--border-soft);
-  box-shadow: none;
-  transition: .3s cubic-bezier(0.075, 0.82, 0.165, 1);
-  position: relative;
+  color: var(--ps-text-2);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
 }
 
-.color-mode-switch::before {
-  content: '';
-  position: absolute;
-  inset: 9px;
-  border: 1.5px solid var(--theme-mode-very-high-contrast);
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--theme-mode-very-high-contrast) 0 50%, transparent 50% 100%);
-}
-
-.color-mode-switch:hover {
-  background-color: var(--theme-mode-slight-contrast);
+.ps-color-setter:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
 }
 </style>

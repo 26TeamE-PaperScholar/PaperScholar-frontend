@@ -1,118 +1,123 @@
 <template>
-  <header>
-    <section>
-      <svg  @click="backToSearch" class="logo-svg" preserveAspectRatio="xMidYMid meet" viewBox="305 653.4000000000001 620 201" xmlns="http://www.w3.org/2000/svg" version="1.0" >
-<g stroke="none"   transform="translate(0.000000,1500.000000) scale(0.080000,-0.080000)">
-<path d="M4995 8400 c-67 -10 -141 -59 -186 -122 l-22 -30 47 36 c112 85 220&#10;66 333 -58 257 -281 308 -1002 94 -1333 -63 -97 -135 -143 -222 -143 -70 1&#10;-164 64 -224 150 -28 41 -63 56 -51 23 21 -55 97 -171 143 -218 72 -74 135&#10;-105 211 -105 143 0 255 117 331 345 16 50 33 111 36 138 8 55 -4 52 160 32&#10;140 -18 406 -20 490 -4 103 19 165 61 165 112 0 72 -104 176 -263 262 -70 39&#10;-105 40 -52 2 64 -46 125 -110 136 -144 10 -30 9 -39 -8 -62 -47 -62 -166 -87&#10;-383 -77 -80 3 -161 8 -180 12 l-35 6 -1 181 c0 121 -7 216 -18 282 -77 457&#10;-280 748 -501 715z"/>
-<path d="M4663 8189 c-75 -22 -99 -119 -44 -178 55 -59 155 -35 181 43 26 81&#10;-53 159 -137 135z"/>
-<path d="M6769 8071 c-35 -35 -36 -42 -6 -76 43 -51 164 -41 182 15 16 50 -31&#10;90 -105 90 -33 0 -48 -6 -71 -29z"/>
-<path d="M7314 8030 c-58 -9 -123 -28 -141 -43 -10 -7 -13 -108 -13 -443 l0&#10;-433 22 -15 c23 -16 84 -21 125 -10 22 6 23 10 25 173 l3 166 145 6 c216 9&#10;298 48 359 171 56 111 38 248 -42 331 -50 51 -95 73 -185 92 -71 15 -212 18&#10;-298 5z m287 -111 c55 -30 85 -76 94 -139 13 -92 -10 -167 -65 -213 -42 -36&#10;-89 -47 -202 -47 l-98 0 0 209 0 210 33 4 c17 3 69 4 114 2 63 -2 91 -8 124&#10;-26z"/>
-<path d="M4150 7919 c-71 -12 -155 -51 -170 -79 -17 -31 -6 -83 25 -124 24&#10;-32 124 -116 137 -116 4 0 15 15 26 34 l20 34 -40 38 c-101 99 -89 164 38 204&#10;63 20 52 23 -36 9z"/>
-<path d="M9022 7845 c-67 -19 -156 -61 -173 -82 -11 -13 -15 -100 -17 -427 -2&#10;-226 0 -425 3 -443 5 -27 12 -34 45 -44 27 -8 53 -9 82 -3 l43 9 3 138 3 138&#10;32 -7 c18 -4 75 -7 127 -6 167 0 276 63 336 195 26 56 29 73 29 167 0 141 -19&#10;194 -100 276 -42 42 -75 66 -110 78 -69 25 -233 31 -303 11z m225 -96 c84 -41&#10;118 -115 117 -259 0 -123 -15 -174 -68 -226 -66 -66 -162 -81 -252 -38 l-34&#10;16 0 248 0 248 38 15 c55 23 147 21 199 -4z"/>
-<path d="M8228 7810 c-68 -11 -150 -44 -174 -71 -17 -19 -17 -21 3 -47 25 -32&#10;39 -32 120 2 175 74 293 27 293 -116 0 -67 12 -61 -158 -78 -171 -16 -270 -62&#10;-302 -140 -18 -43 -9 -144 16 -178 33 -44 107 -88 172 -102 132 -28 329 1 412&#10;60 l30 21 0 237 c0 209 -3 242 -19 278 -24 52 -83 101 -144 119 -64 19 -179&#10;26 -249 15z m242 -504 l0 -124 -34 -12 c-19 -6 -66 -11 -105 -11 -114 -1 -161&#10;38 -161 133 0 94 65 128 263 136 l37 2 0 -124z"/>
-<path d="M9957 7810 c-162 -28 -272 -155 -284 -328 -17 -247 120 -396 377&#10;-409 109 -6 195 11 260 52 46 29 50 52 15 85 l-25 23 -71 -36 c-61 -32 -81&#10;-37 -138 -37 -119 0 -195 55 -234 171 -8 24 -14 45 -13 46 1 1 103 16 226 33&#10;124 16 242 35 262 41 47 12 62 38 53 92 -23 139 -124 239 -270 266 -65 12 -88&#10;12 -158 1z m140 -91 c46 -17 92 -69 108 -123 26 -86 35 -80 -157 -105 -95 -12&#10;-181 -25 -190 -27 -15 -4 -18 1 -18 29 0 51 27 132 56 167 51 61 133 85 201&#10;59z"/>
-<path d="M10723 7795 c-71 -19 -148 -60 -167 -87 -14 -19 -16 -65 -16 -314 l0&#10;-291 25 -11 c29 -13 67 -15 114 -6 l31 7 0 294 0 294 38 16 c48 21 144 30 206&#10;21 33 -5 54 -3 63 4 21 17 11 61 -17 75 -34 17 -211 16 -277 -2z"/>
-<path d="M6778 7793 c-17 -4 -18 -29 -18 -343 0 -339 0 -339 22 -354 23 -16&#10;84 -21 126 -10 l22 6 0 344 0 344 -26 10 c-25 10 -94 12 -126 3z"/>
-<path d="M4302 7694 c-46 -23 -89 -77 -102 -125 -21 -78 6 -152 76 -205 33&#10;-26 46 -29 110 -29 66 0 75 3 112 32 l41 33 43 -19 c126 -54 626 -201 684&#10;-201 9 0 26 67 20 77 -1 1 -55 14 -121 28 -137 31 -405 110 -514 153 l-74 29&#10;-2 55 c-2 65 -24 108 -78 151 -31 26 -48 32 -100 34 -43 3 -72 -1 -95 -13z"/>
-<path d="M5745 7703 c-96 -25 -124 -146 -49 -212 62 -55 150 -37 189 39 19 37&#10;19 64 -1 105 -24 52 -86 81 -139 68z"/>
-<path d="M4691 7179 c-52 -48 -51 -120 1 -164 27 -23 39 -26 75 -22 51 5 71&#10;20 90 66 19 44 9 84 -29 116 -39 33 -104 35 -137 4z"/>
-</g>
-      </svg>
-      <button class="brand-name" @click="backToSearch">PaperScholar</button>
-    </section>
-    <form class="nav-search" @submit.prevent="searchFromNav">
-      <input
-        v-model="navSearchKeyword"
-        class="basic-input nav-search-input"
-        type="text"
-        :placeholder="$t('huge_input_placeholder')"
-      />
-      <button class="nav-search-btn" type="submit" aria-label="Search">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M10.75 4.5a6.25 6.25 0 1 0 0 12.5 6.25 6.25 0 0 0 0-12.5Zm-7.75 6.25a7.75 7.75 0 1 1 13.72 4.94l3.04 3.05a.75.75 0 0 1-1.06 1.06l-3.05-3.04A7.75 7.75 0 0 1 3 10.75Z"></path>
-        </svg>
+  <header class="ps-nav">
+    <div class="ps-nav__inner">
+      <button class="ps-nav__brand" @click="backToHome" aria-label="PaperScholar 主页">
+        <span class="ps-nav__brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ps-brand-grad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2D1B69" />
+                <stop offset="100%" stop-color="#D4AF37" />
+              </linearGradient>
+            </defs>
+            <rect width="28" height="28" rx="8" fill="url(#ps-brand-grad)" />
+            <path d="M9 8h7c2.8 0 4.6 1.7 4.6 4.2 0 2.6-1.8 4.3-4.6 4.3h-3.4V20H9V8Zm6.6 5.9c1.3 0 2.1-.7 2.1-1.7 0-1.1-.8-1.7-2.1-1.7h-3v3.4h3Z" fill="#fff" />
+          </svg>
+        </span>
+        <span class="ps-nav__brand-text">
+          <span class="ps-nav__brand-name">PaperScholar</span>
+          <span class="ps-nav__brand-tag">学术检索 · 智能导航</span>
+        </span>
       </button>
-    </form>
-    <section>
-      <div class="nav-tools">
-        <ColorSetter />
-        <svg @click="translate" t="1700014496111" class="icon" viewBox="0 0 1024 1024" version="1.1"
-        xmlns="http://www.w3.org/2000/svg" p-id="4957" width="200" height="200">
-        <path
-          d="M360.228571 505.234286c-8.594286 0-12.8-4.388571-12.8-13.165715v-74.24h-76.068571c-5.12 0-9.325714-1.645714-12.617143-4.937142s-4.754286-7.68-4.754286-12.982858v-81.005714c0-5.302857 1.645714-9.691429 4.754286-12.982857s7.497143-4.937143 12.617143-4.937143H347.428571v-34.742857c0-8.777143 4.205714-13.165714 12.8-13.165714s12.8 4.388571 12.8 13.165714v34.742857h77.165715c5.12 0 9.325714 1.645714 12.617143 4.937143s4.754286 7.68 4.754285 12.982857v81.005714c0 5.302857-1.645714 9.691429-4.754285 12.982858s-7.497143 4.937143-12.617143 4.937142H373.028571v74.24c0 8.777143-4.205714 13.165714-12.8 13.165715z m-75.337142-112.64H347.428571v-66.56h-62.537142c-4.205714 0-6.4 2.194286-6.4 6.582857v53.394286c0 4.388571 2.194286 6.582857 6.4 6.582857z m88.137142 0h62.537143c4.205714 0 6.4-2.194286 6.4-6.582857v-53.394286c0-4.388571-2.194286-6.582857-6.4-6.582857H373.028571v66.56zM704.548571 694.674286h-78.445714l-15.908571 50.285714c-2.011429 0.914286-4.022857 1.645714-6.217143 2.011429-2.194286 0.548571-4.754286 0.731429-7.68 0.731428-5.302857 0-9.691429-1.28-13.165714-3.657143-3.474286-2.377143-5.12-6.034286-5.12-10.971428 0-2.377143 0.365714-4.754286 0.914285-6.948572 0.548571-2.377143 1.462857-4.937143 2.56-7.862857 2.925714-9.142857 6.765714-21.028571 11.702857-35.84s10.422857-30.171429 16.091429-46.445714c5.668571-16.274286 11.52-32.182857 17.371429-48.091429s10.788571-29.257143 15.177142-40.411428c2.194286-1.28 5.485714-2.56 9.874286-3.84s8.96-2.011429 13.714286-2.011429c6.217143 0 11.885714 0.914286 16.822857 2.742857 4.937143 1.828571 8.228571 4.937143 10.057143 9.325715 4.571429 12.434286 9.874286 26.697143 15.36 42.605714 5.668571 15.908571 11.154286 32.365714 16.822857 49.371428 5.485714 17.005714 10.971429 33.645714 16.091429 49.737143 5.12 16.274286 9.874286 30.902857 13.897142 44.251429-2.011429 2.194286-4.571429 4.022857-7.68 5.485714-3.108571 1.462857-6.765714 2.194286-11.154285 2.194286-5.668571 0-9.874286-1.097143-12.434286-3.474286s-4.754286-6.217143-6.582857-11.702857l-12.068572-37.485714z m-39.497142-121.965715c-2.194286 5.851429-4.571429 12.617143-7.131429 20.114286-2.56 7.497143-5.302857 15.36-8.045714 23.588572-2.742857 8.228571-5.485714 16.64-8.228572 25.051428-2.742857 8.411429-5.485714 16.64-7.862857 24.685714h63.268572c-2.925714-8.777143-5.668571-17.737143-8.594286-26.697142-2.925714-8.96-5.668571-17.554286-8.228572-25.6s-5.12-15.725714-7.497142-22.857143c-2.377143-7.131429-4.205714-13.348571-5.851429-18.468572h-1.828571z"
-          p-id="4958"></path>
-        <path
-          d="M521.142857 606.171429H189.622857a65.097143 65.097143 0 0 1-65.097143-64.914286V202.605714c0-35.84 29.257143-65.097143 65.097143-65.097143H521.142857c35.84 0 64.914286 29.257143 64.914286 65.097143V541.257143a64.914286 64.914286 0 0 1-64.914286 64.914286zM189.622857 174.08c-15.725714 0-28.525714 12.8-28.525714 28.525714V541.257143c0 15.725714 12.8 28.342857 28.525714 28.342857H521.142857c15.725714 0 28.342857-12.8 28.342857-28.342857V202.605714c0-15.725714-12.8-28.525714-28.342857-28.525714H189.622857z"
-          p-id="4959"></path>
-        <path
-          d="M834.56 886.491429H503.04a65.097143 65.097143 0 0 1-65.097143-64.914286V587.885714c0-10.057143 8.228571-18.285714 18.285714-18.285714h64.914286c15.725714 0 28.342857-12.8 28.342857-28.342857v-105.142857c0-10.057143 8.228571-18.285714 18.285715-18.285715h266.788571c35.84 0 64.914286 29.257143 64.914286 65.097143v338.651429a64.914286 64.914286 0 0 1-64.914286 64.914286zM474.514286 606.171429v215.405714c0 15.725714 12.8 28.342857 28.525714 28.342857h331.52c15.725714 0 28.342857-12.8 28.342857-28.342857V482.925714c0-15.725714-12.8-28.525714-28.342857-28.525714H586.057143v86.857143a64.914286 64.914286 0 0 1-64.914286 64.914286h-46.628571z"
-          p-id="4960"></path>
-        </svg>
-      </div>
-      <template v-if="!isLoggedIn">
-        <button class="basic-btn" @click="jumpToAuth('login')">{{ $t('login_text') }}</button>
-        <button class="basic-btn-outline" @click="jumpToAuth('register')">{{ $t('register_text') }}</button>
-        <div class="dropdown-icon">
-          <ul class="dropdown-list">
-            <li @click="jumpToAuth('login')">{{ $t('login_text') }}</li>
-            <li @click="jumpToAuth('register')">{{ $t('register_text') }}</li>
-          </ul>
-        </div>
-      </template>
-      <template v-else>
-        
-        <div @click="jumpToMessage">
-          <div v-if="!hasUnreadMessage">
-            <MailIcon></MailIcon>
-          </div>
-          <div v-else>
-            <UnreadMailIcon></UnreadMailIcon>
-          </div>
-        </div>
-        <a class="homepage-link">
-          <div>{{ $t('hello_message') + currentUsername }}</div>
-          <ul class="dropdown-list">
-            <li @click="jumpToPersonalHomepage">{{ $t('personal_homepage_text') }}</li>
-            <li @click="jumpToChangePassword">{{ $t('change_password_text') }}</li>
-            <li @click="handleLogout">{{ $t('logout_text') }}</li>
-          </ul>
-        </a>
-      </template>
-    </section>
-  </header>
-  <ChangePasswordModal :show="changePasswordModalShow" @close="changePasswordModalShow = false" />
 
+      <nav class="ps-nav__links" aria-label="primary">
+        <button
+          v-for="item in links"
+          :key="item.path"
+          class="ps-nav__link"
+          :class="{ 'ps-nav__link--active': isActive(item) }"
+          @click="navigate(item)"
+        >
+          {{ $t(item.labelKey) || item.fallback }}
+        </button>
+      </nav>
+
+      <form class="ps-nav__search" @submit.prevent="searchFromNav">
+        <AppIcon name="Search" :size="16" />
+        <input
+          v-model="navSearchKeyword"
+          type="text"
+          :placeholder="$t('huge_input_placeholder')"
+          aria-label="search"
+        />
+        <AppKbdHint size="sm">⌘K</AppKbdHint>
+      </form>
+
+      <div class="ps-nav__actions">
+        <button class="ps-nav__icon-btn" :aria-label="$t('change_lang') || 'lang'" @click="toggleLocale">
+          <AppIcon name="LanguageOutline" :size="18" />
+        </button>
+        <ColorSetter />
+        
+
+        <template v-if="!isLoggedIn">
+          <button class="ps-nav__btn ps-nav__btn--ghost" @click="jumpToAuth('login')">{{ $t('login_text') }}</button>
+          <button class="ps-nav__btn ps-nav__btn--primary" @click="jumpToAuth('register')">{{ $t('register_text') }}</button>
+        </template>
+
+        <template v-else>
+          <button class="ps-nav__icon-btn ps-nav__icon-btn--with-dot" @click="jumpToMessage" :aria-label="'messages'">
+            <AppIcon name="Notifications" :size="18" />
+            <span v-if="hasUnreadMessage" class="ps-nav__dot" aria-hidden="true"></span>
+          </button>
+
+          <div class="ps-nav__profile" tabindex="0">
+            <AppAvatar :name="currentUsername" :id="currentUserId" size="sm" />
+            <span class="ps-nav__profile-name">{{ currentUsername }}</span>
+            <AppIcon name="ChevronDown" :size="14" />
+            <ul class="ps-nav__dropdown" role="menu">
+              <li @click="jumpToPersonalHomepage">
+                <AppIcon name="Person" :size="14" />
+                {{ $t('personal_homepage_text') }}
+              </li>
+              <li @click="jumpToChangePassword">
+                <AppIcon name="LockClosed" :size="14" />
+                {{ $t('change_password_text') }}
+              </li>
+              <li class="ps-nav__dropdown-danger" @click="handleLogout">
+                <AppIcon name="LogOut" :size="14" />
+                {{ $t('logout_text') }}
+              </li>
+            </ul>
+          </div>
+        </template>
+      </div>
+    </div>
+    <ChangePasswordModal :show="changePasswordModalShow" @close="changePasswordModalShow = false" />
+  </header>
 </template>
 
 <script>
 import { mapState, mapMutations } from 'vuex'
-
-
-
-import MailIcon from '../svg/MailIcon.vue'
-import UnreadMailIcon from '../svg/UnreadMailIcon.vue'
 import ChangePasswordModal from '../modals/ChangePasswordModal.vue'
 import ColorSetter from '../color/ColorSetter.vue'
-
 import { Account } from '../../api/accounts.js'
 import { User } from '../../api/users.js'
+import AppIcon from '../ui/Icon.vue'
+import AppAvatar from '../ui/Avatar.vue'
+import AppKbdHint from '../ui/KbdHint.vue'
 
-import i18n from '../../language'
 export default {
   name: 'NavBar',
   components: {
     ChangePasswordModal,
     ColorSetter,
-    i18n,
-    MailIcon,
-    UnreadMailIcon
+    AppIcon,
+    AppAvatar,
+    AppKbdHint
   },
   data() {
     return {
-      hasUnreadMessage: false,
+      hasUnreadMessage: true,
       changePasswordModalShow: false,
       currentUsername: '',
-      navSearchKeyword: ''
+      currentUserId: '',
+      navSearchKeyword: '',
+      links: [
+        { path: '/', labelKey: 'nav_home', fallback: '首页' },
+        { path: '/search_result', labelKey: 'nav_explore', fallback: '探索' },
+        { path: '/personal_homepage', labelKey: 'nav_my', fallback: '我的', requireLogin: true }
+      ]
     }
   },
   computed: {
@@ -126,53 +131,61 @@ export default {
     }
   },
   mounted() {
-    // console.log(this.$cookies.get('user_id'))
     this.$bus.on('judgeHasUnreadMsg', this.handleJudgeHasUnreadMsg)
     this.getUserIdAndSayHello()
+    window.addEventListener('keydown', this.handleHotkey)
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleHotkey)
   },
   methods: {
     ...mapMutations(['setIsLoggedIn']),
     getUserIdAndSayHello() {
-      let userId = this.$cookies.get('user_id')
+      const userId = this.$cookies.get('user_id')
       if (userId) {
         this.setIsLoggedIn(true)
+        this.currentUserId = userId
         User.getUser(userId).then(
           (response) => {
-            this.currentUsername = response.data.username
+            const data = response && response.data
+            if (data && data.username) this.currentUsername = data.username
           },
-          (error) => {
-            console.log(error)
-          }
+          () => {}
         )
       }
     },
-    // mq: 跳转到消息详情页面
-    jumpToMessage() {
-      this.$router.push('/message')
+    handleJudgeHasUnreadMsg(payload) {
+      this.hasUnreadMessage = !!(payload && payload.hasUnread)
     },
-    backToSearch() {
-      let userId = this.$cookies.get('user_id')
-      if (userId) {
-        this.$router.push('/search')
-      } else {
-        this.$router.push('/')
-      }
-    },
-    translate() {
+    toggleLocale() {
       document.documentElement.classList.add('document-fade-out')
       setTimeout(() => {
         document.documentElement.classList.remove('document-fade-out')
-        if (this.$i18n.locale == 'zh') {
-          this.$i18n.locale = 'en'
-        }
-        else {
-          this.$i18n.locale = 'zh'
-        }
+        this.$i18n.locale = this.$i18n.locale === 'zh' ? 'en' : 'zh'
         document.documentElement.classList.add('document-fade-in')
-        setTimeout(() => {
-          document.documentElement.classList.remove('document-fade-in')
-        }, 610)
+        setTimeout(() => document.documentElement.classList.remove('document-fade-in'), 610)
       }, 200)
+    },
+    isActive(item) {
+      if (item.path === '/') return this.$route.path === '/' || this.$route.path === '/search'
+      return this.$route.path.startsWith(item.path)
+    },
+    navigate(item) {
+      if (item.requireLogin && !this.isLoggedIn) {
+        this.jumpToAuth('login')
+        return
+      }
+      if (item.path === '/search_result') {
+        this.$router.push({ path: item.path, query: { search: '', search_type: 1, per_page: '10', page: '1' } })
+        return
+      }
+      this.$router.push(item.path)
+    },
+    backToHome() {
+      this.$router.push(this.isLoggedIn ? '/search' : '/')
+    },
+    jumpToMessage() {
+      this.$router.push('/message')
     },
     jumpToPersonalHomepage() {
       this.$router.push('/personal_homepage')
@@ -192,317 +205,327 @@ export default {
           per_page: '10',
           page: '1',
           cursor: '',
-          search_type: 1,
-        },
+          search_type: 1
+        }
       })
     },
     handleLogout() {
       Account.logout().then(
-        (response) => {
-          // alert("登出成功！")
+        () => {
           this.setIsLoggedIn(false)
+          this.currentUsername = ''
           this.$router.push('/')
         },
-        (error) => {
-          // alert("登出失败！")
-        }
+        () => {}
       )
     },
     jumpToChangePassword() {
-      console.log(111);
       this.changePasswordModalShow = true
     },
-    testCopy() {
-      let str = "Hello World"
-      navigator.clipboard.writeText(str)
+    handleHotkey(e) {
+      const cmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
+      if (cmdK) {
+        e.preventDefault()
+        const input = this.$el && this.$el.querySelector('.ps-nav__search input')
+        if (input) input.focus()
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-svg.logo-svg {
-  display: none;
-}
-
-.brand-name {
-  width: auto;
-  height: auto;
-  padding: 0;
-  background: transparent;
-  color: var(--theme-mode-very-high-contrast);
-  font-size: 18px;
-  font-weight: 650;
-  letter-spacing: 0;
-  cursor: pointer;
-}
-
-.click-svg {
-  position: fixed;
-  z-index: 100;
-  width: 240px;
-  height: 0px;
-  cursor: pointer;
-  translate: -80px 0;
-  fill: var(--theme-color) !important;
-  /* margin-right: 500px; */
-}
-
-header {
+.ps-nav {
   position: sticky;
   top: 0;
   width: 100%;
-  height: 56px;
-  background: var(--theme-mode-translucent);
-  backdrop-filter: blur(18px);
-  border-bottom: var(--border-soft);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
+  height: var(--ps-nav-height);
   z-index: 999;
-  box-sizing: border-box;
-  box-shadow: none;
+  backdrop-filter: saturate(140%) blur(18px);
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
+  background: var(--theme-mode-translucent);
+  border-bottom: 1px solid var(--ps-border-1);
 }
 
-header>section {
+.ps-nav__inner {
+  height: 100%;
   display: flex;
   align-items: center;
-  flex: none;
+  gap: var(--ps-space-5);
+  max-width: var(--ps-content-max);
+  margin: 0 auto;
+  padding: 0 var(--ps-space-6);
 }
 
-.nav-search {
-  flex: 1;
+.ps-nav__brand {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  padding: 0 12px 0 24px;
-  box-sizing: border-box;
-  position: relative;
-  max-width: 360px;
-  margin-left: auto;
-}
-
-.nav-search-input {
-  width: 260px;
-  height: 36px;
-  font-size: 14px;
-  padding-right: 44px;
-}
-
-.nav-search-btn {
-  position: absolute;
-  right: 18px;
-  width: 28px;
-  height: 28px;
-  min-width: 0;
-  padding: 0;
-  margin: 0;
+  gap: var(--ps-space-3);
+  background: transparent;
   border: 0;
-  background: #111;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 6px;
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
 }
 
-.nav-search-btn:hover {
-  background: #2a2a2a;
+.ps-nav__brand:hover {
+  background: var(--ps-color-primary-soft);
 }
 
-.nav-search-btn svg {
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  fill: #fff;
-}
-
-header h1,
-header h1 span {
-  font-size: 25px;
-  /* font-weight: bold; */
-  color: var(--theme-color);
-}
-
-header h1 {
-  margin-left: 10px;
-}
-
-.logo {
-  width: 40px;
-  height: 40px;
-  background: green;
-  border-radius: 50%;
-  flex: none;
-}
-
-header button {
-  margin: 0 6px;
-  height: 36px;
-}
-
-header .basic-btn,
-header .basic-btn-outline {
-  width: auto;
+.ps-nav__brand-mark {
+  width: 32px;
   height: 32px;
-  padding: 0 14px;
-  font-size: 13px;
-}
-
-header .brand-name {
-  margin: 0;
-  height: auto;
-}
-
-.nav-tools {
+  border-radius: 8px;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-right: 8px;
-}
-
-.dropdown-icon {
-  width: 40px;
-  height: 40px;
-  background: url('../../components/svg/menu.svg');
-  background-size: cover;
-  display: none;
-  cursor: pointer;
-  position: relative;
-  transition: .5s cubic-bezier(0.075, 0.82, 0.165, 1);
-}
-
-.dropdown-list {
-  position: absolute;
-  top: calc(100%);
-  right: -10px;
-  padding: 8px;
-  background: var(--theme-mode-like);
-  border: var(--border-soft);
-  border-radius: 6px;
-  display: none;
-  box-shadow: none;
-}
-
-.dropdown-list li {
-  width: 132px;
-  display: flex;
   justify-content: center;
-  background: transparent;
-  color: var(--theme-mode-very-high-contrast);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 9px 8px;
-  border-radius: 4px;
-  transition: .3s cubic-bezier(0.075, 0.82, 0.165, 1);
-  text-align: center;
+  box-shadow: var(--ps-shadow-2);
 }
 
-.dropdown-list li:not(:last-child) {
-  margin-bottom: 10px;
-}
-
-.dropdown-list li:hover {
-  background: var(--theme-mode-slight-contrast);
-  color: var(--theme-mode-very-high-contrast);
-}
-
-.icon {
-  width: 36px;
-  height: 36px;
-  background-size: cover;
-  cursor: pointer;
-  transition: .25s ease;
-  fill: var(--theme-mode-high-contrast);
-  vertical-align: middle;
-  padding: 8px;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-
-.icon:hover {
-  background: var(--theme-mode-slight-contrast);
-  fill: var(--theme-mode-very-high-contrast);
-}
-
-header svg {
-  margin: 0 6px;
-}
-
-.homepage-link {
-  margin-right: 10px;
-  position: relative;
-}
-
-.homepage-link div {
-  font-size: 15px;
-  color: var(--theme-mode-very-high-contrast);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: 600;
-  padding: 9px 10px;
-  border-radius: 6px;
-  background: transparent;
-}
-
-.homepage-link:hover .dropdown-list {
+.ps-nav__brand-mark svg {
+  width: 100%;
+  height: 100%;
   display: block;
 }
 
-@media screen and (max-width: 1000px) {
-
-  header h1,
-  header h1 span {
-    font-size: 20px;
-  }
+.ps-nav__brand-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.1;
 }
 
-@media screen and (max-width: 850px) {
-  .icon {
-    width: 36px;
-    height: 36px;
-  }
+.ps-nav__brand-name {
+  font-family: var(--ps-font-display);
+  font-size: var(--ps-fs-lg);
+  font-weight: 700;
+  color: var(--ps-text-1);
 }
 
-@media screen and (max-width: 768px) {
-  header {
-    padding: 0 16px;
-  }
-
-  .nav-search {
-    display: none;
-  }
-
-  svg.logo-svg {
-    display: none;
-  }
-
-  .dropdown-icon {
-    display: block;
-  }
-
-  .dropdown-icon:hover ul {
-    display: block;
-  }
-
-  header button {
-    display: none;
-  }
-
-  header h1 span {
-    display: none;
-  }
+.ps-nav__brand-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ps-color-accent-strong);
+  margin-top: 2px;
 }
 
-@media screen and (max-width: 600px) {
-  .dropdown-icon {
-    width: 40px;
-    height: 40px;
-  }
+.ps-nav__links {
+  display: flex;
+  gap: var(--ps-space-1);
+  margin-left: var(--ps-space-3);
+}
 
-  .homepage-link div {
-    max-width: 150px;
-  }
+.ps-nav__link {
+  position: relative;
+  padding: 8px 14px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-2);
+  border-radius: var(--ps-radius-md);
+  cursor: pointer;
+}
+
+.ps-nav__link:hover {
+  color: var(--ps-text-1);
+  background: var(--ps-color-primary-soft);
+}
+
+.ps-nav__link--active {
+  color: var(--ps-text-1);
+}
+
+.ps-nav__link--active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ps-color-primary), var(--ps-color-accent));
+  border-radius: 2px;
+}
+
+.ps-nav__search {
+  flex: 1;
+  max-width: 320px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-2);
+  height: 38px;
+  padding: 0 var(--ps-space-4);
+  background: var(--ps-bg-sunken);
+  border: 1px solid transparent;
+  border-radius: var(--ps-radius-pill);
+  transition: border-color var(--ps-motion-base) var(--ps-ease-out),
+    background var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.ps-nav__search:focus-within {
+  background: var(--ps-bg-elevated);
+  border-color: var(--ps-color-primary);
+}
+
+.ps-nav__search input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: var(--ps-fs-sm);
+  color: var(--ps-text-1);
+  min-width: 0;
+}
+
+.ps-nav__search input::placeholder { color: var(--ps-text-3); }
+
+.ps-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-2);
+}
+
+.ps-nav__icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ps-radius-md);
+  color: var(--ps-text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-nav__icon-btn:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
+
+.ps-nav__dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  background: var(--ps-color-accent);
+  border: 2px solid var(--ps-bg-page);
+  border-radius: 50%;
+}
+
+.ps-nav__btn {
+  height: 36px;
+  padding: 0 var(--ps-space-5);
+  border-radius: var(--ps-radius-pill);
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--ps-motion-base) var(--ps-ease-out),
+    color var(--ps-motion-base) var(--ps-ease-out),
+    box-shadow var(--ps-motion-base) var(--ps-ease-out);
+}
+
+.ps-nav__btn--ghost {
+  background: transparent;
+  color: var(--ps-text-1);
+  border: 1px solid var(--ps-border-1);
+}
+.ps-nav__btn--ghost:hover { background: var(--ps-color-primary-soft); }
+
+.ps-nav__btn--primary {
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
+  box-shadow: var(--ps-shadow-1);
+}
+.ps-nav__btn--primary:hover {
+  background: var(--ps-color-primary-strong);
+  box-shadow: var(--ps-shadow-violet);
+}
+
+.ps-nav__profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-2);
+  padding: 4px 10px 4px 4px;
+  border-radius: var(--ps-radius-pill);
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-nav__profile:hover { background: var(--ps-color-primary-soft); }
+
+.ps-nav__profile-name {
+  font-size: var(--ps-fs-sm);
+  font-weight: 600;
+  color: var(--ps-text-1);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ps-nav__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
+  box-shadow: var(--ps-shadow-3);
+  padding: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--ps-motion-fast) var(--ps-ease-out),
+    transform var(--ps-motion-fast) var(--ps-ease-out),
+    visibility var(--ps-motion-fast) linear;
+  z-index: 30;
+}
+
+.ps-nav__profile:hover .ps-nav__dropdown,
+.ps-nav__profile:focus-within .ps-nav__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.ps-nav__dropdown li {
+  display: flex;
+  align-items: center;
+  gap: var(--ps-space-2);
+  padding: 8px 10px;
+  font-size: var(--ps-fs-sm);
+  font-weight: 500;
+  color: var(--ps-text-1);
+  border-radius: var(--ps-radius-sm);
+  cursor: pointer;
+}
+
+.ps-nav__dropdown li:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
+
+.ps-nav__dropdown-danger:hover {
+  background: var(--ps-color-danger-soft) !important;
+  color: var(--ps-color-danger) !important;
+}
+
+@media screen and (max-width: 980px) {
+  .ps-nav__links { display: none; }
+  .ps-nav__search { max-width: 200px; }
+  .ps-nav__brand-tag { display: none; }
+}
+
+@media screen and (max-width: 720px) {
+  .ps-nav__search { display: none; }
+  .ps-nav__profile-name { display: none; }
 }
 </style>
