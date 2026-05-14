@@ -1,5 +1,6 @@
 import Vuex from 'vuex'
 import compare from './modules/compare'
+import assistant from './modules/assistant'
 
 export default new Vuex.Store({
   state: {
@@ -13,6 +14,7 @@ export default new Vuex.Store({
     }
   },
   modules: {
-    compare
+    compare,
+    assistant
   }
 })
