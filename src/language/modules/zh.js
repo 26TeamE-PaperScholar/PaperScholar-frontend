@@ -13,6 +13,7 @@ export default {
 
     nav_home: '首页',
     nav_explore: '探索',
+    nav_assistant: 'AI 助手',
     nav_my: '我的',
     change_lang: '切换语言',
 

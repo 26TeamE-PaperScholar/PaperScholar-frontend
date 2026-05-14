@@ -116,6 +116,7 @@ export default {
       links: [
         { path: '/', labelKey: 'nav_home', fallback: '首页' },
         { path: '/search_result', labelKey: 'nav_explore', fallback: '探索' },
+        { path: '/ai_assistant', labelKey: 'nav_assistant', fallback: 'AI 助手', requireLogin: true },
         { path: '/personal_homepage', labelKey: 'nav_my', fallback: '我的', requireLogin: true }
       ]
     }

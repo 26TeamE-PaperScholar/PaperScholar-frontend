@@ -13,6 +13,7 @@ export default {
 
     nav_home: 'Home',
     nav_explore: 'Explore',
+    nav_assistant: 'AI Assistant',
     nav_my: 'My',
     change_lang: 'Switch language',
 

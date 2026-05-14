@@ -63,6 +63,10 @@
               <AppIcon name="Share" :size="16" />
               分享
             </button>
+            <button class="ps-paper__action ps-paper__action--ai" @click="gotoAssistant">
+              <AppIcon name="SparklesOutline" :size="16" />
+              用 AI 解读
+            </button>
             <AddToCompareButton :paper="paperForCompare" size="md" />
           </div>
         </aside>
@@ -328,6 +332,11 @@ export default {
         this.$bus.emit('message', { title: '已复制到剪贴板', content: window.location.href, time: 2000 })
       } catch (e) {}
     },
+    gotoAssistant() {
+      const id = this.$route.params.id
+      if (!id) return
+      this.$router.push({ path: '/ai_assistant', query: { context_papers: id } })
+    },
     downloadPaper() {
       if (!this.pdf_url) return
       const link = document.createElement('a')
@@ -495,6 +504,15 @@ export default {
   background: rgba(212, 175, 55, 0.18);
   border-color: rgba(212, 175, 55, 0.5);
   color: var(--ps-color-accent);
+}
+
+.ps-paper__action--ai {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(255, 255, 255, 0.05));
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #fff;
+}
+.ps-paper__action--ai:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.32), rgba(255, 255, 255, 0.1));
 }
 
 /* ── Layout ────────────────────────────────────────────── */
