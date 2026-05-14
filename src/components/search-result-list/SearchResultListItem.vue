@@ -25,6 +25,7 @@
         </div>
       </div>
       <div class="ps-result-item__actions" @click.stop>
+        <AddToCompareButton :paper="infoItem" size="sm" />
         <AppIconButton
           icon="Bookmark"
           variant="soft"
@@ -104,12 +105,14 @@
 
 <script>
 import ChooseFavoriteModal from '../modals/ChooseFavoriteModal.vue'
+import AddToCompareButton from '../compare/AddToCompareButton.vue'
 import { AppCard, AppIcon, AppAvatar, AppTagChip, AppMetricBadge, AppIconButton } from '../ui'
 
 export default {
   name: 'SearchResultListItem',
   components: {
     ChooseFavoriteModal,
+    AddToCompareButton,
     AppCard,
     AppIcon,
     AppAvatar,

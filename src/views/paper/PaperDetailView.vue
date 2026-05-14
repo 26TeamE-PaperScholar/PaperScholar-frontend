@@ -63,6 +63,7 @@
               <AppIcon name="Share" :size="16" />
               分享
             </button>
+            <AddToCompareButton :paper="paperForCompare" size="md" />
           </div>
         </aside>
       </div>
@@ -106,6 +107,9 @@
                   {{ a.authorships.slice(0, 2).map((x) => x.author && x.author.display_name).join(' · ') }}
                 </p>
               </div>
+              <span class="ps-paper__related-compare" @click.stop>
+                <AddToCompareButton :paper="a" size="xs" />
+              </span>
               <AppIcon name="ChevronForward" :size="16" />
             </li>
           </ul>
@@ -194,12 +198,14 @@ import { Search } from '../../api/search'
 import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue'
 import CiteModal from '../../components/modals/CiteModal.vue'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppBreadcrumb } from '../../components/ui'
+import AddToCompareButton from '../../components/compare/AddToCompareButton.vue'
 
 export default {
   name: 'PaperDetailView',
   components: {
     ChooseFavoriteModal,
     CiteModal,
+    AddToCompareButton,
     AppCard,
     AppIcon,
     AppTagChip,
@@ -260,6 +266,13 @@ export default {
     doiShort() {
       if (!this.doi) return ''
       return String(this.doi).replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
+    },
+    paperForCompare() {
+      return {
+        id: this.paperId,
+        title: this.title,
+        publication_year: this.date ? Number(String(this.date).slice(0, 4)) : null
+      }
     }
   },
   methods: {
