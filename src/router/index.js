@@ -11,6 +11,7 @@ import InstitutionView from '../views/institution/InstitutionView.vue'
 import TagDetailView from '../views/tags/TagDetailView.vue'
 import AuthView from '../views/auth/AuthView.vue'
 import PaperCompareView from '../views/paper-compare/PaperCompareView.vue'
+import AiAssistantView from '../views/ai-assistant/AiAssistantView.vue'
 
 import store from '../store'
 
@@ -18,7 +19,8 @@ const AUTH_REQUIRED_PATHS = new Set([
   '/personal_homepage',
   '/message',
   '/admin',
-  '/search'
+  '/search',
+  '/ai_assistant'
 ])
 
 const router = createRouter({
@@ -42,7 +44,8 @@ const router = createRouter({
     { path: '/institution_detail/:id', component: InstitutionView },
     { path: '/tag_detail/:id', component: TagDetailView },
     { path: '/admin', component: AdminView },
-    { path: '/paper_compare', component: PaperCompareView }
+    { path: '/paper_compare', component: PaperCompareView },
+    { path: '/ai_assistant', component: AiAssistantView }
   ]
 })
 
