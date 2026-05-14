@@ -9,6 +9,7 @@
       </RouterView>
     </main>
     <PopoutMessage :show="showMessage" :title="messageTitle" :content="messageContent" />
+    <CompareFloatingBar />
   </div>
 </template>
 
@@ -16,12 +17,14 @@
 import { getCurrentInstance } from 'vue'
 import NavBar from './components/nav-bar/NavBar.vue'
 import PopoutMessage from './components/popout-message/PopoutMessage.vue'
+import CompareFloatingBar from './components/compare/CompareFloatingBar.vue'
 
 export default {
   name: 'App',
   components: {
     NavBar,
-    PopoutMessage
+    PopoutMessage,
+    CompareFloatingBar
   },
   data() {
     return {
@@ -33,6 +36,7 @@ export default {
   mounted() {
     const instance = getCurrentInstance()
     instance.proxy.$bus.on('message', this.handleMessage)
+    this.$store.dispatch('compare/hydrateCompare')
   },
   beforeUnmount() {
     const instance = getCurrentInstance()

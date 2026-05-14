@@ -12,6 +12,7 @@ export { mockUser, mockFavorites, mockFollowing } from './user'
 export { mockMessages } from './messages'
 export { mockSubmittedApplications, mockAuditList } from './applications'
 export { mockConversations, mockChatSuggestions } from './chat'
+export { mockCompareExtract, getCompareMeta } from './compare'
 export { mockHotspot, mockInterestList, mockInterestRecommend } from './recommendations'
 export { mockSearchHistory, mockViewHistory, mockRelationMap } from './history'
 export {

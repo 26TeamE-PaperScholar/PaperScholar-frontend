@@ -46,7 +46,34 @@ export const mockPapers = [
     citations: [
       { id: 'W2023-099', display_name: 'Dense Passage Retrieval', cited_by_count: 1245 },
       { id: 'W2022-417', display_name: 'REALM: Retrieval-Augmented Language Model Pre-training', cited_by_count: 2105 }
-    ]
+    ],
+    comparison: {
+      method: {
+        value: 'Hybrid retrieval (BM25 + dense bi-encoder) followed by an LLM-based cross-encoder reranker, with a citation-graph-aware re-ranking stage.',
+        source: 'section_3',
+        confidence: 'high'
+      },
+      dataset: {
+        value: 'MS MARCO passage + BEIR scientific subset + 自建 18 学科文献子集（约 12 万条）。',
+        source: 'section_4',
+        confidence: 'high'
+      },
+      metrics: [
+        { name: 'nDCG@10', value: '0.612', source: 'table_2' },
+        { name: 'Recall@100', value: '0.847', source: 'table_2' },
+        { name: 'Evidence Coverage (vs. baseline)', value: '+27%', source: 'abstract' }
+      ],
+      contribution: {
+        value: '首次在学术综述场景验证 hybrid RAG 流水线，证据覆盖较纯 IR 基线提升 27%；提出可追溯的引用感知 reranker。',
+        source: 'introduction',
+        confidence: 'high'
+      },
+      limitation: {
+        value: '未在中文文献集上评估，跨语种泛化能力未知；reranker 推理延迟较 BM25 基线增加 3.2 倍。',
+        source: 'conclusion',
+        confidence: 'high'
+      }
+    }
   },
   {
     id: 'W2024-002',
@@ -82,7 +109,30 @@ export const mockPapers = [
       landing_page_url: 'https://arxiv.org/abs/2406.09017',
       pdf_url: 'https://arxiv.org/pdf/2406.09017.pdf'
     },
-    citations: []
+    citations: [],
+    comparison: {
+      method: {
+        value: '系统性文献综述：对 187 篇研究助手相关论文按"检索意图理解 / 引用生成 / 人类反馈 / 评估"四个维度编码并比较。',
+        source: 'section_2',
+        confidence: 'high'
+      },
+      dataset: {
+        value: '187 篇人工筛选的 LLM 研究助手相关论文（2020–2024）；不涉及独立实验数据集。',
+        source: 'section_2',
+        confidence: 'high'
+      },
+      metrics: [],
+      contribution: {
+        value: '识别 LLM 研究助手领域的 5 大开放挑战：幻觉、归因、评估、多语种、纵向研究。',
+        source: 'abstract',
+        confidence: 'high'
+      },
+      limitation: {
+        value: '作为综述，本文不提供独立实验结果；评估协议的可比性高度依赖各原始研究。',
+        source: 'conclusion',
+        confidence: 'high'
+      }
+    }
   },
   {
     id: 'W2024-003',
@@ -359,7 +409,24 @@ export const mockPapers = [
       landing_page_url: 'https://www.nature.com/articles/s41586-024-07107-7',
       pdf_url: ''
     },
-    citations: []
+    citations: [],
+    comparison: {
+      method: {
+        value: '基于摘要的方法推断：以摘要中关键词 "deep model" 提示为依据；详细方法学未在题录中给出。',
+        source: 'abstract',
+        confidence: 'low'
+      },
+      dataset: null,
+      metrics: [
+        { name: '准确率 (摘要表述)', value: '不详', source: 'abstract' }
+      ],
+      contribution: {
+        value: '声称在某医学影像任务上取得性能提升；具体增量与基线未在可访问内容中说明。',
+        source: 'abstract',
+        confidence: 'low'
+      },
+      limitation: null
+    }
   },
   {
     id: 'W2024-011',
@@ -425,7 +492,33 @@ export const mockPapers = [
       landing_page_url: 'http://www.aas.net.cn',
       pdf_url: ''
     },
-    citations: []
+    citations: [],
+    comparison: {
+      method: {
+        value: '综述分析：从数据建模、模型架构、外部因子融合三个角度比较 2018—2024 年间的图神经网络交通流预测方法。',
+        source: 'abstract',
+        confidence: 'high'
+      },
+      dataset: {
+        value: 'METR-LA / PEMS-BAY / PeMSD7 等主流公开城市交通数据集；以及部分国内城市数据集。',
+        source: 'section_2',
+        confidence: 'high'
+      },
+      metrics: [
+        { name: 'MAE (15min)', value: '2.7-3.5 (典型范围)', source: 'section_3' },
+        { name: 'RMSE (15min)', value: '5.1-6.8 (典型范围)', source: 'section_3' }
+      ],
+      contribution: {
+        value: '梳理图神经网络在城市交通流预测中的演化脉络，提出"数据-模型-外部因子"三维分类法。',
+        source: 'introduction',
+        confidence: 'high'
+      },
+      limitation: {
+        value: '作为综述，对各方法的复现验证有限；外部因子融合的对比口径不统一。',
+        source: 'conclusion',
+        confidence: 'high'
+      }
+    }
   },
   {
     id: 'W2023-013',
@@ -610,7 +703,33 @@ export const mockPapers = [
       landing_page_url: 'https://facctconference.org',
       pdf_url: ''
     },
-    citations: []
+    citations: [],
+    comparison: {
+      method: {
+        value: '可复现性研究：在标准化硬件、依赖固定版本与统一随机种子的条件下，重新运行 312 篇 ML 论文的开源代码。',
+        source: 'section_3',
+        confidence: 'high'
+      },
+      dataset: {
+        value: '2018—2023 年发表于 NeurIPS / ICML / ICLR / FAccT 的 312 篇带开源代码的论文。',
+        source: 'section_3',
+        confidence: 'high'
+      },
+      metrics: [
+        { name: '复现成功率', value: '41%', source: 'abstract' },
+        { name: '中位数指标偏差', value: '8.3% (绝对)', source: 'section_5' }
+      ],
+      contribution: {
+        value: '量化大规模 ML 文献的可复现性危机，给出按子领域细分的失败模式分类法。',
+        source: 'abstract',
+        confidence: 'high'
+      },
+      limitation: {
+        value: '样本偏向开源论文，私有代码论文未覆盖；硬件标准化条件可能与原作者环境不完全匹配。',
+        source: 'conclusion',
+        confidence: 'high'
+      }
+    }
   }
 ]
 

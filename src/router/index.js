@@ -10,6 +10,7 @@ import ScholarPortalView from '../views/scholar-portal/ScholarPortalView.vue'
 import InstitutionView from '../views/institution/InstitutionView.vue'
 import TagDetailView from '../views/tags/TagDetailView.vue'
 import AuthView from '../views/auth/AuthView.vue'
+import PaperCompareView from '../views/paper-compare/PaperCompareView.vue'
 
 import store from '../store'
 
@@ -40,7 +41,8 @@ const router = createRouter({
     { path: '/scholar_portal/:id', component: ScholarPortalView },
     { path: '/institution_detail/:id', component: InstitutionView },
     { path: '/tag_detail/:id', component: TagDetailView },
-    { path: '/admin', component: AdminView }
+    { path: '/admin', component: AdminView },
+    { path: '/paper_compare', component: PaperCompareView }
   ]
 })
 
