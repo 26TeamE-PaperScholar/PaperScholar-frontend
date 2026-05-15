@@ -215,8 +215,8 @@ export default {
 .ps-tag__crumbs { margin-bottom: var(--ps-space-5); }
 .ps-tag__crumbs :deep(.ps-breadcrumb a),
 .ps-tag__crumbs :deep(.ps-breadcrumb__current),
-.ps-tag__crumbs :deep(.ps-breadcrumb__sep) { color: rgba(255, 255, 255, 0.7); }
-.ps-tag__crumbs :deep(.ps-breadcrumb__current) { color: var(--ps-color-accent); }
+.ps-tag__crumbs :deep(.ps-breadcrumb__sep) { color: var(--ps-hero-text-muted); }
+.ps-tag__crumbs :deep(.ps-breadcrumb__current) { color: var(--ps-hero-eyebrow); }
 
 .ps-tag__hero-grid {
   display: grid;
@@ -227,7 +227,7 @@ export default {
 .ps-tag__eyebrow {
   font-size: 11px;
   letter-spacing: 0.22em;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
   font-weight: 700;
   margin-bottom: var(--ps-space-3);
 }
@@ -236,14 +236,14 @@ export default {
   font-family: var(--ps-font-display);
   font-size: clamp(34px, 4.5vw, 56px);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.05;
 }
 
 .ps-tag__alt {
   font-family: var(--ps-font-display);
   font-style: italic;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-text-muted);
   font-size: var(--ps-fs-lg);
   margin-top: 4px;
 }
@@ -252,7 +252,7 @@ export default {
   margin-top: var(--ps-space-4);
   max-width: 600px;
   font-size: var(--ps-fs-md);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--ps-hero-text-muted);
   line-height: 1.6;
 }
 
@@ -284,19 +284,19 @@ export default {
   gap: 6px;
   padding: 0 16px;
   height: 38px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
   border-radius: var(--ps-radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--ps-hero-action-border);
   font-size: var(--ps-fs-sm);
   font-weight: 600;
   cursor: pointer;
 }
-.ps-tag__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+.ps-tag__action-secondary:hover { background: var(--ps-hero-action-bg-hover); }
 
 .ps-tag__hero-stats {
-  background: rgba(15, 14, 26, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-hero-surface);
+  border: 1px solid var(--ps-hero-surface-border);
   border-radius: var(--ps-radius-lg);
   padding: var(--ps-space-5);
   display: flex;
@@ -309,7 +309,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  border-bottom: 1px dashed var(--ps-hero-divider);
   padding-bottom: 6px;
 }
 .ps-tag__stat:last-of-type { border: 0; }
@@ -318,13 +318,13 @@ export default {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-2xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
 }
 .ps-tag__stat-label {
   font-size: 11px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
 }
 
 .ps-tag__section { margin-bottom: var(--ps-space-6); }

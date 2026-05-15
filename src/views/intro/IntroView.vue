@@ -511,6 +511,63 @@ export default {
   backdrop-filter: blur(10px);
 }
 
+/* 暗色主题下该卡仍是浅玻璃：内部不用全局「浅色字」token，否则与浅色底对比不足 */
+:root[data-theme='dark'] .ps-intro__search-shell {
+  border-color: var(--ps-border-on-light-surface);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__type-toggle {
+  border-color: var(--ps-border-on-light-surface);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__type-btn {
+  color: var(--ps-text-on-light-surface-2);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__type-btn:hover {
+  color: var(--ps-text-on-light-surface-1);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__type-btn--active {
+  background: var(--ps-text-on-light-surface-1);
+  color: var(--ps-text-inverse);
+  box-shadow: 0 6px 16px -14px rgba(15, 14, 26, 0.45);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-helper {
+  color: var(--ps-text-on-light-surface-3);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-input {
+  border-color: var(--ps-border-on-light-surface);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-field :deep(.ps-icon) {
+  color: var(--ps-text-on-light-surface-3);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-input input {
+  color: var(--ps-text-on-light-surface-1);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-input:focus-within {
+  border-color: var(--ps-color-primary-on-light-surface);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-input input::placeholder {
+  color: var(--ps-text-on-light-surface-3);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-btn {
+  background: var(--ps-color-primary-on-light-surface);
+  box-shadow: 0 10px 28px -16px rgba(45, 27, 105, 0.55);
+}
+
+:root[data-theme='dark'] .ps-intro__search-shell .ps-intro__search-btn:hover {
+  background: var(--ps-color-primary-strong-on-light-surface);
+  box-shadow: var(--ps-shadow-violet);
+}
+
 .ps-intro__search-head {
   display: flex;
   align-items: center;
@@ -688,7 +745,7 @@ export default {
   font-size: 11px;
   letter-spacing: 0.16em;
   font-weight: 700;
-  color: var(--ps-text-3);
+  color: var(--ps-text-muted-on-light-surface);
   text-transform: uppercase;
 }
 
@@ -699,8 +756,22 @@ export default {
   gap: 8px;
 }
 
-.ps-intro__hot-tags-list :deep(.ps-tag-chip) {
+.ps-intro__hot-tags-list :deep(.ps-chip) {
   width: auto;
+}
+
+/* 研究主题芯片：outline + clickable 在 TagChip 内会把 border 收成透明，这里统一写回圆角描边（明暗主题同一套浅底 token） */
+.ps-intro__hot-tags-list :deep(.ps-chip--outline) {
+  color: var(--ps-color-primary-on-light-surface);
+  border-color: var(--ps-color-primary-on-light-surface);
+}
+
+.ps-intro__hot-tags-list :deep(.ps-chip--outline.ps-chip--clickable) {
+  border: 1px solid var(--ps-color-primary-on-light-surface);
+}
+
+.ps-intro__hot-tags-list :deep(.ps-chip--clickable:hover) {
+  background: var(--ps-color-primary-hover-on-light-surface);
 }
 
 .ps-intro__search-foot {

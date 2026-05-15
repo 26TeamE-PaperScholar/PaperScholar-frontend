@@ -320,14 +320,14 @@ export default {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--ps-color-accent, #d4af37);
+  color: var(--ps-hero-eyebrow);
   text-transform: uppercase;
 }
 .ps-ai__title {
   margin: 0;
   font-size: clamp(22px, 3vw, 30px);
   font-weight: 700;
-  color: #fff;
+  color: var(--ps-hero-text-strong);
   line-height: 1.25;
 }
 .ps-ai__title-accent {
@@ -340,7 +340,7 @@ export default {
 .ps-ai__lede {
   margin: 8px 0 0 0;
   max-width: 720px;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--ps-hero-text-muted);
   font-size: 13.5px;
   line-height: 1.6;
 }
@@ -367,16 +367,16 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
+  border: 1px solid var(--ps-hero-action-border);
   padding: 7px 14px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 12.5px;
   cursor: pointer;
 }
-.ps-ai__cta-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+.ps-ai__cta-ghost:hover { background: var(--ps-hero-action-bg-hover); }
 
 .ps-ai__layout {
   flex: 1;
@@ -391,8 +391,8 @@ export default {
 }
 
 .ps-ai__sidebar {
-  background: var(--ps-bg-elevated, #fff);
-  border: 1px solid var(--ps-border-1, rgba(0, 0, 0, 0.06));
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
   border-radius: 14px;
   padding: 14px 10px;
   display: flex;
@@ -405,7 +405,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 4px 8px 10px 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--ps-border-1);
   margin-bottom: 8px;
 }
 .ps-ai__sidebar-head h3 {
@@ -413,7 +413,7 @@ export default {
   margin: 0;
   letter-spacing: 0.04em;
   font-weight: 700;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
@@ -427,11 +427,11 @@ export default {
   height: 26px;
   border-radius: 8px;
   border: 0;
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
-  color: var(--ps-color-primary-strong, #2d1b69);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
   cursor: pointer;
 }
-.ps-ai__sidebar-new:hover { background: rgba(45, 27, 105, 0.16); }
+.ps-ai__sidebar-new:hover { background: var(--ps-color-primary-hover); }
 .ps-ai__cv-list {
   flex: 1;
   list-style: none;
@@ -445,13 +445,13 @@ export default {
 .ps-ai__cv-empty {
   margin: 24px 8px;
   font-size: 12.5px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   text-align: center;
 }
 
 .ps-ai__panel {
-  background: var(--ps-bg-elevated, #fff);
-  border: 1px solid var(--ps-border-1, rgba(0, 0, 0, 0.06));
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
   border-radius: 14px;
   padding: 14px 18px 14px 18px;
   display: flex;
@@ -466,7 +466,7 @@ export default {
   gap: 6px;
   flex-wrap: wrap;
   padding-bottom: 8px;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+  border-bottom: 1px dashed var(--ps-border-1);
   margin-bottom: 10px;
 }
 .ps-ai__context-label {
@@ -477,7 +477,7 @@ export default {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-2);
 }
 
 .ps-ai__convo-bar {
@@ -491,14 +491,14 @@ export default {
 .ps-ai__convo-title {
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ps-ai__convo-meta {
   font-size: 12px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   flex: none;
 }
 
@@ -522,9 +522,10 @@ export default {
   align-items: center;
   gap: 6px;
   font-size: 12.5px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-2);
   padding: 8px 12px;
-  background: rgba(45, 27, 105, 0.04);
+  background: var(--ps-color-primary-soft);
+  border: 1px solid var(--ps-border-1);
   border-radius: 10px;
   align-self: flex-start;
 }
@@ -532,7 +533,7 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--ps-color-primary, #2d1b69);
+  background: var(--ps-color-primary);
   animation: ps-ai-bounce 1.2s infinite ease-in-out;
 }
 .ps-ai__pending-dot--d2 { animation-delay: 0.15s; }
@@ -564,13 +565,13 @@ export default {
 .ps-ai__welcome h2 {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
 }
 .ps-ai__welcome p {
   margin: 0 0 16px 0;
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
 }
 .ps-ai__feature-list {
   list-style: none;
@@ -588,7 +589,7 @@ export default {
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
 }
 
 .ps-ai__composer {

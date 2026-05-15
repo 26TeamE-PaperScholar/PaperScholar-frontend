@@ -43,9 +43,9 @@ export default {
   gap: 4px;
   padding: 4px 8px 4px 8px;
   font-size: 12px;
-  color: var(--ps-color-primary-strong, #2d1b69);
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
-  border: 1px solid rgba(45, 27, 105, 0.18);
+  color: var(--ps-color-primary-strong);
+  background: var(--ps-color-primary-soft);
+  border: 1px solid var(--ps-border-1);
   border-radius: 999px;
   max-width: 280px;
 }
@@ -62,14 +62,14 @@ export default {
   border: 0;
   padding: 0;
   margin-left: 2px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   cursor: pointer;
   border-radius: 999px;
   width: 16px;
   height: 16px;
 }
 .ps-pcc__remove:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--ps-text-1, #1f1f1f);
+  background: var(--ps-color-primary-hover);
+  color: var(--ps-text-1);
 }
 </style>

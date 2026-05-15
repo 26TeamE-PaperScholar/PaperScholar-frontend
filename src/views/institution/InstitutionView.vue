@@ -285,9 +285,9 @@ export default {
 
 .ps-inst__crumbs :deep(.ps-breadcrumb a),
 .ps-inst__crumbs :deep(.ps-breadcrumb__current),
-.ps-inst__crumbs :deep(.ps-breadcrumb__sep) { color: rgba(255, 255, 255, 0.7); }
+.ps-inst__crumbs :deep(.ps-breadcrumb__sep) { color: var(--ps-hero-text-muted); }
 
-.ps-inst__crumbs :deep(.ps-breadcrumb__current) { color: var(--ps-color-accent); }
+.ps-inst__crumbs :deep(.ps-breadcrumb__current) { color: var(--ps-hero-eyebrow); }
 
 .ps-inst__hero-grid {
   display: grid;
@@ -308,7 +308,7 @@ export default {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(212, 175, 55, 0.3), rgba(45, 27, 105, 0.3));
   border: 2px solid rgba(212, 175, 55, 0.6);
-  color: var(--ps-color-accent);
+  color: var(--ps-color-accent-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,7 +320,7 @@ export default {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
   letter-spacing: 0.10em;
   text-transform: uppercase;
   margin-bottom: var(--ps-space-2);
@@ -330,14 +330,14 @@ export default {
   font-family: var(--ps-font-display);
   font-size: clamp(28px, 4vw, 44px);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.15;
 }
 
 .ps-inst__alt {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-md);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-text-muted);
   margin-top: 6px;
   font-style: italic;
 }
@@ -350,9 +350,9 @@ export default {
 }
 
 .ps-inst__chips :deep(.ps-chip--outline) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #FFFFFF;
+  background: var(--ps-hero-chip-bg);
+  border-color: var(--ps-hero-chip-border);
+  color: var(--ps-hero-chip-text);
 }
 
 .ps-inst__actions {
@@ -370,7 +370,7 @@ export default {
   font-size: var(--ps-fs-sm);
   font-weight: 600;
   border-radius: var(--ps-radius-pill);
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
 }
 
 .ps-inst__action-primary {
@@ -383,17 +383,17 @@ export default {
 }
 
 .ps-inst__action-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--ps-hero-action-bg);
+  border: 1px solid var(--ps-hero-action-border);
 }
 .ps-inst__action-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--ps-hero-action-bg-hover);
   text-decoration: none;
 }
 
 .ps-inst__hero-stats {
-  background: rgba(15, 14, 26, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-hero-surface);
+  border: 1px solid var(--ps-hero-surface-border);
   border-radius: var(--ps-radius-lg);
   padding: var(--ps-space-5);
   display: grid;
@@ -406,7 +406,7 @@ export default {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  border-bottom: 1px dashed var(--ps-hero-divider);
   padding-bottom: 6px;
 }
 .ps-inst__stat:last-of-type { border: 0; }
@@ -415,14 +415,14 @@ export default {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-2xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
 }
 
 .ps-inst__stat-label {
   font-size: 11px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
 }
 
 /* ── Layout ─────────────────────────────────── */

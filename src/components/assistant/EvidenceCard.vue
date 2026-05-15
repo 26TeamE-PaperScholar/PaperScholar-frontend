@@ -63,14 +63,14 @@ export default {
 
 <style scoped>
 .ps-evidence {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(45, 27, 105, 0.08);
+  background: var(--ps-color-primary-soft);
+  border: 1px solid var(--ps-border-1);
   border-radius: 10px;
   padding: 10px 12px;
 }
 .ps-evidence--restricted {
-  background: rgba(212, 175, 55, 0.08);
-  border-color: rgba(212, 175, 55, 0.3);
+  background: var(--ps-color-warning-soft);
+  border-color: var(--ps-color-warning);
 }
 .ps-evidence__head {
   display: flex;
@@ -83,17 +83,23 @@ export default {
   font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
-  color: var(--ps-color-primary-strong, #2d1b69);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
+  border: 1px solid var(--ps-border-1);
   border-radius: 999px;
+}
+.ps-evidence--restricted .ps-evidence__num {
+  background: var(--ps-color-warning-soft);
+  color: var(--ps-color-warning-strong);
+  border-color: var(--ps-color-warning);
 }
 .ps-evidence__loc {
   font-size: 11px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-2);
 }
 .ps-evidence__paper {
   font-size: 11px;
-  color: var(--ps-color-primary, #2d1b69);
+  color: var(--ps-color-primary);
   background: transparent;
   border: 1px solid transparent;
   padding: 1px 6px;
@@ -105,14 +111,14 @@ export default {
   margin-left: auto;
 }
 .ps-evidence__paper:hover {
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
-  border-color: rgba(45, 27, 105, 0.18);
+  background: var(--ps-color-primary-hover);
+  border-color: var(--ps-border-1);
 }
 .ps-evidence__snippet {
   margin: 0;
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   white-space: pre-wrap;
   word-break: break-word;
 }

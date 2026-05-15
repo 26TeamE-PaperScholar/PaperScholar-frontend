@@ -23,8 +23,8 @@ export default {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: rgba(212, 175, 55, 0.12);
-  color: #8b6a13;
+  background: var(--ps-color-warning-soft);
+  color: var(--ps-color-warning-strong);
   border-radius: 6px;
   font-size: 12px;
   font-style: italic;

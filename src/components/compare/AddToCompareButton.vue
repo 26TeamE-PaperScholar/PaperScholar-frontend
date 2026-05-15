@@ -93,9 +93,9 @@ export default {
   gap: 4px;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid var(--ps-border, rgba(45, 27, 105, 0.18));
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--ps-text-2, #4a4a4a);
+  border: 1px solid var(--ps-border-1);
+  background: var(--ps-bg-elevated);
+  color: var(--ps-text-2);
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
@@ -103,16 +103,16 @@ export default {
   white-space: nowrap;
 }
 .ps-compare-add:hover:not(:disabled) {
-  border-color: var(--ps-accent, #2d1b69);
-  color: var(--ps-accent, #2d1b69);
-  background: rgba(45, 27, 105, 0.05);
+  border-color: var(--ps-color-primary);
+  color: var(--ps-color-primary);
+  background: var(--ps-color-primary-soft);
 }
 .ps-compare-add--xs { padding: 2px 8px; font-size: 11px; }
 .ps-compare-add--md { padding: 6px 14px; font-size: 13px; }
 .ps-compare-add--active {
-  background: rgba(212, 175, 55, 0.16);
-  border-color: rgba(212, 175, 55, 0.6);
-  color: #8b6a13;
+  background: var(--ps-color-warning-soft);
+  border-color: var(--ps-color-warning);
+  color: var(--ps-color-warning-strong);
 }
 .ps-compare-add--locked {
   opacity: 0.55;

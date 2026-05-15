@@ -268,13 +268,13 @@ export default {
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-eyebrow);
   margin: 0 0 8px;
 }
 .ps-pc__title {
   font-size: clamp(24px, 3.4vw, 36px);
   line-height: 1.18;
-  color: #fff;
+  color: var(--ps-hero-text-strong);
   margin: 0;
 }
 .ps-pc__title-accent {
@@ -286,7 +286,7 @@ export default {
 }
 .ps-pc__lede {
   margin: 12px 0 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--ps-hero-text-muted);
   font-size: 14px;
   max-width: 520px;
 }
@@ -316,11 +316,11 @@ export default {
 .ps-pc__cta:hover:not(:disabled) { filter: brightness(1.04); }
 .ps-pc__cta:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 .ps-pc__cta-ghost {
-  background: transparent;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
+  border-color: var(--ps-hero-action-border);
 }
-.ps-pc__cta-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+.ps-pc__cta-ghost:hover { background: var(--ps-hero-action-bg-hover); }
 
 .ps-pc__layout {
   max-width: 1180px;
@@ -343,14 +343,14 @@ export default {
   line-height: 1.55;
 }
 .ps-pc__warn {
-  background: rgba(252, 211, 77, 0.18);
-  color: #8b6a13;
-  border: 1px solid rgba(212, 175, 55, 0.32);
+  background: var(--ps-color-warning-soft);
+  color: var(--ps-color-warning-strong);
+  border: 1px solid var(--ps-color-warning);
 }
 .ps-pc__restricted-banner {
-  background: rgba(255, 244, 220, 0.7);
-  color: #8b6a13;
-  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: var(--ps-color-warning-soft);
+  color: var(--ps-color-warning-strong);
+  border: 1px solid var(--ps-color-warning);
 }
 .ps-pc__restricted-list { font-weight: 600; }
 
@@ -362,18 +362,21 @@ export default {
 .ps-pc__paper {
   position: relative;
   padding: 18px 20px;
-  background: #fff;
-  border: 1px solid rgba(45, 27, 105, 0.12);
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.ps-pc__paper--restricted { border-color: rgba(212, 175, 55, 0.4); background: rgba(255, 244, 220, 0.32); }
+.ps-pc__paper--restricted {
+  border-color: var(--ps-color-warning);
+  background: var(--ps-color-warning-soft);
+}
 .ps-pc__paper-idx {
   font-size: 11px;
   letter-spacing: 0.14em;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   text-transform: uppercase;
 }
 .ps-pc__paper-title {
@@ -381,13 +384,13 @@ export default {
   font-size: 17px;
   line-height: 1.4;
   cursor: pointer;
-  color: var(--ps-accent, #2d1b69);
+  color: var(--ps-color-primary);
 }
 .ps-pc__paper-title:hover { text-decoration: underline; }
 .ps-pc__paper-meta {
   margin: 0;
   font-size: 12.5px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   line-height: 1.5;
 }
 .ps-pc__paper-remove {
@@ -397,15 +400,18 @@ export default {
   width: 26px;
   height: 26px;
   border: none;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--ps-bg-sunken);
   border-radius: 50%;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--ps-text-3, #777);
+  color: var(--ps-text-3);
 }
-.ps-pc__paper-remove:hover { background: rgba(0, 0, 0, 0.1); }
+.ps-pc__paper-remove:hover {
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
 
 .ps-pc__matrix {
   display: flex;
@@ -423,9 +429,10 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 14px 16px;
-  background: linear-gradient(135deg, rgba(45, 27, 105, 0.06), rgba(45, 27, 105, 0.02));
+  background: var(--ps-color-primary-soft);
+  border: 1px solid var(--ps-border-1);
   border-radius: 12px;
-  color: var(--ps-accent, #2d1b69);
+  color: var(--ps-color-primary-strong);
   font-weight: 600;
 }
 .ps-pc__row-label { font-size: 14px; }
@@ -433,7 +440,7 @@ export default {
   margin-left: auto;
   font-size: 11px;
   font-weight: 500;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   letter-spacing: 0.08em;
 }
 .ps-pc__row-cells {

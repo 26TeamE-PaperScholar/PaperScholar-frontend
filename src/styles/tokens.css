@@ -16,10 +16,37 @@
   --ps-color-accent-strong: #B8932C;
   --ps-color-accent-soft: rgba(212, 175, 55, 0.14);
 
-  /* hero / brand-rich surfaces */
-  --ps-bg-hero-from: #0B0B1F;
-  --ps-bg-hero-mid: #1A1A3E;
-  --ps-bg-hero-to: #2D1B69;
+  /* hero / brand-rich surfaces
+     —— 亮色主题下走与首页 IntroView 一致的“浅色奶油”观感；
+     暗色主题下覆盖回深紫渐变。
+  */
+  --ps-bg-hero-from: #FFFFFF;
+  --ps-bg-hero-mid: #F7F4ED;
+  --ps-bg-hero-to: #EFE9DA;
+
+  /* hero 内部前景色：文字、按钮、统计卡 …… 也跟随主题切换 */
+  --ps-hero-text-strong: var(--ps-text-1);
+  --ps-hero-text-muted: var(--ps-text-2);
+  --ps-hero-text-faint: var(--ps-text-3);
+  --ps-hero-eyebrow: var(--ps-color-primary);
+  --ps-hero-link: var(--ps-color-primary);
+  --ps-hero-link-hover: var(--ps-color-primary-strong);
+
+  --ps-hero-surface: rgba(255, 255, 255, 0.78);
+  --ps-hero-surface-border: var(--ps-border-1);
+  --ps-hero-divider: var(--ps-border-1);
+
+  --ps-hero-action-bg: rgba(45, 27, 105, 0.06);
+  --ps-hero-action-bg-hover: rgba(45, 27, 105, 0.12);
+  --ps-hero-action-border: var(--ps-border-1);
+
+  --ps-hero-chip-bg: rgba(45, 27, 105, 0.06);
+  --ps-hero-chip-border: rgba(45, 27, 105, 0.18);
+  --ps-hero-chip-text: var(--ps-text-1);
+
+  --ps-hero-grid-dot: rgba(45, 27, 105, 0.10);
+  --ps-hero-grid-blend: multiply;
+  --ps-hero-orb-opacity: 0.35;
 
   /* ── Page surfaces ─────────────────────────────────── */
   --ps-bg-page: #FAF9F6;
@@ -35,6 +62,18 @@
   --ps-text-link: #2D1B69;
   --ps-text-link-hover: #1B1147;
 
+  /* 全局为暗色、但某块 UI 仍是浅色半透明面板时（如首页搜索玻璃卡），
+     用这套变量保证文案与边框在浅底上可读（与亮色主题的 text / border 阶一致）。 */
+  --ps-text-on-light-surface-1: var(--ps-text-1);
+  --ps-text-on-light-surface-2: var(--ps-text-2);
+  --ps-text-on-light-surface-3: var(--ps-text-3);
+  --ps-text-muted-on-light-surface: var(--ps-text-on-light-surface-3);
+  --ps-border-on-light-surface: var(--ps-border-1);
+  --ps-color-primary-on-light-surface: var(--ps-color-primary);
+  --ps-color-primary-strong-on-light-surface: var(--ps-color-primary-strong);
+  --ps-color-primary-soft-on-light-surface: var(--ps-color-primary-soft);
+  --ps-color-primary-hover-on-light-surface: var(--ps-color-primary-hover);
+
   /* ── Border ────────────────────────────────────────── */
   --ps-border-1: #E5E2D8;
   --ps-border-2: #D5D0C0;
@@ -42,12 +81,16 @@
 
   /* ── Status ────────────────────────────────────────── */
   --ps-color-success: #15803D;
+  --ps-color-success-strong: #0F5F2E;
   --ps-color-success-soft: rgba(21, 128, 61, 0.10);
   --ps-color-warning: #B45309;
+  --ps-color-warning-strong: #7A370A;
   --ps-color-warning-soft: rgba(180, 83, 9, 0.10);
   --ps-color-danger: #B91C1C;
+  --ps-color-danger-strong: #7F1212;
   --ps-color-danger-soft: rgba(185, 28, 28, 0.10);
   --ps-color-info: #1D4ED8;
+  --ps-color-info-strong: #1E3A8A;
   --ps-color-info-soft: rgba(29, 78, 216, 0.10);
 
   /* ── Radii ─────────────────────────────────────────── */
@@ -160,12 +203,66 @@
   --ps-text-link: #B5A0FF;
   --ps-text-link-hover: #D2C3FF;
 
+  /* 浅色玻璃面板上的对比色（沿用亮色主题的 text / border 阶 + 品牌深紫） */
+  --ps-text-on-light-surface-1: #0F0E1A;
+  --ps-text-on-light-surface-2: #4A4860;
+  --ps-text-on-light-surface-3: #8580A0;
+  --ps-text-muted-on-light-surface: var(--ps-text-on-light-surface-3);
+  --ps-border-on-light-surface: #E5E2D8;
+  --ps-color-primary-on-light-surface: #2D1B69;
+  --ps-color-primary-strong-on-light-surface: #1B1147;
+  --ps-color-primary-soft-on-light-surface: rgba(45, 27, 105, 0.10);
+  --ps-color-primary-hover-on-light-surface: rgba(45, 27, 105, 0.16);
+
   --ps-border-1: #2A2A50;
   --ps-border-2: #3A3A6E;
+
+  /* 状态色：在深色背景上使用更亮的色阶以保证可读性。
+     -strong 用于加粗/标题级文字（仍要清晰），主色用于正文。 */
+  --ps-color-success: #4ADE80;
+  --ps-color-success-strong: #86EFAC;
+  --ps-color-success-soft: rgba(74, 222, 128, 0.16);
+  --ps-color-warning: #F4C572;
+  --ps-color-warning-strong: #FDE68A;
+  --ps-color-warning-soft: rgba(244, 197, 114, 0.16);
+  --ps-color-danger: #FB7185;
+  --ps-color-danger-strong: #FDA4AF;
+  --ps-color-danger-soft: rgba(251, 113, 133, 0.16);
+  --ps-color-info: #93C5FD;
+  --ps-color-info-strong: #BFDBFE;
+  --ps-color-info-soft: rgba(147, 197, 253, 0.16);
 
   --ps-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.40);
   --ps-shadow-2: 0 6px 16px rgba(0, 0, 0, 0.45);
   --ps-shadow-3: 0 20px 50px -10px rgba(0, 0, 0, 0.70);
 
   --theme-mode-translucent: rgba(11, 11, 31, 0.78);
+
+  /* hero 区在暗色主题下恢复成原来的深紫渐变 */
+  --ps-bg-hero-from: #0B0B1F;
+  --ps-bg-hero-mid: #1A1A3E;
+  --ps-bg-hero-to: #2D1B69;
+
+  --ps-hero-text-strong: #FFFFFF;
+  --ps-hero-text-muted: rgba(255, 255, 255, 0.78);
+  --ps-hero-text-faint: rgba(255, 255, 255, 0.6);
+  --ps-hero-eyebrow: var(--ps-color-accent);
+  --ps-hero-link: #FFFFFF;
+  --ps-hero-link-hover: var(--ps-color-accent);
+
+  --ps-hero-surface: rgba(15, 14, 26, 0.45);
+  --ps-hero-surface-border: rgba(255, 255, 255, 0.12);
+  --ps-hero-divider: rgba(255, 255, 255, 0.12);
+
+  --ps-hero-action-bg: rgba(255, 255, 255, 0.06);
+  --ps-hero-action-bg-hover: rgba(255, 255, 255, 0.14);
+  --ps-hero-action-border: rgba(255, 255, 255, 0.18);
+
+  --ps-hero-chip-bg: rgba(255, 255, 255, 0.06);
+  --ps-hero-chip-border: rgba(255, 255, 255, 0.28);
+  --ps-hero-chip-text: #FFFFFF;
+
+  --ps-hero-grid-dot: rgba(255, 255, 255, 0.15);
+  --ps-hero-grid-blend: screen;
+  --ps-hero-orb-opacity: 0.55;
 }

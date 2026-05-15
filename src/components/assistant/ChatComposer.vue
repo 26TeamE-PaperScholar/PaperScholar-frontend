@@ -89,9 +89,9 @@ export default {
   gap: 6px;
 }
 .ps-composer__chip {
-  border: 1px solid rgba(45, 27, 105, 0.18);
-  background: var(--ps-bg-elevated, #fff);
-  color: var(--ps-color-primary-strong, #2d1b69);
+  border: 1px solid var(--ps-border-1);
+  background: var(--ps-bg-elevated);
+  color: var(--ps-color-primary-strong);
   font-size: 12px;
   padding: 6px 12px;
   border-radius: 999px;
@@ -99,19 +99,19 @@ export default {
   transition: background 120ms ease;
 }
 .ps-composer__chip:hover {
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
+  background: var(--ps-color-primary-soft);
 }
 
 .ps-composer__box {
-  border: 1px solid var(--ps-border-1, rgba(0, 0, 0, 0.12));
-  background: var(--ps-bg-elevated, #fff);
+  border: 1px solid var(--ps-border-1);
+  background: var(--ps-bg-elevated);
   border-radius: 12px;
   padding: 10px 12px 8px 12px;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .ps-composer__box:focus-within {
-  border-color: var(--ps-color-primary, #2d1b69);
-  box-shadow: 0 0 0 3px rgba(45, 27, 105, 0.08);
+  border-color: var(--ps-color-primary);
+  box-shadow: var(--ps-shadow-focus);
 }
 
 .ps-composer__input {
@@ -123,10 +123,10 @@ export default {
   font-family: inherit;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   min-height: 64px;
 }
-.ps-composer__input::placeholder { color: var(--ps-text-3, #888); }
+.ps-composer__input::placeholder { color: var(--ps-text-3); }
 
 .ps-composer__actions {
   display: flex;

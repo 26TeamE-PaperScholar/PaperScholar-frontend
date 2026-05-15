@@ -29,9 +29,9 @@ export default {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--ps-color-primary-strong, #2d1b69);
-  background: linear-gradient(135deg, rgba(45, 27, 105, 0.08), rgba(212, 175, 55, 0.16));
-  border: 1px solid rgba(45, 27, 105, 0.18);
+  color: var(--ps-color-primary-strong);
+  background: linear-gradient(135deg, var(--ps-color-primary-soft), var(--ps-color-accent-soft));
+  border: 1px solid var(--ps-border-1);
   border-radius: 999px;
 }
 .ps-ai-badge__label { line-height: 1; }

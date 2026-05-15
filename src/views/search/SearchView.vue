@@ -204,7 +204,7 @@ export default {
 .ps-dash__eyebrow {
   font-size: 11px;
   letter-spacing: 0.22em;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
   font-weight: 700;
   margin-bottom: var(--ps-space-2);
 }
@@ -213,13 +213,13 @@ export default {
   font-family: var(--ps-font-display);
   font-size: clamp(28px, 3.6vw, 40px);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.15;
   margin-bottom: var(--ps-space-5);
 }
 
 .ps-dash__title-accent {
-  background: linear-gradient(120deg, #FFFFFF, var(--ps-color-accent));
+  background: linear-gradient(120deg, var(--ps-hero-text-strong), var(--ps-color-accent));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -272,19 +272,19 @@ export default {
   font-size: 11px;
   letter-spacing: 0.16em;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ps-hero-text-faint);
   text-transform: uppercase;
 }
 
 .ps-dash__quick :deep(.ps-chip--outline) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
+  background: var(--ps-hero-chip-bg);
+  border-color: var(--ps-hero-chip-border);
+  color: var(--ps-hero-chip-text);
 }
 
 .ps-dash__hero-stats {
-  background: rgba(15, 14, 26, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-hero-surface);
+  border: 1px solid var(--ps-hero-surface-border);
   border-radius: var(--ps-radius-lg);
   padding: var(--ps-space-5);
   backdrop-filter: blur(10px);
@@ -294,7 +294,7 @@ export default {
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
   font-weight: 700;
   margin-bottom: var(--ps-space-3);
 }
@@ -310,14 +310,14 @@ export default {
   align-items: baseline;
   gap: 8px;
   font-size: var(--ps-fs-sm);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-text-muted);
 }
 
 .ps-dash__hero-stats li span {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-2xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
 }
 
 /* ── Section ─────────────────────────────────────── */

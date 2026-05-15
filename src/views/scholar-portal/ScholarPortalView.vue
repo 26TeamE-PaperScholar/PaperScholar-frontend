@@ -441,11 +441,11 @@ export default {
 .ps-scholar__crumbs :deep(.ps-breadcrumb a),
 .ps-scholar__crumbs :deep(.ps-breadcrumb__current),
 .ps-scholar__crumbs :deep(.ps-breadcrumb__sep) {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-text-muted);
 }
 
 .ps-scholar__crumbs :deep(.ps-breadcrumb__current) {
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
 }
 
 .ps-scholar__hero-grid {
@@ -477,12 +477,12 @@ export default {
   align-items: center;
   gap: 6px;
   padding: 2px 10px;
-  background: rgba(212, 175, 55, 0.15);
+  background: var(--ps-color-accent-soft);
   border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: var(--ps-radius-pill);
   font-size: 11px;
   font-family: var(--ps-font-mono);
-  color: var(--ps-color-accent);
+  color: var(--ps-color-accent-strong);
   margin-bottom: var(--ps-space-3);
 }
 
@@ -490,7 +490,7 @@ export default {
   font-family: var(--ps-font-display);
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.1;
   margin-bottom: var(--ps-space-3);
 }
@@ -500,17 +500,17 @@ export default {
   align-items: center;
   gap: 8px;
   font-size: var(--ps-fs-md);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--ps-hero-text-muted);
   margin-bottom: var(--ps-space-4);
 }
 
 .ps-scholar__affil-link {
-  color: #FFFFFF;
+  color: var(--ps-hero-link);
   font-weight: 600;
   cursor: pointer;
 }
 
-.ps-scholar__affil-link:hover { color: var(--ps-color-accent); }
+.ps-scholar__affil-link:hover { color: var(--ps-hero-link-hover); }
 
 .ps-scholar__interests {
   display: flex;
@@ -520,9 +520,9 @@ export default {
 }
 
 .ps-scholar__interests :deep(.ps-chip--outline) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #FFFFFF;
+  background: var(--ps-hero-chip-bg);
+  border-color: var(--ps-hero-chip-border);
+  color: var(--ps-hero-chip-text);
 }
 
 .ps-scholar__hero-actions {
@@ -549,8 +549,8 @@ export default {
 .ps-scholar__follow-btn:hover { background: var(--ps-color-accent-strong); }
 
 .ps-scholar__follow-btn--active {
-  background: rgba(212, 175, 55, 0.18);
-  color: var(--ps-color-accent);
+  background: var(--ps-color-accent-soft);
+  color: var(--ps-color-accent-strong);
   border: 1px solid rgba(212, 175, 55, 0.45);
 }
 
@@ -560,20 +560,20 @@ export default {
   gap: 6px;
   padding: 0 14px;
   height: 38px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
   border-radius: var(--ps-radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--ps-hero-action-border);
   font-size: var(--ps-fs-sm);
   font-weight: 600;
   cursor: pointer;
 }
 
-.ps-scholar__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+.ps-scholar__action-secondary:hover { background: var(--ps-hero-action-bg-hover); }
 
 .ps-scholar__hero-stats {
-  background: rgba(15, 14, 26, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-hero-surface);
+  border: 1px solid var(--ps-hero-surface-border);
   border-radius: var(--ps-radius-lg);
   padding: var(--ps-space-5);
   display: grid;
@@ -592,7 +592,7 @@ export default {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-2xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.0;
 }
 
@@ -600,7 +600,7 @@ export default {
   font-size: 11px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
 }
 
 /* ── Layout ─────────────────────────────────────────── */

@@ -47,7 +47,8 @@ export default {
 .ps-sources {
   margin-top: 10px;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.025);
+  background: var(--ps-bg-sunken);
+  border: 1px solid var(--ps-border-1);
   border-radius: 8px;
 }
 .ps-sources__label {
@@ -57,7 +58,7 @@ export default {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-2);
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -72,15 +73,15 @@ export default {
 .ps-sources__item {
   font-size: 12px;
   line-height: 1.5;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
 }
 .ps-sources__num {
   font-family: var(--ps-font-mono, ui-monospace, monospace);
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   margin-right: 4px;
 }
 .ps-sources__title {
-  color: var(--ps-color-primary, #2d1b69);
+  color: var(--ps-color-primary);
   text-decoration: none;
   font-weight: 500;
 }
@@ -93,7 +94,7 @@ export default {
   font: inherit;
 }
 .ps-sources__authors {
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   font-size: 11.5px;
 }
 </style>

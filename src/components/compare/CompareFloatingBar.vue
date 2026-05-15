@@ -86,29 +86,28 @@ export default {
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--ps-bg-elevated);
   backdrop-filter: saturate(140%) blur(12px);
-  border: 1px solid rgba(45, 27, 105, 0.14);
+  border: 1px solid var(--ps-border-1);
   border-radius: 16px;
-  box-shadow:
-    0 10px 30px rgba(45, 27, 105, 0.18),
-    0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--ps-shadow-3);
+  color: var(--ps-text-1);
 }
 .ps-compare-bar__head {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   font-size: 13px;
   white-space: nowrap;
 }
 .ps-compare-bar__title strong {
-  color: var(--ps-accent, #2d1b69);
+  color: var(--ps-color-primary);
   font-weight: 700;
 }
 .ps-compare-bar__hint {
   margin-left: 4px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   font-size: 12px;
 }
 .ps-compare-bar__chips {
@@ -126,7 +125,8 @@ export default {
   align-items: center;
   gap: 4px;
   padding: 4px 6px 4px 10px;
-  background: rgba(45, 27, 105, 0.06);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-text-1);
   border-radius: 999px;
   font-size: 12px;
   max-width: 280px;
@@ -147,11 +147,11 @@ export default {
   background: transparent;
   border-radius: 50%;
   cursor: pointer;
-  color: var(--ps-text-3, #777);
+  color: var(--ps-text-3);
 }
 .ps-compare-bar__chip-remove:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--ps-text-1, #1f1f1f);
+  background: var(--ps-color-primary-hover);
+  color: var(--ps-text-1);
 }
 .ps-compare-bar__actions {
   display: flex;
@@ -171,13 +171,14 @@ export default {
   transition: all 0.18s ease;
 }
 .ps-compare-bar__clear {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: var(--ps-border-1);
   background: transparent;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
 }
 .ps-compare-bar__clear:hover {
-  border-color: rgba(0, 0, 0, 0.2);
-  color: var(--ps-text-1, #1f1f1f);
+  border-color: var(--ps-border-2);
+  color: var(--ps-text-1);
+  background: var(--ps-color-primary-soft);
 }
 .ps-compare-bar__go {
   background: linear-gradient(135deg, #2d1b69, #4b2db8);
@@ -186,10 +187,11 @@ export default {
   box-shadow: 0 4px 12px rgba(45, 27, 105, 0.32);
 }
 .ps-compare-bar__go:hover:not(:disabled) {
-  filter: brightness(1.08);
+  filter: brightness(1.18);
 }
 .ps-compare-bar__go:disabled {
-  background: #bdbdbd;
+  background: var(--ps-bg-sunken);
+  color: var(--ps-text-3);
   box-shadow: none;
   cursor: not-allowed;
 }

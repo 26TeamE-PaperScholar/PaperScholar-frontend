@@ -73,14 +73,14 @@ export default {
   transition: background 120ms ease, border-color 120ms ease;
 }
 .ps-cv-item:hover {
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.06));
+  background: var(--ps-color-primary-soft);
 }
 .ps-cv-item--active {
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.1));
-  border-color: rgba(45, 27, 105, 0.2);
+  background: var(--ps-color-primary-hover);
+  border-color: var(--ps-border-1);
 }
 .ps-cv-item:focus-visible {
-  outline: 2px solid var(--ps-color-primary, #2d1b69);
+  outline: 2px solid var(--ps-color-primary);
   outline-offset: 2px;
 }
 
@@ -89,7 +89,7 @@ export default {
   margin: 0 0 4px 0;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -98,7 +98,7 @@ export default {
 .ps-cv-item__meta {
   margin: 0;
   font-size: 11px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   display: flex;
   gap: 8px;
   align-items: center;
@@ -107,14 +107,14 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: var(--ps-color-primary, #2d1b69);
+  color: var(--ps-color-primary);
 }
 .ps-cv-item__del {
   background: transparent;
   border: 0;
   padding: 4px;
   border-radius: 6px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   cursor: pointer;
   opacity: 0;
   transition: opacity 120ms ease, background 120ms ease;
@@ -124,7 +124,7 @@ export default {
   opacity: 1;
 }
 .ps-cv-item__del:hover {
-  background: var(--ps-color-danger-soft, rgba(220, 53, 69, 0.1));
-  color: var(--ps-color-danger, #c0392b);
+  background: var(--ps-color-danger-soft);
+  color: var(--ps-color-danger);
 }
 </style>

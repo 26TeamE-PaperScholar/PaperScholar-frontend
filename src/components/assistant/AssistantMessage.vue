@@ -136,19 +136,19 @@ export default {
   gap: 12px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: var(--ps-bg-elevated, #fff);
-  border: 1px solid var(--ps-border-1, rgba(0,0,0,0.06));
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
 }
 .ps-msg--user {
-  background: rgba(45, 27, 105, 0.03);
-  border-color: rgba(45, 27, 105, 0.08);
+  background: var(--ps-color-primary-soft);
+  border-color: var(--ps-border-1);
 }
 .ps-msg--assistant {
-  background: var(--ps-bg-elevated, #fff);
+  background: var(--ps-bg-elevated);
 }
 .ps-msg--restricted {
-  border-color: rgba(212, 175, 55, 0.5);
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.05), transparent 100px);
+  border-color: var(--ps-color-warning);
+  background: linear-gradient(180deg, var(--ps-color-warning-soft), transparent 100px);
 }
 
 .ps-msg__avatar {
@@ -164,8 +164,9 @@ export default {
   font-weight: 700;
 }
 .ps-msg--user .ps-msg__avatar {
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.12));
-  color: var(--ps-color-primary-strong, #2d1b69);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
+  border: 1px solid var(--ps-border-1);
 }
 .ps-msg__avatar-text { font-size: 14px; }
 
@@ -181,11 +182,11 @@ export default {
 .ps-msg__role {
   font-size: 13px;
   font-weight: 700;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
 }
 .ps-msg__time {
   font-size: 11px;
-  color: var(--ps-text-3, #888);
+  color: var(--ps-text-3);
   margin-left: auto;
 }
 
@@ -194,16 +195,17 @@ export default {
 .ps-msg__content {
   font-size: 14px;
   line-height: 1.75;
-  color: var(--ps-text-1, #1f1f1f);
+  color: var(--ps-text-1);
   word-break: break-word;
 }
 .ps-msg__content :deep(p) { margin: 0.4em 0; }
 .ps-msg__content :deep(ol),
 .ps-msg__content :deep(ul) { padding-left: 1.4em; margin: 0.4em 0; }
 .ps-msg__content :deep(li) { margin: 0.2em 0; }
-.ps-msg__content :deep(strong) { color: var(--ps-color-primary-strong, #2d1b69); }
+.ps-msg__content :deep(strong) { color: var(--ps-color-primary-strong); }
 .ps-msg__content :deep(code) {
-  background: rgba(45, 27, 105, 0.06);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 0.92em;
@@ -224,7 +226,7 @@ export default {
 .ps-msg__evidences {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  border-top: 1px dashed var(--ps-border-1);
 }
 .ps-msg__section-title {
   display: inline-flex;
@@ -232,7 +234,7 @@ export default {
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--ps-text-2, #555);
+  color: var(--ps-text-2);
   margin: 0 0 8px 0;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -240,8 +242,8 @@ export default {
 .ps-msg__count {
   font-size: 11px;
   padding: 1px 6px;
-  background: var(--ps-color-primary-soft, rgba(45, 27, 105, 0.08));
-  color: var(--ps-color-primary, #2d1b69);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
   border-radius: 999px;
 }
 .ps-msg__evidence-grid {

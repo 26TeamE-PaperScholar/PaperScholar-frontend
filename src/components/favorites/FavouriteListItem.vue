@@ -133,14 +133,15 @@ export default {
     .favorites-main-part:hover{
       background: var(--theme-color);
     }
-    svg {
+    /* 卡片底为半透明品牌紫，全局 --theme-mode 在暗色下等于页面底色（近黑），不能用作前景色 */
+    .favorites-main-part > .icon {
       width: 100px;
       height: 100px;
       margin-top: 10px;
-      fill: var(--theme-mode) !important;
+      fill: var(--ps-text-inverse) !important;
     }
     .favorites-main-part .favorites-main-part-name {
-      color: var(--theme-mode);
+      color: var(--ps-text-inverse);
     }
     .favorites-main-part:hover .favorites-main-part-name {
       font-weight: bold;
@@ -178,21 +179,22 @@ export default {
   height: 30px;
   box-sizing: border-box;
   background: transparent;
-  border: 1px solid var(--theme-mode);
-  color: var(--theme-mode);
+  border: 1px solid color-mix(in srgb, var(--ps-text-inverse) 42%, transparent);
+  color: var(--ps-text-inverse);
   font-size: 16px;
   padding: 0 5px;
   border-radius: 5px;
 }
 
 .name-input:focus {
-  outline: 2px solid var(--theme-mode);
+  outline: 2px solid color-mix(in srgb, var(--ps-text-inverse) 65%, transparent);
 }
 
 .renaming-block svg {
   width: 30px;
   height: 30px;
   margin-bottom: 10px;
+  fill: var(--ps-text-inverse);
 }
 
 

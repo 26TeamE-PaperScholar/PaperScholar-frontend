@@ -6,7 +6,7 @@
       <svg class="ps-hero__grid" viewBox="0 0 1200 400" preserveAspectRatio="none">
         <defs>
           <pattern id="ps-hero-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.15)" />
+            <circle cx="1" cy="1" r="1" fill="var(--ps-hero-grid-dot)" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#ps-hero-dots)" />
@@ -39,18 +39,28 @@ export default {
   isolation: isolate;
   padding: var(--ps-space-10) var(--ps-space-6);
   border-radius: var(--ps-radius-xl);
-  color: var(--ps-text-inverse);
+  color: var(--ps-hero-text-strong);
 }
 
 .ps-hero--compact {
   padding: var(--ps-space-8) var(--ps-space-6);
 }
 
+/* dark 变体的底色由 --ps-bg-hero-* token 决定，
+   亮色主题下这些 token 是 cream 色，暗色主题下回到深紫渐变。 */
 .ps-hero--dark {
   background:
     radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.18), transparent 55%),
     radial-gradient(circle at 80% 30%, rgba(155, 123, 255, 0.32), transparent 60%),
     linear-gradient(135deg, var(--ps-bg-hero-from), var(--ps-bg-hero-mid) 55%, var(--ps-bg-hero-to));
+  color: var(--ps-hero-text-strong);
+}
+
+/* 亮色主题下，dark 变体也展示一道淡淡的边框，避免和页面背景糊在一起。
+   暗色主题下这条边框走透明，hero 仍然是纯渐变。 */
+:root:not([data-theme='dark']) .ps-hero--dark {
+  border: 1px solid var(--ps-border-1);
+  box-shadow: var(--ps-shadow-2);
 }
 
 .ps-hero--soft {
@@ -79,7 +89,7 @@ export default {
   position: absolute;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.55;
+  opacity: var(--ps-hero-orb-opacity);
 }
 
 .ps-hero__orb--a {
@@ -109,7 +119,7 @@ export default {
   width: 100%;
   height: 100%;
   opacity: 0.6;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--ps-hero-grid-blend);
 }
 
 .ps-hero--soft .ps-hero__grid {

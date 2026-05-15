@@ -587,7 +587,7 @@ export default {
 .ps-me__eyebrow {
   font-size: 11px;
   letter-spacing: 0.22em;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
   font-weight: 700;
   margin-bottom: var(--ps-space-2);
 }
@@ -596,39 +596,39 @@ export default {
   font-family: var(--ps-font-display);
   font-size: clamp(28px, 3.6vw, 38px);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
   line-height: 1.1;
 }
 
 .ps-me__name-input {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #FFFFFF;
+  background: var(--ps-hero-action-bg);
+  border: 1px solid var(--ps-hero-action-border);
+  color: var(--ps-hero-text-strong);
   font-size: var(--ps-fs-2xl);
 }
 
 .ps-me__realname {
   font-size: var(--ps-fs-md);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ps-hero-text-muted);
   margin-top: 4px;
 }
 
 .ps-me__realname-input {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #FFFFFF;
+  background: var(--ps-hero-action-bg);
+  border: 1px solid var(--ps-hero-action-border);
+  color: var(--ps-hero-text-strong);
 }
 
 .ps-me__bio {
   font-size: var(--ps-fs-sm);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--ps-hero-text-faint);
   margin-top: var(--ps-space-2);
   max-width: 540px;
 }
 
 .ps-me__hero-stats {
-  background: rgba(15, 14, 26, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-hero-surface);
+  border: 1px solid var(--ps-hero-surface-border);
   border-radius: var(--ps-radius-lg);
   padding: var(--ps-space-5);
   display: grid;
@@ -648,14 +648,14 @@ export default {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-2xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-hero-text-strong);
 }
 
 .ps-me__stat-label {
   font-size: 11px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--ps-color-accent);
+  color: var(--ps-hero-eyebrow);
 }
 
 .ps-me__hero-actions {
@@ -664,7 +664,7 @@ export default {
   gap: 8px;
   margin-top: var(--ps-space-3);
   padding-top: var(--ps-space-3);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--ps-hero-divider);
   flex-wrap: wrap;
 }
 
@@ -688,11 +688,11 @@ export default {
 .ps-me__action-primary:hover { background: var(--ps-color-accent-strong); }
 
 .ps-me__action-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
+  border: 1px solid var(--ps-hero-action-border);
 }
-.ps-me__action-secondary:hover { background: rgba(255, 255, 255, 0.14); }
+.ps-me__action-secondary:hover { background: var(--ps-hero-action-bg-hover); }
 
 /* ── Layout ──────────────────────────────────────── */
 .ps-me__layout {

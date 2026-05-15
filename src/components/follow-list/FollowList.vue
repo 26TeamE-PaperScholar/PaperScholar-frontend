@@ -151,14 +151,20 @@ export default {
   margin-left: 20px;
 }
 .item-button {
-  width: 80px;
+  flex-shrink: 0;
+  width: auto;
   height: 40px;
+  padding-left: var(--ps-space-4);
+  padding-right: var(--ps-space-4);
   font-size: 16px;
   margin-right: 20px;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 .item-text {
   position: relative;
-  width: 65%;
+  flex: 1;
+  min-width: 0;
 }
 
 .item-text h4:hover {
