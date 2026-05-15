@@ -18,7 +18,11 @@ export class Account {
       VueCookies.set('user_id', mockUser.id, '7d')
       return mockResponse({ user_id: mockUser.id, username: mockUser.username, token: 'mock-token' })
     }
-    return service(url.login, { method: 'post', data })
+    return service(url.login, { method: 'post', data }).then((response) => {
+      const userId = response && response.data && response.data.user_id
+      if (userId) VueCookies.set('user_id', userId, '7d')
+      return response
+    })
   }
 
   static async logout() {
@@ -26,7 +30,10 @@ export class Account {
       VueCookies.remove('user_id')
       return mockResponse({ ok: true })
     }
-    return service(url.logout, { method: 'get' })
+    return service(url.logout, { method: 'get' }).then((response) => {
+      VueCookies.remove('user_id')
+      return response
+    })
   }
 
   static async passwordChange(data) {

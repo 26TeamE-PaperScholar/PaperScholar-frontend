@@ -173,7 +173,7 @@ export default {
     },
     navigate(item) {
       if (item.requireLogin && !this.isLoggedIn) {
-        this.jumpToAuth('login')
+        this.$router.push(item.path)
         return
       }
       if (item.path === '/search_result') {

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import VueCookies from 'vue-cookies'
 import IntroView from '../views/intro/IntroView.vue'
 import SearchResultView from '../views/search-result/SearchResultView.vue'
 import AdminView from '../views/admin/AdminView.vue'
@@ -49,9 +50,26 @@ const router = createRouter({
   ]
 })
 
+function resolveLoginState() {
+  const hasUserCookie = !!VueCookies.get('user_id')
+  const isLoggedIn = !!(store.state.isLoggedIn || hasUserCookie)
+  if (store.state.isLoggedIn !== isLoggedIn) {
+    store.commit('setIsLoggedIn', isLoggedIn)
+  }
+  return isLoggedIn
+}
+
 router.beforeEach((to, from, next) => {
-  if (!store.state.isLoggedIn && AUTH_REQUIRED_PATHS.has(to.path)) {
-    next('/')
+  const isLoggedIn = resolveLoginState()
+  if (!isLoggedIn && AUTH_REQUIRED_PATHS.has(to.path)) {
+    next({
+      path: '/auth',
+      query: {
+        mode: 'login',
+        redirect: to.fullPath,
+        reason: 'login-required'
+      }
+    })
   } else {
     next()
   }

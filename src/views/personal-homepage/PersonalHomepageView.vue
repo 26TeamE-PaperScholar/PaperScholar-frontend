@@ -332,7 +332,9 @@ export default {
     }
   },
   created() {
-    this.getUserInfo()
+    const userId = this.ensureLoggedIn()
+    if (!userId) return
+    this.getUserInfo(userId)
     this.getAuditDetail()
     this.loadFavorites()
     this.loadFollowing()
@@ -345,8 +347,22 @@ export default {
     this.$bus.off('sendFlushAuditStatusRequest', this.flushAuditStatus)
   },
   methods: {
-    getUserInfo() {
-      const userId = this.$cookies.get('user_id') || mockUser.id
+    ensureLoggedIn() {
+      const userId = this.$cookies.get('user_id')
+      if (userId) return userId
+      this.$bus.emit('message', { title: '请先登录', content: '登录后即可查看我的页面', time: 1600 })
+      this.$router.replace({
+        path: '/auth',
+        query: {
+          mode: 'login',
+          redirect: this.$route.fullPath,
+          reason: 'login-required'
+        }
+      })
+      return ''
+    },
+    getUserInfo(userId) {
+      if (!userId) return
       User.getUser(userId).then(
         (response) => {
           const data = (response && response.data) || {}

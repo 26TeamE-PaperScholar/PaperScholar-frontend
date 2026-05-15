@@ -148,6 +148,7 @@ export default {
   data() {
     return {
       currentMode: 'login',
+      routeNoticeKey: '',
       tabs: [
         { mode: 'login', label: this.$t('login_text') || '登录' },
         { mode: 'register', label: this.$t('register_text') || '注册' }
@@ -164,19 +165,51 @@ export default {
       handler(mode) {
         this.currentMode = ['login', 'register', 'reset'].includes(mode) ? mode : 'login'
       }
+    },
+    '$route.query.reason': {
+      immediate: true,
+      handler() {
+        this.notifyRouteReason()
+      }
     }
   },
   methods: {
     ...mapMutations(['setIsLoggedIn']),
     setMode(mode) {
-      this.$router.replace({ path: '/auth', query: { mode } })
+      const query = { mode }
+      const redirect = this.getSafeRedirect()
+      const reason = this.getRouteReason()
+      if (redirect !== '/search') query.redirect = redirect
+      if (reason) query.reason = reason
+      this.$router.replace({ path: '/auth', query })
+    },
+    getSafeRedirect() {
+      const redirect = this.$route.query.redirect
+      if (typeof redirect === 'string' && redirect.startsWith('/')) return redirect
+      return '/search'
+    },
+    getRouteReason() {
+      const reason = this.$route.query.reason
+      return typeof reason === 'string' ? reason : ''
+    },
+    notifyRouteReason() {
+      const reason = this.getRouteReason()
+      if (!reason) return
+      const redirect = this.getSafeRedirect()
+      const noticeKey = `${reason}:${redirect}`
+      if (this.routeNoticeKey === noticeKey) return
+      this.routeNoticeKey = noticeKey
+      const content = redirect.startsWith('/personal_homepage')
+        ? '登录后即可查看我的页面'
+        : '登录后即可继续访问'
+      this.$bus.emit('message', { title: '请先登录', content, time: 1600 })
     },
     login() {
       Account.login(this.loginForm).then(
         () => {
           this.setIsLoggedIn(true)
           this.$bus.emit('message', { title: '登录成功', content: '已进入工作台', time: 1500 })
-          this.$router.push('/search')
+          this.$router.push(this.getSafeRedirect())
         },
         () => {
           this.$bus.emit('message', { title: this.$t('login_failure') || '登录失败', content: this.$t('login_failure_hint') || '请检查邮箱与密码', time: 2000 })
