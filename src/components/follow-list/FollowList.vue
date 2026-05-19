@@ -19,6 +19,7 @@
 
 <script>
 import { User } from '../../api/users.js'
+import { buildFollowPayload } from '../../utils/personal-page.mjs'
 
 export default {
   props: ['userID'],
@@ -104,12 +105,12 @@ export default {
       )
     },
     follow(follower) {
-      follower.is_followed = !follower.is_followed;
-      User.followUser({followed:follower.id})
+      follower.is_followed = !follower.is_followed
+      User.followUser(buildFollowPayload(follower.id))
     },
     unFollow(follower) {
-      follower.is_followed = !follower.is_followed;
-      User.cancelFollowUser({followed:follower.id})
+      follower.is_followed = !follower.is_followed
+      User.cancelFollowUser(buildFollowPayload(follower.id))
     }
   }
 }

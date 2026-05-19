@@ -255,15 +255,32 @@ export default {
 /* ── Brand side (dark hero) ─────────────────────────── */
 .ps-auth__brand {
   position: relative;
+  --ps-auth-brand-strong: var(--ps-color-primary-strong);
+  --ps-auth-brand-muted: rgba(45, 27, 105, 0.82);
+  --ps-auth-brand-faint: rgba(45, 27, 105, 0.64);
+  --ps-auth-brand-subtle: rgba(45, 27, 105, 0.5);
+  --ps-auth-brand-chip-bg: rgba(45, 27, 105, 0.04);
+  --ps-auth-brand-chip-border: rgba(45, 27, 105, 0.12);
+  --ps-auth-brand-icon: var(--ps-color-primary);
   background:
     radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.16), transparent 55%),
     radial-gradient(circle at 100% 100%, rgba(155, 123, 255, 0.32), transparent 60%),
     linear-gradient(135deg, var(--ps-bg-hero-from), var(--ps-bg-hero-mid) 55%, var(--ps-bg-hero-to));
-  color: #FFFFFF;
+  color: var(--ps-auth-brand-strong);
   overflow: hidden;
   padding: var(--ps-space-8) var(--ps-space-9);
   display: flex;
   align-items: stretch;
+}
+
+:global(html[data-theme='dark']) .ps-auth__brand {
+  --ps-auth-brand-strong: #FFFFFF;
+  --ps-auth-brand-muted: rgba(255, 255, 255, 0.78);
+  --ps-auth-brand-faint: rgba(255, 255, 255, 0.6);
+  --ps-auth-brand-subtle: rgba(255, 255, 255, 0.4);
+  --ps-auth-brand-chip-bg: rgba(255, 255, 255, 0.05);
+  --ps-auth-brand-chip-border: rgba(255, 255, 255, 0.12);
+  --ps-auth-brand-icon: var(--ps-color-accent);
 }
 
 .ps-auth__brand-inner {
@@ -281,7 +298,7 @@ export default {
   font-family: var(--ps-font-display);
   font-size: var(--ps-fs-lg);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-auth-brand-strong);
 }
 
 .ps-auth__logo svg { width: 32px; height: 32px; }
@@ -292,7 +309,7 @@ export default {
   font-size: 11px;
   letter-spacing: 0.22em;
   font-weight: 700;
-  color: var(--ps-color-accent);
+  color: var(--ps-auth-brand-icon);
   text-transform: uppercase;
   margin-bottom: var(--ps-space-4);
 }
@@ -302,13 +319,13 @@ export default {
   font-size: clamp(34px, 4.2vw, 50px);
   font-weight: 700;
   line-height: 1.1;
-  color: #FFFFFF;
+  color: var(--ps-auth-brand-strong);
   margin-bottom: var(--ps-space-5);
 }
 
 .ps-auth__lede {
   font-size: var(--ps-fs-md);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--ps-auth-brand-muted);
   line-height: 1.6;
 }
 
@@ -323,29 +340,29 @@ export default {
   align-items: flex-start;
   gap: var(--ps-space-3);
   padding: var(--ps-space-3) var(--ps-space-4);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ps-auth-brand-chip-bg);
+  border: 1px solid var(--ps-auth-brand-chip-border);
   border-radius: var(--ps-radius-md);
   backdrop-filter: blur(8px);
 }
 
-.ps-auth__bullets li :deep(.ps-icon) { color: var(--ps-color-accent); margin-top: 2px; }
+.ps-auth__bullets li :deep(.ps-icon) { color: var(--ps-auth-brand-icon); margin-top: 2px; }
 
 .ps-auth__bullets strong {
   display: block;
   font-size: var(--ps-fs-sm);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ps-auth-brand-strong);
 }
 
 .ps-auth__bullets span {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--ps-auth-brand-faint);
 }
 
 .ps-auth__brand-foot {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ps-auth-brand-subtle);
   letter-spacing: 0.06em;
 }
 

@@ -259,9 +259,10 @@ import InterestTagSelectorModal from '../../components/modals/InterestTagSelecto
 import AuditDetailModal from '../../components/modals/AuditDetailModal.vue'
 import FavouriteList from '../../components/favorites/FavouriteList.vue'
 import FollowList from '../../components/follow-list/FollowList.vue'
-import { mockFollowing, mockUser } from '../../mock/user'
+import { mockUser } from '../../mock/user'
 import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
+import { buildProfileUpdatePayload } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'PersonalHomepageView',
@@ -384,7 +385,8 @@ export default {
       )
     },
     loadFavorites() {
-      User.getFavoriteList(0).then(
+      const userId = this.personalInfo.id || this.$cookies.get('user_id') || 0
+      User.getFavoriteList(userId).then(
         (response) => {
           this.favouritesInfo = (response && response.data) || []
         },
@@ -392,7 +394,16 @@ export default {
       )
     },
     loadFollowing() {
-      this.followingList = mockFollowing
+      const userId = this.personalInfo.id || this.$cookies.get('user_id')
+      if (!userId) return
+      User.getUserFollowing(userId).then(
+        (response) => {
+          this.followingList = (response && response.data) || []
+        },
+        () => {
+          this.followingList = []
+        }
+      )
     },
     loadHistory() {
       History.getSearchHistory().then(
@@ -404,7 +415,11 @@ export default {
         () => {}
       )
     },
-    flushInterets() { this.getUserInfo() },
+    flushInterets() {
+      const userId = this.personalInfo.id || this.$cookies.get('user_id')
+      if (!userId) return
+      this.getUserInfo(userId)
+    },
     flushAuditStatus() { this.auditStatus = true },
     jumpToTagDetail(tag) { this.$router.push('/tag_detail/' + tag.id) },
     getAuditDetail() {
@@ -426,13 +441,7 @@ export default {
       this.isEditing = false
       if (this.urlAdding) { this.personalInfo.urls.push(this.urlAdding); this.urlAdding = '' }
       const userId = this.personalInfo.id
-      const data = {
-        username: this.personalInfo.nickName,
-        real_name: this.personalInfo.realName,
-        gender: this.personalInfo.gender,
-        institution: this.personalInfo.institution,
-        websites: this.personalInfo.urls
-      }
+      const data = buildProfileUpdatePayload(this.personalInfo)
       User.changePersonalInfo(userId, data).then(
         () => {
           this.cur2savePersonalInfo()
@@ -494,7 +503,8 @@ export default {
     },
     updateCreation(name) {
       this.isCreating = false
-      User.createFavorite(0, { name }).then(
+      const userId = this.personalInfo.id || this.$cookies.get('user_id') || 0
+      User.createFavorite(userId, { name }).then(
         (res) => {
           const created = (res && res.data) || { id: 'F-mock-' + Date.now(), name }
           this.favouritesInfo.unshift({

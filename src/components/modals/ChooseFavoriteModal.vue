@@ -23,6 +23,7 @@ import i18n from '../../language'
 import FavouriteListChoosable from '../favorites/FavouriteListChoosable.vue'
 
 import { User } from '../../api/users'
+import { normalizeFavoriteChoices, shouldFetchOnShowChange } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'ChooseFavoriteModal',
@@ -48,38 +49,36 @@ export default {
   data() {
     return {
       favouritesInfo: [],
-      isCreating: false
+      isCreating: false,
+      loadingFavorites: false
     }
   },
-  mounted() {
-    this.favouritesInfo = []
-    this.fetchData()
-  },
-  updated() {
-    this.favouritesInfo = []
-    this.fetchData()
+  watch: {
+    show: {
+      immediate: true,
+      handler(show, oldShow) {
+        if (!shouldFetchOnShowChange(show, oldShow)) return
+        this.fetchData()
+      }
+    }
   },
   emits: ['close'],
   methods: {
     fetchData() {
-      let userId = this.$cookies.get('user_id')
-      if (userId) {
-        User.getFavoriteList(0).then(
+      const userId = this.$cookies.get('user_id')
+      if (!userId || this.loadingFavorites) return
+      this.loadingFavorites = true
+      User.getFavoriteList(userId).then(
           (response) => {
-            console.log(response)
-            // console.log(response.data.username)
-            for (var i = 0; i < response.data.length; i++) {
-              this.favouritesInfo.push({
-                name: response.data[i].name,
-                id: response.data[i].id
-              })
-            }
+            this.favouritesInfo = normalizeFavoriteChoices((response && response.data) || [])
           },
-          (error) => {
-            console.log(error)
+          () => {
+            this.favouritesInfo = []
           }
         )
-      }
+        .finally(() => {
+          this.loadingFavorites = false
+        })
     },
     handleClose() {
       this.$emit('close')
@@ -89,22 +88,19 @@ export default {
     },
     updateCreation(name) {
       this.isCreating = false
-      let data = {
-        name: name
-      }
-      User.createFavorite(0, data).then(
+      const userId = this.$cookies.get('user_id') || 0
+      const data = { name }
+      User.createFavorite(userId, data).then(
         (response) => {
-          console.log(response)
-          // console.log(response.data.username)
+          const created = (response && response.data) || {}
+          this.favouritesInfo.unshift({
+            id: created.id || `F-mock-${Date.now()}`,
+            name: created.name || name,
+            showContextMenu: false
+          })
         },
-        (error) => {
-          console.log(error)
-        }
+        () => {}
       )
-      this.favouritesInfo.unshift({
-        name: name,
-        showContextMenu: false
-      })
     },
     returnToMainPage() {
       this.$router.push('/'); 
