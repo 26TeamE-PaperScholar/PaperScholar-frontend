@@ -15,7 +15,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://123.249.83.217:9995/', 
+      '/api': 'http://1.95.137.119:8080/',
     }
   }
 })
