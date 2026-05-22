@@ -7,7 +7,7 @@ import {
 } from '../mock'
 
 const url = {
-  extract: '/api/compare/extract/'
+  extract: '/compare/extract/'
 }
 
 export class Compare {
@@ -35,6 +35,6 @@ export class Compare {
     if (USE_MOCK) {
       return mockResponse(getCompareMeta(paperIds), { min: 120, max: 320 })
     }
-    return service('/api/papers/', { method: 'get', params: { ids: paperIds.join(',') } })
+    return service('/papers/', { method: 'get', params: { ids: paperIds.join(',') } })
   }
 }
