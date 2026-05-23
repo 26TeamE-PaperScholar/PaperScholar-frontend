@@ -70,7 +70,7 @@ export class User {
 
   static async followUser(_data) {
     if (USE_MOCK) {
-      const targetId = _data && _data.user_id
+      const targetId = _data && (_data.openalex_id || _data.user_id)
       const existing = mockFollowingState.find((item) => item.id === targetId)
       if (existing) {
         existing.is_followed = true
@@ -90,7 +90,7 @@ export class User {
 
   static async cancelFollowUser(_data) {
     if (USE_MOCK) {
-      const targetId = _data && _data.user_id
+      const targetId = _data && (_data.openalex_id || _data.user_id)
       mockFollowingState = mockFollowingState.filter((item) => item.id !== targetId)
       return mockResponse({ ok: true })
     }
@@ -134,7 +134,7 @@ export class User {
     return service(url.users + 'favorite/list/' + _id + '/', { method: 'get' })
   }
 
-  static async createFavorite(_id, _data) {
+  static async createFavorite(parentId, _data) {
     if (USE_MOCK) {
       const favorite = {
         id: 'F-mock-' + Date.now(),
@@ -145,7 +145,7 @@ export class User {
       mockFavoritesState.unshift(favorite)
       return mockResponse(favorite)
     }
-    return service(url.users + 'favorite/create/' + _id + '/', { method: 'post', data: _data })
+    return service(url.users + 'favorite/create/' + parentId + '/', { method: 'post', data: _data })
   }
 
   static async collectFavorite(_id, _data) {

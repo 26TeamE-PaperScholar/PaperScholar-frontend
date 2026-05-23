@@ -235,6 +235,7 @@ import { History } from '../../api/history.js'
 import { User } from '../../api/users'
 import { mockAuthors } from '../../mock/authors'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState, AppMetricBadge, AppBreadcrumb } from '../../components/ui'
+import { buildFollowPayload, normalizeOpenAlexAuthorId } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'ScholarPortalView',
@@ -378,7 +379,8 @@ export default {
       User.getUserFollowing(userId).then(
         (res) => {
           const following = (res && res.data) || []
-          this.isFollowing = following.some((item) => item.id === this.authorInfo.id)
+          const currentAuthorId = normalizeOpenAlexAuthorId(this.authorInfo.id)
+          this.isFollowing = following.some((item) => normalizeOpenAlexAuthorId(item.id) === currentAuthorId)
         },
         () => {}
       )
@@ -400,7 +402,7 @@ export default {
       if (!this.authorInfo.id) return
       const original = this.isFollowing
       this.isFollowing = true
-      User.followUser({ user_id: this.authorInfo.id }).then(
+      User.followUser(buildFollowPayload(this.authorInfo.id)).then(
         () => {
           this.$bus.emit('message', { title: '关注成功', content: this.authorInfo.nickName, time: 1500 })
         },
@@ -414,7 +416,7 @@ export default {
       if (!this.authorInfo.id) return
       const original = this.isFollowing
       this.isFollowing = false
-      User.cancelFollowUser({ user_id: this.authorInfo.id }).then(
+      User.cancelFollowUser(buildFollowPayload(this.authorInfo.id)).then(
         () => {
           this.$bus.emit('message', { title: '已取消关注', content: '', time: 1500 })
         },

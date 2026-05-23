@@ -4,15 +4,23 @@ import assert from 'node:assert/strict'
 import {
   buildFavoriteCreatePayload,
   buildFollowPayload,
+  buildInterestSelectPayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
+  normalizeInterestId,
+  normalizeOpenAlexAuthorId,
   normalizeFavoriteName,
   normalizeFavoriteChoices,
   shouldFetchOnShowChange
 } from '../src/utils/personal-page.mjs'
 
-test('buildFollowPayload uses user_id for follow APIs', () => {
-  assert.deepEqual(buildFollowPayload('A-123'), { user_id: 'A-123' })
+test('buildFollowPayload uses openalex_id for follow APIs', () => {
+  assert.deepEqual(buildFollowPayload('A-123'), { openalex_id: 'A-123' })
+  assert.deepEqual(
+    buildFollowPayload('https://openalex.org/A5102001778'),
+    { openalex_id: 'A5102001778' }
+  )
+  assert.equal(normalizeOpenAlexAuthorId('https://openalex.org/A5102001778'), 'A5102001778')
 })
 
 test('buildProfileUpdatePayload keeps editable profile fields including email', () => {
@@ -61,5 +69,14 @@ test('favorite creation helpers trim names and normalize response shapes', () =>
   assert.deepEqual(
     extractCreatedFavorite({ data: { favorite: { id: 'F-3', name: '综述', paper_ids: ['W1'] } } }, 'fallback'),
     { id: 'F-3', name: '综述', paper_ids: ['W1'], showContextMenu: false }
+  )
+})
+
+test('interest selection payload uses integer ids required by backend', () => {
+  assert.equal(normalizeInterestId({ id: 'C12' }), 12)
+  assert.equal(normalizeInterestId({ key: '34' }), 34)
+  assert.deepEqual(
+    buildInterestSelectPayload([{ id: 'C1' }, { id: 2 }, '3', { key: 'invalid' }]),
+    { interests: [1, 2, 3] }
   )
 })

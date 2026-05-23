@@ -99,7 +99,6 @@ export default {
         this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
         return
       }
-      const userId = this.$cookies.get('user_id') || 0
       const optimisticId = 'F-pending-' + Date.now()
       this.favouritesInfo.unshift({
         id: optimisticId,
@@ -107,7 +106,7 @@ export default {
         showContextMenu: false,
         pending: true
       })
-      User.createFavorite(userId, buildFavoriteCreatePayload(normalizedName)).then(
+      User.createFavorite(0, buildFavoriteCreatePayload(normalizedName)).then(
         (response) => {
           const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
           const created = extractCreatedFavorite(response, normalizedName, optimisticId)

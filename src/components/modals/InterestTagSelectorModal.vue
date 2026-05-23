@@ -42,6 +42,7 @@ import {
 import {
     NTree
 } from 'naive-ui';
+import { buildInterestSelectPayload } from '../../utils/personal-page.mjs'
 export default {
     name: 'InterestTagSelectorModal',
     emits: ['close'],
@@ -141,9 +142,7 @@ export default {
             return result
         },
         submitInterestTagSelect() {
-            let data = {
-                interests: this.selectInterestTag
-            }
+            const data = buildInterestSelectPayload(this.selectInterestTag)
             Article.modifyInterest(data).then(
                 response => {
                     this.handleClose()

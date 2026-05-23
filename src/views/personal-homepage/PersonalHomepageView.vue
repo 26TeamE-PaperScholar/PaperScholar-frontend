@@ -271,6 +271,7 @@ import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
 import {
   buildFavoriteCreatePayload,
+  buildInterestSelectPayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
   normalizeFavoriteName
@@ -437,7 +438,7 @@ export default {
     removeInterestTag(tag) {
       const previous = [...this.interests]
       this.interests = this.interests.filter((item) => item.id !== tag.id)
-      Article.modifyInterest({ interests: this.interests.map((item) => item.id) }).then(
+      Article.modifyInterest(buildInterestSelectPayload(this.interests)).then(
         () => {
           this.$bus.emit('message', { title: '兴趣标签已删除', content: tag.name || '', time: 1500 })
           this.flushInterets()
@@ -534,7 +535,6 @@ export default {
         this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
         return
       }
-      const userId = this.personalInfo.id || this.$cookies.get('user_id') || 0
       const optimisticId = 'F-pending-' + Date.now()
       const optimisticFavorite = {
         id: optimisticId,
@@ -544,7 +544,7 @@ export default {
         pending: true
       }
       this.favouritesInfo.unshift(optimisticFavorite)
-      User.createFavorite(userId, buildFavoriteCreatePayload(normalizedName)).then(
+      User.createFavorite(0, buildFavoriteCreatePayload(normalizedName)).then(
         (res) => {
           const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
           const created = extractCreatedFavorite(res, normalizedName, optimisticId)
