@@ -23,3 +23,22 @@ export function normalizeFavoriteChoices(items) {
 export function shouldFetchOnShowChange(show, oldShow) {
   return !!show && show !== oldShow
 }
+
+export function normalizeFavoriteName(name) {
+  return String(name || '').trim()
+}
+
+export function buildFavoriteCreatePayload(name) {
+  return { name: normalizeFavoriteName(name) }
+}
+
+export function extractCreatedFavorite(response, fallbackName, fallbackId = '') {
+  const data = (response && response.data) || {}
+  const item = data.favorite || data.item || data
+  return {
+    id: item.id || fallbackId,
+    name: item.name || normalizeFavoriteName(fallbackName),
+    paper_ids: item.paper_ids || [],
+    showContextMenu: false
+  }
+}

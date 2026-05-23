@@ -120,7 +120,7 @@ export default {
     .favorites-main-part {
         /* border: 2px solid blue; */
         flex: 0 0 auto;
-        width: 150px;
+        width: 190px;
         height: 150px;
         border-radius: 10px;
         background-color: var(--theme-color-60);
@@ -141,7 +141,19 @@ export default {
       fill: var(--ps-text-inverse) !important;
     }
     .favorites-main-part .favorites-main-part-name {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      max-width: 160px;
+      min-height: 44px;
+      margin: 0 auto;
+      padding: 0 8px;
       color: var(--ps-text-inverse);
+      font-size: 16px;
+      line-height: 1.35;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+      text-overflow: ellipsis;
     }
     .favorites-main-part:hover .favorites-main-part-name {
       font-weight: bold;

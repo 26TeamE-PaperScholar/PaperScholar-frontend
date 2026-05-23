@@ -308,6 +308,7 @@ export default {
       handler(newId) {
         if (!newId) return
         this.authorInfo.id = newId
+        this.isFollowing = false
         this.activeTab = 'works'
         this.paginationInfo.currentPage = 1
         this.infoItems = []
@@ -315,6 +316,7 @@ export default {
         this.relationList = []
         this.interestTag = []
         this.getAuthorInfo()
+        this.loadFollowState()
         this.getRelationMap()
       }
     }
@@ -340,6 +342,7 @@ export default {
           }
           this.authorInfo.email = data.email || ''
           this.authorInfo.urls = data.urls || data.websites || []
+          if (typeof data.is_followed === 'boolean') this.isFollowing = data.is_followed
           this.interestTag = (data.research_interests || []).map((n) => ({ name: n, id: '' }))
           this.counts_by_year = data.counts_by_year || []
           const latest = (data.counts_by_year || []).slice(-1)[0]
@@ -369,6 +372,17 @@ export default {
         () => {}
       )
     },
+    loadFollowState() {
+      const userId = this.$cookies && this.$cookies.get('user_id')
+      if (!userId || !this.authorInfo.id) return
+      User.getUserFollowing(userId).then(
+        (res) => {
+          const following = (res && res.data) || []
+          this.isFollowing = following.some((item) => item.id === this.authorInfo.id)
+        },
+        () => {}
+      )
+    },
     handleChangePage(page) {
       this.paginationInfo.currentPage = page
       this.loadWorks()
@@ -383,16 +397,32 @@ export default {
       else this.follow()
     },
     follow() {
-      User.followUser({ user_id: this.authorInfo.id }).then(() => {
-        this.isFollowing = true
-        this.$bus.emit('message', { title: '关注成功', content: this.authorInfo.nickName, time: 1500 })
-      })
+      if (!this.authorInfo.id) return
+      const original = this.isFollowing
+      this.isFollowing = true
+      User.followUser({ user_id: this.authorInfo.id }).then(
+        () => {
+          this.$bus.emit('message', { title: '关注成功', content: this.authorInfo.nickName, time: 1500 })
+        },
+        () => {
+          this.isFollowing = original
+          this.$bus.emit('message', { title: '关注失败', content: '请稍后再试', time: 1500 })
+        }
+      )
     },
     unfollow() {
-      User.cancelFollowUser({ user_id: this.authorInfo.id }).then(() => {
-        this.isFollowing = false
-        this.$bus.emit('message', { title: '已取消关注', content: '', time: 1500 })
-      })
+      if (!this.authorInfo.id) return
+      const original = this.isFollowing
+      this.isFollowing = false
+      User.cancelFollowUser({ user_id: this.authorInfo.id }).then(
+        () => {
+          this.$bus.emit('message', { title: '已取消关注', content: '', time: 1500 })
+        },
+        () => {
+          this.isFollowing = original
+          this.$bus.emit('message', { title: '取消关注失败', content: '请稍后再试', time: 1500 })
+        }
+      )
     },
     sharePortal() {
       try {

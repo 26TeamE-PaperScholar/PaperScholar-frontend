@@ -2,8 +2,11 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  buildFavoriteCreatePayload,
   buildFollowPayload,
   buildProfileUpdatePayload,
+  extractCreatedFavorite,
+  normalizeFavoriteName,
   normalizeFavoriteChoices,
   shouldFetchOnShowChange
 } from '../src/utils/personal-page.mjs'
@@ -50,4 +53,13 @@ test('shouldFetchOnShowChange only fetches when modal transitions to visible', (
   assert.equal(shouldFetchOnShowChange(true, true), false)
   assert.equal(shouldFetchOnShowChange(false, true), false)
   assert.equal(shouldFetchOnShowChange(true, false), true)
+})
+
+test('favorite creation helpers trim names and normalize response shapes', () => {
+  assert.equal(normalizeFavoriteName('  组会论文  '), '组会论文')
+  assert.deepEqual(buildFavoriteCreatePayload('  组会论文  '), { name: '组会论文' })
+  assert.deepEqual(
+    extractCreatedFavorite({ data: { favorite: { id: 'F-3', name: '综述', paper_ids: ['W1'] } } }, 'fallback'),
+    { id: 'F-3', name: '综述', paper_ids: ['W1'], showContextMenu: false }
+  )
 })

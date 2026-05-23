@@ -23,7 +23,13 @@ import i18n from '../../language'
 import FavouriteListChoosable from '../favorites/FavouriteListChoosable.vue'
 
 import { User } from '../../api/users'
-import { normalizeFavoriteChoices, shouldFetchOnShowChange } from '../../utils/personal-page.mjs'
+import {
+  buildFavoriteCreatePayload,
+  extractCreatedFavorite,
+  normalizeFavoriteChoices,
+  normalizeFavoriteName,
+  shouldFetchOnShowChange
+} from '../../utils/personal-page.mjs'
 
 export default {
   name: 'ChooseFavoriteModal',
@@ -88,18 +94,30 @@ export default {
     },
     updateCreation(name) {
       this.isCreating = false
+      const normalizedName = normalizeFavoriteName(name)
+      if (!normalizedName) {
+        this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
+        return
+      }
       const userId = this.$cookies.get('user_id') || 0
-      const data = { name }
-      User.createFavorite(userId, data).then(
+      const optimisticId = 'F-pending-' + Date.now()
+      this.favouritesInfo.unshift({
+        id: optimisticId,
+        name: normalizedName,
+        showContextMenu: false,
+        pending: true
+      })
+      User.createFavorite(userId, buildFavoriteCreatePayload(normalizedName)).then(
         (response) => {
-          const created = (response && response.data) || {}
-          this.favouritesInfo.unshift({
-            id: created.id || `F-mock-${Date.now()}`,
-            name: created.name || name,
-            showContextMenu: false
-          })
+          const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
+          const created = extractCreatedFavorite(response, normalizedName, optimisticId)
+          if (index !== -1) this.favouritesInfo.splice(index, 1, created)
+          this.$bus.emit('message', { title: '收藏夹已创建', content: created.name, time: 1500 })
         },
-        () => {}
+        () => {
+          this.favouritesInfo = this.favouritesInfo.filter((item) => item.id !== optimisticId)
+          this.$bus.emit('message', { title: '创建收藏夹失败', content: '请稍后再试', time: 1500 })
+        }
       )
     },
     returnToMainPage() {

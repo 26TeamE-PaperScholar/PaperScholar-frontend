@@ -13,7 +13,15 @@
             </div>
         </div>
         <div class="interest-tag-options">
-            <n-tree ref="interestTreeRef" block-line :data="this.showInterestTag" expand-on-click checkable :on-update:checked-keys="handleNodeSelect" />
+            <n-tree
+                ref="interestTreeRef"
+                block-line
+                :data="this.showInterestTag"
+                :checked-keys="selectInterestTag"
+                expand-on-click
+                checkable
+                :on-update:checked-keys="handleNodeSelect"
+            />
         </div>
         <div class="btn-box">
             <button class="basic-btn-outline" @click="handleClose">{{ $t('cancel_text') }}</button>
@@ -53,6 +61,27 @@ export default {
         show: {
             type: Boolean,
             default: false
+        },
+        selectedInterests: {
+            type: Array,
+            default: () => []
+        }
+    },
+    watch: {
+        show: {
+            immediate: true,
+            handler(show) {
+                if (show) this.syncSelectedInterests()
+            }
+        },
+        selectedInterests: {
+            deep: true,
+            handler() {
+                if (this.show) this.syncSelectedInterests()
+            }
+        },
+        showInterestTag() {
+            if (this.show) this.syncSelectedInterests()
         }
     },
     components: {
@@ -63,7 +92,6 @@ export default {
     },
     methods: {
         handleClose() {
-            this.deleteSelectedTags()
             this.$emit('close')
         },
         getInteretTag() {
@@ -78,11 +106,24 @@ export default {
             )
         },
         transformInterestTag() {
+            if (!this.formInterestTag.length) return []
+            if (this.formInterestTag.every(item => item && item.id && item.name)) {
+                return [{
+                    label: '推荐主题',
+                    key: 'category-recommend',
+                    checkboxDisabled: true,
+                    children: this.formInterestTag.map(item => ({
+                        label: item.name_zh ? `${item.name_zh} / ${item.name}` : item.name,
+                        key: item.id,
+                    }))
+                }]
+            }
             const result = []
             let nodeId = 1
             this.formInterestTag.forEach(category => {
                 for (const key in category) {
                     const label = key
+                    if (!Array.isArray(category[key])) continue
                     const children = category[key].map(item => {
                         return {
                             label: item.name,
@@ -116,6 +157,25 @@ export default {
         handleNodeSelect(keys, options) {
             this.selectInterestTag = keys
             this.showSelectTag = options
+        },
+        syncSelectedInterests() {
+            const keys = (this.selectedInterests || []).map(item => item.id || item.key).filter(Boolean)
+            this.selectInterestTag = keys
+            this.showSelectTag = this.findTagOptionsByKeys(keys)
+        },
+        findTagOptionsByKeys(keys) {
+            const keySet = new Set(keys)
+            const result = []
+            const visit = (nodes = []) => {
+                nodes.forEach(node => {
+                    if (keySet.has(node.key)) {
+                        result.push({ key: node.key, label: node.label })
+                    }
+                    if (node.children) visit(node.children)
+                })
+            }
+            visit(this.showInterestTag)
+            return result
         },
         deleteSelectedTag(key) {
             if (this.selectInterestTag.indexOf(key) != -1) {

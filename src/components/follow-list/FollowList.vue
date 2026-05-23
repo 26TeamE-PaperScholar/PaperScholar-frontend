@@ -23,6 +23,7 @@ import { buildFollowPayload } from '../../utils/personal-page.mjs'
 
 export default {
   props: ['userID'],
+  emits: ['updated'],
   data() {
     return {
       followers: [
@@ -82,13 +83,22 @@ export default {
   created() {
     this.getFollowers()
   },
+  watch: {
+    userID() {
+      this.getFollowers()
+    }
+  },
   methods: {
+    effectiveUserId() {
+      return this.userID || (this.$cookies && this.$cookies.get('user_id'))
+    },
     getFollowers() {
-      // console.log(this.userID)
+      const userId = this.effectiveUserId()
+      if (!userId) return
       // console.log(222)
-      User.getUserFollowing(this.userID).then(
+      User.getUserFollowing(userId).then(
         (response) => {
-          this.followers = response.data
+          this.followers = (response && response.data) || []
           // console.log(this.followers)
           // for (let i = 0 ; i < response.data.count; i++) {
           //   this.followers.push({
@@ -105,12 +115,30 @@ export default {
       )
     },
     follow(follower) {
-      follower.is_followed = !follower.is_followed
-      User.followUser(buildFollowPayload(follower.id))
+      const original = follower.is_followed
+      follower.is_followed = true
+      User.followUser(buildFollowPayload(follower.id)).then(
+        () => {
+          this.getFollowers()
+          this.$emit('updated')
+        },
+        () => {
+          follower.is_followed = original
+        }
+      )
     },
     unFollow(follower) {
-      follower.is_followed = !follower.is_followed
-      User.cancelFollowUser(buildFollowPayload(follower.id))
+      const originalFollowers = [...this.followers]
+      this.followers = this.followers.filter((item) => item.id !== follower.id)
+      User.cancelFollowUser(buildFollowPayload(follower.id)).then(
+        () => {
+          this.getFollowers()
+          this.$emit('updated')
+        },
+        () => {
+          this.followers = originalFollowers
+        }
+      )
     }
   }
 }
@@ -178,5 +206,4 @@ export default {
 }
 
 </style>
-
 

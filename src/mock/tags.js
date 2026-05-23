@@ -109,6 +109,78 @@ export const mockTags = [
       { year: 2023, score: 58 },
       { year: 2024, score: 66 }
     ]
+  },
+  {
+    id: 'C21',
+    name: 'Scientific Machine Learning',
+    name_zh: '科学机器学习',
+    level: 2,
+    works_count: 18640,
+    description: '将机器学习与物理、化学、生物等科学问题结合，用于建模、仿真与发现。',
+    related_paper_ids: ['W2024-011', 'W2024-012'],
+    top_author_ids: ['A013', 'A021'],
+    trend: [
+      { year: 2019, score: 32 },
+      { year: 2020, score: 45 },
+      { year: 2021, score: 59 },
+      { year: 2022, score: 71 },
+      { year: 2023, score: 84 },
+      { year: 2024, score: 93 }
+    ]
+  },
+  {
+    id: 'C22',
+    name: 'Medical Image Analysis',
+    name_zh: '医学影像分析',
+    level: 2,
+    works_count: 76400,
+    description: '面向医学影像的分割、检测、诊断辅助与多模态融合分析。',
+    related_paper_ids: ['W2023-007'],
+    top_author_ids: ['A011'],
+    trend: [
+      { year: 2019, score: 64 },
+      { year: 2020, score: 70 },
+      { year: 2021, score: 77 },
+      { year: 2022, score: 83 },
+      { year: 2023, score: 88 },
+      { year: 2024, score: 91 }
+    ]
+  },
+  {
+    id: 'C23',
+    name: 'Human-AI Interaction',
+    name_zh: '人机协同',
+    level: 2,
+    works_count: 22450,
+    description: '研究人在 AI 系统中的交互、信任、解释与协作流程设计。',
+    related_paper_ids: ['W2024-005', 'W2024-017'],
+    top_author_ids: ['A004', 'A011'],
+    trend: [
+      { year: 2019, score: 40 },
+      { year: 2020, score: 48 },
+      { year: 2021, score: 57 },
+      { year: 2022, score: 69 },
+      { year: 2023, score: 82 },
+      { year: 2024, score: 94 }
+    ]
+  },
+  {
+    id: 'C24',
+    name: 'Data-Centric AI',
+    name_zh: '数据中心 AI',
+    level: 2,
+    works_count: 15920,
+    description: '关注数据质量、标注、评测与数据治理对模型性能和可靠性的影响。',
+    related_paper_ids: ['W2024-004', 'W2024-015'],
+    top_author_ids: ['A001', 'A024'],
+    trend: [
+      { year: 2019, score: 25 },
+      { year: 2020, score: 36 },
+      { year: 2021, score: 49 },
+      { year: 2022, score: 63 },
+      { year: 2023, score: 78 },
+      { year: 2024, score: 90 }
+    ]
   }
 ]
 

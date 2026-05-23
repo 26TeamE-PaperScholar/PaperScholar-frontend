@@ -50,8 +50,7 @@
 
     <div class="ps-result-item__meta">
       <AppMetricBadge
-        :value="infoItem.cited_by_count"
-        :label="$t('search_result_cited_times') || '引用'"
+        :value="citationText"
         tone="violet"
         icon="FlameOutline"
       />
@@ -143,6 +142,11 @@ export default {
       const loc = this.infoItem.primary_location
       if (!loc || !loc.source) return ''
       return loc.source.display_name || ''
+    },
+    citationText() {
+      const label = this.$t('search_result_cited_times') || '被引用次数：'
+      const count = this.infoItem.cited_by_count ?? 0
+      return `${label}${count}`
     }
   },
   methods: {

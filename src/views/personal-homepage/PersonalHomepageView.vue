@@ -160,7 +160,9 @@
               size="md"
               variant="subtle"
               clickable
+              removable
               @click="jumpToTagDetail(tag)"
+              @remove="removeInterestTag(tag)"
             >{{ tag.name }}</AppTagChip>
             <AppEmptyState
               v-if="!interests.length"
@@ -212,7 +214,7 @@
         <!-- Following: 使用原 FollowList 组件，保留 follow/unfollow 能力 -->
         <div v-if="activeTab === 'following'" class="ps-me__panel">
           <AppCard>
-            <FollowList :userID="personalInfo.id" />
+            <FollowList :userID="personalInfo.id || $cookies.get('user_id')" @updated="loadFollowing" />
           </AppCard>
         </div>
 
@@ -245,13 +247,18 @@
     </div>
 
     <AuthenticateIdentityModal :show="authenticateModalShouldShow" @close="authenticateModalShouldShow = false" />
-    <InterestTagSelectorModal :show="interestTagSelectorModalShow" @close="interestTagSelectorModalShow = false" />
+    <InterestTagSelectorModal
+      :show="interestTagSelectorModalShow"
+      :selected-interests="interests"
+      @close="interestTagSelectorModalShow = false"
+    />
     <AuditDetailModal :show="auditDetailModalShouldShow" @close="auditDetailModalShouldShow = false" />
   </div>
 </template>
 
 <script>
 import { User } from '../../api/users.js'
+import { Article } from '../../api/article.js'
 import { Application } from '../../api/applications.js'
 import { History } from '../../api/history.js'
 import AuthenticateIdentityModal from '../../components/modals/AuthenticateIdentityModal.vue'
@@ -262,7 +269,12 @@ import FollowList from '../../components/follow-list/FollowList.vue'
 import { mockUser } from '../../mock/user'
 import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
-import { buildProfileUpdatePayload } from '../../utils/personal-page.mjs'
+import {
+  buildFavoriteCreatePayload,
+  buildProfileUpdatePayload,
+  extractCreatedFavorite,
+  normalizeFavoriteName
+} from '../../utils/personal-page.mjs'
 
 export default {
   name: 'PersonalHomepageView',
@@ -422,6 +434,20 @@ export default {
     },
     flushAuditStatus() { this.auditStatus = true },
     jumpToTagDetail(tag) { this.$router.push('/tag_detail/' + tag.id) },
+    removeInterestTag(tag) {
+      const previous = [...this.interests]
+      this.interests = this.interests.filter((item) => item.id !== tag.id)
+      Article.modifyInterest({ interests: this.interests.map((item) => item.id) }).then(
+        () => {
+          this.$bus.emit('message', { title: '兴趣标签已删除', content: tag.name || '', time: 1500 })
+          this.flushInterets()
+        },
+        () => {
+          this.interests = previous
+          this.$bus.emit('message', { title: '删除失败', content: '请稍后再试', time: 1500 })
+        }
+      )
+    },
     getAuditDetail() {
       Application.getSubmittedList().then(
         (res) => {
@@ -503,18 +529,32 @@ export default {
     },
     updateCreation(name) {
       this.isCreating = false
+      const normalizedName = normalizeFavoriteName(name)
+      if (!normalizedName) {
+        this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
+        return
+      }
       const userId = this.personalInfo.id || this.$cookies.get('user_id') || 0
-      User.createFavorite(userId, { name }).then(
+      const optimisticId = 'F-pending-' + Date.now()
+      const optimisticFavorite = {
+        id: optimisticId,
+        name: normalizedName,
+        paper_ids: [],
+        showContextMenu: false,
+        pending: true
+      }
+      this.favouritesInfo.unshift(optimisticFavorite)
+      User.createFavorite(userId, buildFavoriteCreatePayload(normalizedName)).then(
         (res) => {
-          const created = (res && res.data) || { id: 'F-mock-' + Date.now(), name }
-          this.favouritesInfo.unshift({
-            id: created.id,
-            name: created.name || name,
-            paper_ids: [],
-            showContextMenu: false
-          })
+          const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
+          const created = extractCreatedFavorite(res, normalizedName, optimisticId)
+          if (index !== -1) this.favouritesInfo.splice(index, 1, created)
+          this.$bus.emit('message', { title: '收藏夹已创建', content: created.name, time: 1500 })
         },
-        () => {}
+        () => {
+          this.favouritesInfo = this.favouritesInfo.filter((item) => item.id !== optimisticId)
+          this.$bus.emit('message', { title: '创建收藏夹失败', content: '请稍后再试', time: 1500 })
+        }
       )
     }
   }
