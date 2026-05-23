@@ -4,9 +4,11 @@ import assert from 'node:assert/strict'
 import {
   buildFavoriteCreatePayload,
   buildFollowPayload,
+  buildInterestDeletePayload,
   buildInterestSelectPayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
+  normalizeConceptId,
   normalizeInterestId,
   normalizeOpenAlexAuthorId,
   normalizeFavoriteName,
@@ -73,10 +75,31 @@ test('favorite creation helpers trim names and normalize response shapes', () =>
 })
 
 test('interest selection payload uses integer ids required by backend', () => {
-  assert.equal(normalizeInterestId({ id: 'C12' }), 12)
+  const interestList = [
+    { 'Artificial intelligence': [{ id: 2, name: 'Artificial intelligence', concept_id: '154945302' }] },
+    { Humanities: [{ id: 1, name: 'Humanities' }] }
+  ]
+  assert.equal(normalizeInterestId({ id: 'C12' }), null)
+  assert.equal(normalizeInterestId({ id: 154945302, name: 'Artificial intelligence' }, interestList), 2)
+  assert.equal(normalizeInterestId({ concept_id: '154945302' }, interestList), 2)
   assert.equal(normalizeInterestId({ key: '34' }), 34)
   assert.deepEqual(
-    buildInterestSelectPayload([{ id: 'C1' }, { id: 2 }, '3', { key: 'invalid' }]),
-    { interests: [1, 2, 3] }
+    buildInterestSelectPayload([{ id: 154945302, name: 'Artificial intelligence' }, { id: 1 }, '3', { key: 'invalid' }], interestList),
+    { interests: [2, 1] }
+  )
+})
+
+test('interest delete payload prefers backend interest id and falls back to concept id', () => {
+  const interestList = [
+    { 'Artificial intelligence': [{ id: 2, name: 'Artificial intelligence' }] }
+  ]
+  assert.equal(normalizeConceptId('https://openalex.org/C154945302'), 'C154945302')
+  assert.deepEqual(
+    buildInterestDeletePayload({ id: 154945302, name: 'Artificial intelligence' }, interestList),
+    { interest_id: 2 }
+  )
+  assert.deepEqual(
+    buildInterestDeletePayload({ id: '2778407487', name: 'World Wide Web' }, interestList),
+    { concept_id: '2778407487' }
   )
 })

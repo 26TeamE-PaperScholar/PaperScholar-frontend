@@ -115,12 +115,11 @@ export default {
                     checkboxDisabled: true,
                     children: this.formInterestTag.map(item => ({
                         label: item.name_zh ? `${item.name_zh} / ${item.name}` : item.name,
-                        key: item.id,
-                    }))
+                        key: Number(item.id),
+                    })).sort(this.compareTreeNode)
                 }]
             }
             const result = []
-            let nodeId = 1
             this.formInterestTag.forEach(category => {
                 for (const key in category) {
                     const label = key
@@ -128,21 +127,27 @@ export default {
                     const children = category[key].map(item => {
                         return {
                             label: item.name,
-                            key: item.id,
+                            key: Number(item.id),
                         }
-                    })
+                    }).sort(this.compareTreeNode)
                     result.push({
                         label,
-                        key: nodeId++,
+                        key: `category:${label}`,
                         children,
                         checkboxDisabled: true
                     })
                 }
             })
-            return result
+            return result.sort(this.compareTreeNode)
+        },
+        compareTreeNode(a, b) {
+            return String(a.label || '').localeCompare(String(b.label || ''), 'en', { sensitivity: 'base' })
         },
         submitInterestTagSelect() {
-            const data = buildInterestSelectPayload(this.selectInterestTag)
+            const data = buildInterestSelectPayload(
+                [...this.selectedInterests, ...this.selectInterestTag],
+                this.formInterestTag
+            )
             Article.modifyInterest(data).then(
                 response => {
                     this.handleClose()
@@ -158,7 +163,7 @@ export default {
             this.showSelectTag = options
         },
         syncSelectedInterests() {
-            const keys = (this.selectedInterests || []).map(item => item.id || item.key).filter(Boolean)
+            const keys = buildInterestSelectPayload(this.selectedInterests, this.formInterestTag).interests
             this.selectInterestTag = keys
             this.showSelectTag = this.findTagOptionsByKeys(keys)
         },

@@ -6,7 +6,7 @@ import {
   mockInterestList,
   mockInterestRecommend
 } from '../mock'
-import { buildInterestSelectPayload } from '../utils/personal-page.mjs'
+import { buildInterestDeletePayload, buildInterestSelectPayload } from '../utils/personal-page.mjs'
 
 const url = {
   hotspotRecommend: '/article/hotspot/recommend/',
@@ -41,5 +41,13 @@ export class Article {
       return mockResponse({ ok: true })
     }
     return service(url.interest + 'select/', { method: 'post', data: payload })
+  }
+
+  static async deleteInterest(data) {
+    const payload = buildInterestDeletePayload(data)
+    if (USE_MOCK) {
+      return mockResponse({ ok: true })
+    }
+    return service(url.interest + 'delete/', { method: 'delete', data: payload })
   }
 }

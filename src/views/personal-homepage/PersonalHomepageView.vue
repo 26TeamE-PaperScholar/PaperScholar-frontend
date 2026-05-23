@@ -271,7 +271,7 @@ import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
 import {
   buildFavoriteCreatePayload,
-  buildInterestSelectPayload,
+  buildInterestDeletePayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
   normalizeFavoriteName
@@ -323,6 +323,7 @@ export default {
       avatarChanged: false,
       avatarFile: null,
       interests: [],
+      interestOptions: [],
       savePersonalInfo: {},
       isCreating: false,
       followingList: [],
@@ -349,6 +350,7 @@ export default {
     const userId = this.ensureLoggedIn()
     if (!userId) return
     this.getUserInfo(userId)
+    this.loadInterestOptions()
     this.getAuditDetail()
     this.loadFavorites()
     this.loadFollowing()
@@ -428,6 +430,18 @@ export default {
         () => {}
       )
     },
+    loadInterestOptions() {
+      return Article.getInterestList().then(
+        (res) => {
+          this.interestOptions = (res && res.data) || []
+          return this.interestOptions
+        },
+        () => {
+          this.interestOptions = []
+          return []
+        }
+      )
+    },
     flushInterets() {
       const userId = this.personalInfo.id || this.$cookies.get('user_id')
       if (!userId) return
@@ -437,8 +451,18 @@ export default {
     jumpToTagDetail(tag) { this.$router.push('/tag_detail/' + tag.id) },
     removeInterestTag(tag) {
       const previous = [...this.interests]
-      this.interests = this.interests.filter((item) => item.id !== tag.id)
-      Article.modifyInterest(buildInterestSelectPayload(this.interests)).then(
+      const nextInterests = this.interests.filter((item) => item.id !== tag.id)
+      const submit = () => {
+        const payload = buildInterestDeletePayload(tag, this.interestOptions)
+        if (!payload.interest_id && !payload.concept_id) {
+          return Promise.reject(new Error('interest-delete-payload-missing'))
+        }
+        return Article.deleteInterest(payload)
+      }
+
+      this.interests = nextInterests
+      const ready = this.interestOptions.length ? Promise.resolve(this.interestOptions) : this.loadInterestOptions()
+      ready.then(submit).then(
         () => {
           this.$bus.emit('message', { title: '兴趣标签已删除', content: tag.name || '', time: 1500 })
           this.flushInterets()
