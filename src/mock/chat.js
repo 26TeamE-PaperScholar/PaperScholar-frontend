@@ -181,7 +181,7 @@ export const mockCompletion = ({ conversation_id, message, context_papers }) => 
 
   if (papers.length === 0) {
     content =
-      '当前会话没有绑定具体论文上下文。可以在右上角通过"添加论文上下文"挑选 1-2 篇，回答将基于具体论文给出可追溯的证据片段。\n\n如果只是想了解某个学术主题，也可以直接提问，我会基于通用知识回答（不附证据）。'
+      '当前会话没有绑定具体论文上下文。你可以从论文详情页点击 AI 助手进入带上下文的问答，回答将基于具体论文给出可追溯的证据片段。\n\n如果只是想了解某个学术主题，也可以直接提问，我会基于通用知识回答（不附证据）。'
   } else if (mode === 'restricted') {
     const titles = papers.map((p) => `《${p.title}》`).join(' 与 ')
     content =

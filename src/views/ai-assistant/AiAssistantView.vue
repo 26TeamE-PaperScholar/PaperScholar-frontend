@@ -381,13 +381,16 @@ export default {
 .ps-ai__layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 1fr;
   gap: var(--ps-space-5, 20px);
   max-width: var(--ps-content-max, 1200px);
   width: 100%;
   margin: 0 auto;
   padding: var(--ps-space-5, 20px) var(--ps-space-6, 24px);
   min-height: 0;
+}
+.ps-ai__layout--sidebar-open {
+  grid-template-columns: 280px 1fr;
 }
 
 .ps-ai__sidebar {
@@ -399,6 +402,9 @@ export default {
   flex-direction: column;
   max-height: calc(100vh - 200px);
   overflow: hidden;
+}
+.ps-ai__layout:not(.ps-ai__layout--sidebar-open) .ps-ai__sidebar {
+  display: none;
 }
 .ps-ai__sidebar-head {
   display: flex;

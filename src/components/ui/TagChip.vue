@@ -1,10 +1,14 @@
 <template>
   <component
-    :is="clickable ? 'button' : 'span'"
+    :is="rootTag"
     class="ps-chip"
     :class="chipClass"
-    :type="clickable ? 'button' : null"
+    :type="rootTag === 'button' ? 'button' : null"
+    :role="clickable && rootTag !== 'button' ? 'button' : null"
+    :tabindex="clickable && rootTag !== 'button' ? 0 : null"
     @click="handleClick"
+    @keydown.enter.prevent="handleClick"
+    @keydown.space.prevent="handleClick"
   >
     <AppIcon v-if="icon" :name="icon" :size="12" inline />
     <span class="ps-chip__label"><slot>{{ label }}</slot></span>
@@ -35,6 +39,9 @@ export default {
   },
   emits: ['click', 'remove'],
   computed: {
+    rootTag() {
+      return this.clickable && !this.removable ? 'button' : 'span'
+    },
     chipClass() {
       return [
         'ps-chip--' + this.variant,

@@ -333,11 +333,21 @@ export default {
       this.loadingHot = true
       Article.getHotspotRecommend().then(
         (res) => {
-          this.hotPapersList = (res && res.data) || []
+          this.hotPapersList = this.normalizeFrontierPapers((res && res.data) || [])
           this.loadingHot = false
         },
         () => { this.loadingHot = false }
       )
+    },
+    normalizeFrontierPapers(papers) {
+      return [...(papers || [])]
+        .filter((paper) => paper && paper.publication_date)
+        .sort((a, b) => {
+          const dateDiff = new Date(b.publication_date).getTime() - new Date(a.publication_date).getTime()
+          if (dateDiff) return dateDiff
+          return (b.cited_by_count || 0) - (a.cited_by_count || 0)
+        })
+        .slice(0, 6)
     },
     basicSearch() {
       const k = this.searchKeyword.trim()

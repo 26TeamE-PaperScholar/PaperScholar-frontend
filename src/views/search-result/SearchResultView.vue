@@ -177,10 +177,10 @@
             <span>排序</span>
             <select v-model="quickSort" @change="setSort(quickSort)">
               <option value="cited_by_count:desc">引用 高 → 低</option>
-              <option value="cited_by_count:">引用 低 → 高</option>
+              <option value="cited_by_count:asc">引用 低 → 高</option>
               <option value="publication_date:desc">日期 新 → 旧</option>
-              <option value="publication_date:">日期 旧 → 新</option>
-              <option value="display_name:">名称 A → Z</option>
+              <option value="publication_date:asc">日期 旧 → 新</option>
+              <option value="display_name:asc">名称 A → Z</option>
             </select>
           </div>
         </div>
@@ -267,11 +267,41 @@ const JOURNAL_TYPES = [
 
 const SORT_OPTIONS = [
   { value: 'cited_by_count:desc', label: '引用 高 → 低', icon: 'ArrowDown' },
-  { value: 'cited_by_count:', label: '引用 低 → 高', icon: 'ArrowUp' },
+  { value: 'cited_by_count:asc', label: '引用 低 → 高', icon: 'ArrowUp' },
   { value: 'publication_date:desc', label: '日期 新 → 旧', icon: 'ArrowDown' },
-  { value: 'publication_date:', label: '日期 旧 → 新', icon: 'ArrowUp' },
-  { value: 'display_name:', label: '名称 A → Z', icon: 'ArrowDown' }
+  { value: 'publication_date:asc', label: '日期 旧 → 新', icon: 'ArrowUp' },
+  { value: 'display_name:asc', label: '名称 A → Z', icon: 'ArrowDown' }
 ]
+
+const LEGACY_SORT_MAP = {
+  'cited_by_count:': 'cited_by_count:asc',
+  'publication_date:': 'publication_date:asc',
+  'display_name:': 'display_name:asc'
+}
+
+function normalizeSortValue(sort) {
+  if (!sort) return 'cited_by_count:desc'
+  return LEGACY_SORT_MAP[sort] || sort
+}
+
+function sortValueOf(item, field) {
+  if (field === 'display_name') return item.display_name || item.title || ''
+  if (field === 'publication_date') return new Date(item.publication_date || 0).getTime()
+  return Number(item[field] || 0)
+}
+
+function sortItemsForCurrentPage(items, sort) {
+  const [field, direction = 'asc'] = normalizeSortValue(sort).split(':')
+  const factor = direction === 'desc' ? -1 : 1
+  return [...items].sort((a, b) => {
+    const av = sortValueOf(a, field)
+    const bv = sortValueOf(b, field)
+    if (typeof av === 'string' || typeof bv === 'string') {
+      return factor * String(av).localeCompare(String(bv))
+    }
+    return factor * (av - bv)
+  })
+}
 
 export default {
   name: 'SearchResultView',
@@ -353,7 +383,7 @@ export default {
         const q = newQuery || {}
         this.currentPage = 1
         this.search = q.search || ''
-        this.sort = q.sort || 'cited_by_count:desc'
+        this.sort = normalizeSortValue(q.sort || 'cited_by_count:desc')
         this.quickSort = this.sort
         this.activeSort = this.sort
         this.per_page = q.per_page || '10'
@@ -420,9 +450,9 @@ export default {
       this.setQuery()
     },
     setSort(value) {
-      this.sort = value
-      this.activeSort = value
-      this.quickSort = value
+      this.sort = normalizeSortValue(value)
+      this.activeSort = this.sort
+      this.quickSort = this.sort
       this.setQuery()
     },
     submitAdvancedSearch() {
@@ -486,7 +516,10 @@ export default {
       api.call(Search, params).then(
         (res) => {
           const data = (res && res.data) || {}
-          this.infoItems = (data.results || []).map((r) => ({ ...r, keyword: this.search }))
+          this.infoItems = sortItemsForCurrentPage(
+            (data.results || []).map((r) => ({ ...r, keyword: this.search })),
+            this.sort
+          )
           const meta = data.meta || {}
           this.totalCount = meta.count || this.infoItems.length
           this.totalPages = meta.total_pages || Math.max(1, Math.ceil(this.totalCount / this.itemsPerPage))

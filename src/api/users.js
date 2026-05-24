@@ -15,6 +15,8 @@ const url = {
 }
 
 const cloneUser = () => JSON.parse(JSON.stringify(mockUser))
+let mockFollowingState = JSON.parse(JSON.stringify(mockFollowing))
+let mockFavoritesState = JSON.parse(JSON.stringify(mockFavorites))
 
 export class User {
   static async getUserList() {
@@ -61,13 +63,26 @@ export class User {
 
   static async getUserFollowing(_id) {
     if (USE_MOCK) {
-      return mockResponse(mockFollowing)
+      return mockResponse(JSON.parse(JSON.stringify(mockFollowingState)))
     }
     return service(url.users + _id + '/following/', { method: 'get' })
   }
 
   static async followUser(_data) {
     if (USE_MOCK) {
+      const targetId = _data && (_data.openalex_id || _data.user_id)
+      const existing = mockFollowingState.find((item) => item.id === targetId)
+      if (existing) {
+        existing.is_followed = true
+      } else if (targetId) {
+        mockFollowingState.unshift({
+          id: targetId,
+          display_name: targetId,
+          institution: '',
+          followed_at: new Date().toISOString().slice(0, 10),
+          is_followed: true
+        })
+      }
       return mockResponse({ ok: true })
     }
     return service(url.follow, { method: 'post', data: _data })
@@ -75,6 +90,8 @@ export class User {
 
   static async cancelFollowUser(_data) {
     if (USE_MOCK) {
+      const targetId = _data && (_data.openalex_id || _data.user_id)
+      mockFollowingState = mockFollowingState.filter((item) => item.id !== targetId)
       return mockResponse({ ok: true })
     }
     return service(url.follow, { method: 'delete', data: _data })
@@ -103,7 +120,7 @@ export class User {
 
   static async getFavorite(_id) {
     if (USE_MOCK) {
-      const fav = mockFavorites.find((f) => f.id === _id) || mockFavorites[0]
+      const fav = mockFavoritesState.find((f) => f.id === _id) || mockFavoritesState[0]
       const papers = (fav.paper_ids || []).map((pid) => findPaper(pid)).filter(Boolean)
       return mockResponse({ ...fav, papers })
     }
@@ -112,16 +129,23 @@ export class User {
 
   static async getFavoriteList(_id) {
     if (USE_MOCK) {
-      return mockResponse(JSON.parse(JSON.stringify(mockFavorites)))
+      return mockResponse(JSON.parse(JSON.stringify(mockFavoritesState)))
     }
     return service(url.users + 'favorite/list/' + _id + '/', { method: 'get' })
   }
 
-  static async createFavorite(_id, _data) {
+  static async createFavorite(parentId, _data) {
     if (USE_MOCK) {
-      return mockResponse({ id: 'F-mock-' + Date.now(), ..._data })
+      const favorite = {
+        id: 'F-mock-' + Date.now(),
+        name: (_data && _data.name) || '未命名收藏夹',
+        paper_ids: [],
+        showContextMenu: false
+      }
+      mockFavoritesState.unshift(favorite)
+      return mockResponse(favorite)
     }
-    return service(url.users + 'favorite/create/' + _id + '/', { method: 'post', data: _data })
+    return service(url.users + 'favorite/create/' + parentId + '/', { method: 'post', data: _data })
   }
 
   static async collectFavorite(_id, _data) {
@@ -133,6 +157,8 @@ export class User {
 
   static async renameFavorite(_id, _data) {
     if (USE_MOCK) {
+      const favorite = mockFavoritesState.find((item) => item.id === _id)
+      if (favorite && _data && _data.name) favorite.name = _data.name
       return mockResponse({ ok: true })
     }
     return service(url.users + 'favorite/rename/' + _id + '/', { method: 'post', data: _data })
@@ -140,6 +166,7 @@ export class User {
 
   static async deleteFavorite(_id) {
     if (USE_MOCK) {
+      mockFavoritesState = mockFavoritesState.filter((item) => item.id !== _id)
       return mockResponse({ ok: true })
     }
     return service(url.users + 'favorite/delete/' + _id + '/', { method: 'delete' })
