@@ -12,23 +12,31 @@ import {
 /**
  * AI 论文助手前端调用层。
  *
- * 对齐 docs/api-contract.md §1.2：
+ * 兼容当前后端 Swagger：
  * - GET    /api/chat/conversations/                — 列出会话
  * - POST   /api/chat/conversations/                — 新建
  * - GET    /api/chat/conversations/<id>/           — 详情
- * - PATCH  /api/chat/conversations/<id>/           — 重命名 / 改 context_papers
+ * - GET    /api/chat/conversations/<id>/chat_messages/ — 消息列表
+ * - PATCH  /api/chat/conversations/<id>/           — 重命名
  * - DELETE /api/chat/conversations/<id>/           — 删除
- * - POST   /api/chat/completions/                  — 发送消息（同步响应模式 A）
+ * - POST   /api/chat/completions/                  — 发送消息
  */
 const url = {
   completions: '/chat/completions/',
   conversations: '/chat/conversations/'
 }
 
+const toCompletionPayload = (data = {}) => ({
+  conversation: data.conversation !== undefined
+    ? data.conversation
+    : (data.conversation_id !== undefined ? data.conversation_id : null),
+  content: data.content !== undefined ? data.content : data.message
+})
+
 export class Chat {
   /**
    * GET /api/chat/conversations/
-   * @returns response.data.items + response.data.pagination
+   * @returns mock: response.data.items；backend: response.data.results
    */
   static async getAllConversations(params = {}) {
     if (USE_MOCK) {
@@ -50,19 +58,21 @@ export class Chat {
 
   /**
    * POST /api/chat/conversations/
-   * @param {{title?:string, context_papers?:string[]}} data
+   * @param {{title?:string}} data
    */
   static async createConversation(data = {}) {
     if (USE_MOCK) {
       const cv = mockCreateConversation(data)
       return mockResponse(cv)
     }
-    return service(url.conversations, { method: 'post', data })
+    const payload = {}
+    if (data.title != null) payload.title = data.title
+    return service(url.conversations, { method: 'post', data: payload })
   }
 
   /**
    * GET /api/chat/conversations/<id>/
-   * @returns {id, title, context_papers, messages[]}
+   * 当前后端只返回会话元信息，消息需另取 chat_messages。
    */
   static async getConversationById(id) {
     if (USE_MOCK) {
@@ -75,7 +85,7 @@ export class Chat {
 
   /**
    * PATCH /api/chat/conversations/<id>/
-   * @param {{title?:string, context_papers?:string[]}} data
+   * @param {{title?:string}} data
    */
   static async updateConversationPartial(id, data) {
     if (USE_MOCK) {
@@ -86,7 +96,9 @@ export class Chat {
       }
       return mockResponse({ ok: true })
     }
-    return service(url.conversations + id + '/', { method: 'patch', data })
+    const payload = {}
+    if (data.title != null) payload.title = data.title
+    return service(url.conversations + id + '/', { method: 'patch', data: payload })
   }
 
   /**
@@ -103,15 +115,36 @@ export class Chat {
 
   /**
    * POST /api/chat/completions/
-   * 请求体：{ conversation_id, message, context_papers? }
-   * 响应（模式 A 同步）：{ user_message, assistant_message }
+   * 当前后端 Swagger 请求体：{ conversation, content }
+   * 前端业务层仍可传 { conversation_id, message }，这里统一适配。
+   * mock 响应为 { user_message, assistant_message }，后端响应由接口实现决定。
    */
   static async createCompletion(data) {
     if (USE_MOCK) {
-      const pair = mockCompletion(data || {})
-      mockAppendMessages(data.conversation_id, pair.user_message, pair.assistant_message)
+      const payload = data || {}
+      const pair = mockCompletion(payload)
+      mockAppendMessages(payload.conversation_id, pair.user_message, pair.assistant_message)
       return mockResponse(pair, { min: 600, max: 1200 })
     }
-    return service(url.completions, { method: 'post', data })
+    return service(url.completions, { method: 'post', data: toCompletionPayload(data) })
+  }
+
+  /**
+   * GET /api/chat/conversations/<id>/chat_messages/
+   * 当前后端将会话详情和消息列表拆成两个接口。
+   */
+  static async getConversationMessages(id, params = {}) {
+    if (USE_MOCK) {
+      const detail = mockConversationDetail(id)
+      return mockResponse({
+        count: detail && detail.messages ? detail.messages.length : 0,
+        results: detail && detail.messages ? detail.messages : []
+      })
+    }
+    return service(url.conversations + id + '/chat_messages/', { method: 'get', params })
+  }
+
+  static async getChatMessagesList(id, params = {}) {
+    return Chat.getConversationMessages(id, params)
   }
 }

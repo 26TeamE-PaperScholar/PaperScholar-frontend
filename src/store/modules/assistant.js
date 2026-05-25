@@ -1,11 +1,53 @@
 /**
  * AI 论文助手 Vuex 模块（命名空间 assistant）。
  *
- * 对齐 docs/api-contract.md §1：
+ * 对齐 AI 论文助手页面状态，并兼容当前后端 Swagger：
  * - 会话列表、当前会话、消息流、上下文论文、发送态
- * - 同步响应模式 A：sendMessage 一次拿到 user_message + assistant_message
+ * - mock 支持同步响应；真实后端消息列表通过 chat_messages 刷新
  */
 import { Chat } from '../../api/chat'
+
+const listFromPayload = (payload) => {
+  if (!payload) return []
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload.items)) return payload.items
+  if (Array.isArray(payload.results)) return payload.results
+  if (payload.data) return listFromPayload(payload.data)
+  return []
+}
+
+const normalizeConversation = (cv = {}, fallback = {}) => ({
+  id: cv.id,
+  title: cv.title || fallback.title || '新会话',
+  context_papers: (Array.isArray(cv.context_papers) && cv.context_papers.length)
+    ? cv.context_papers
+    : (fallback.context_papers || cv.context_papers || []),
+  created_at: cv.created_at,
+  updated_at: cv.updated_at,
+  last_message_at: cv.last_message_at || cv.updated_at || cv.created_at,
+  message_count: cv.message_count != null
+    ? cv.message_count
+    : (Array.isArray(cv.messages) ? cv.messages.length : (fallback.message_count || 0))
+})
+
+const normalizeMessage = (msg = {}, conversationId) => ({
+  ...msg,
+  id: msg.id || `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  conversation_id: msg.conversation_id || msg.conversation || conversationId,
+  created_at: msg.created_at || msg.timestamp || new Date().toISOString(),
+  evidences: msg.evidences || [],
+  sources: msg.sources || []
+})
+
+const makeLocalMessage = (conversationId, role, content) => normalizeMessage({
+  id: `local-${role}-${Date.now()}`,
+  conversation_id: conversationId,
+  role,
+  content,
+  created_at: new Date().toISOString()
+}, conversationId)
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const state = () => ({
   conversations: [],
@@ -46,12 +88,19 @@ const mutations = {
   },
   PATCH_CONVERSATION(state, { id, patch }) {
     const c = state.conversations.find((x) => x.id === id)
-    if (c) Object.assign(c, patch)
+    if (c) {
+      Object.keys(patch || {}).forEach((key) => {
+        if (patch[key] !== undefined) c[key] = patch[key]
+      })
+    }
   },
   SET_CURRENT(state, { id, messages, context_papers }) {
     state.currentId = id
     state.messages = messages || []
     state.contextPapers = context_papers || []
+  },
+  SET_MESSAGES(state, messages) {
+    state.messages = messages || []
   },
   CLEAR_CURRENT(state) {
     state.currentId = null
@@ -59,7 +108,12 @@ const mutations = {
     state.contextPapers = []
   },
   APPEND_MESSAGE(state, msg) {
+    if (!msg) return
+    if (msg.id && state.messages.some((m) => m.id === msg.id)) return
     state.messages.push(msg)
+  },
+  REMOVE_MESSAGE(state, id) {
+    state.messages = state.messages.filter((m) => m.id !== id)
   },
   SET_PENDING(state, v) {
     state.pendingSend = v
@@ -77,7 +131,7 @@ const actions = {
     if (!force && state.conversationsLoaded) return state.conversations
     try {
       const res = await Chat.getAllConversations()
-      const items = (res && res.data && res.data.items) || []
+      const items = listFromPayload(res && res.data).map((cv) => normalizeConversation(cv))
       commit('SET_CONVERSATIONS', items)
       return items
     } catch (e) {
@@ -98,10 +152,15 @@ const actions = {
         commit('CLEAR_CURRENT')
         return null
       }
+      const cv = normalizeConversation(data)
+      const messages = Array.isArray(data.messages)
+        ? data.messages.map((m) => normalizeMessage(m, cv.id))
+        : await dispatch('loadConversationMessages', { id: cv.id, apply: false })
+      commit('PATCH_CONVERSATION', { id: cv.id, patch: cv })
       commit('SET_CURRENT', {
-        id: data.id,
-        messages: data.messages || [],
-        context_papers: data.context_papers || []
+        id: cv.id,
+        messages,
+        context_papers: cv.context_papers || []
       })
       return data
     } catch (e) {
@@ -112,22 +171,35 @@ const actions = {
 
   async newConversation({ commit }, { title = '新会话', context_papers = [] } = {}) {
     const res = await Chat.createConversation({ title, context_papers })
-    const cv = res && res.data
-    if (!cv) return null
-    commit('PREPEND_CONVERSATION', {
-      id: cv.id,
-      title: cv.title,
-      context_papers: cv.context_papers || [],
-      last_message_at: cv.last_message_at,
-      created_at: cv.created_at,
-      message_count: 0
-    })
+    const cv = normalizeConversation(res && res.data, { title, context_papers })
+    if (!cv.id) return null
+    commit('PREPEND_CONVERSATION', cv)
     commit('SET_CURRENT', { id: cv.id, messages: [], context_papers: cv.context_papers || [] })
     return cv
   },
 
+  async loadConversationMessages({ commit }, { id, apply = true } = {}) {
+    if (!id) return []
+    const res = await Chat.getConversationMessages(id)
+    const messages = listFromPayload(res && res.data).map((m) => normalizeMessage(m, id))
+    if (apply) commit('SET_MESSAGES', messages)
+    return messages
+  },
+
+  async waitForAssistantMessage({ dispatch }, { id, previousCount = 0, attempts = 10, interval = 800 } = {}) {
+    let latest = []
+    for (let i = 0; i < attempts; i += 1) {
+      latest = await dispatch('loadConversationMessages', { id, apply: true })
+      const newMessages = latest.slice(previousCount)
+      if (newMessages.some((m) => m.role === 'assistant')) return latest
+      if (i < attempts - 1) await sleep(interval)
+    }
+    return latest
+  },
+
   async sendMessage({ state, commit, dispatch }, { message, context_papers } = {}) {
-    if (!message || !String(message).trim()) return null
+    const content = String(message || '').trim()
+    if (!content) return null
     if (state.pendingSend) return null
 
     let conversationId = state.currentId
@@ -139,20 +211,39 @@ const actions = {
       if (!conversationId) return null
     }
 
+    const previousCount = state.messages.length
+    const localUser = makeLocalMessage(conversationId, 'user', content)
+    commit('APPEND_MESSAGE', localUser)
+    commit('PATCH_CONVERSATION', {
+      id: conversationId,
+      patch: {
+        title: previousCount === 0 ? content.slice(0, 30) + (content.length > 30 ? '…' : '') : undefined,
+        last_message_at: localUser.created_at,
+        message_count: state.messages.length
+      }
+    })
+
     commit('SET_PENDING', true)
     try {
       const res = await Chat.createCompletion({
         conversation_id: conversationId,
-        message,
+        message: content,
         context_papers: context_papers || state.contextPapers
       })
       const data = res && res.data
-      if (data && data.user_message) commit('APPEND_MESSAGE', data.user_message)
-      if (data && data.assistant_message) commit('APPEND_MESSAGE', data.assistant_message)
+      if (data && (data.user_message || data.assistant_message)) {
+        commit('REMOVE_MESSAGE', localUser.id)
+        if (data.user_message) commit('APPEND_MESSAGE', normalizeMessage(data.user_message, conversationId))
+        if (data.assistant_message) commit('APPEND_MESSAGE', normalizeMessage(data.assistant_message, conversationId))
+      } else {
+        const messages = await dispatch('waitForAssistantMessage', { id: conversationId, previousCount })
+        if (!messages.length) commit('APPEND_MESSAGE', localUser)
+      }
+      const last = state.messages[state.messages.length - 1]
       commit('PATCH_CONVERSATION', {
         id: conversationId,
         patch: {
-          last_message_at: data && data.assistant_message ? data.assistant_message.created_at : new Date().toISOString(),
+          last_message_at: last ? last.created_at : new Date().toISOString(),
           message_count: state.messages.length,
           title: state.messages[0] && state.messages[0].role === 'user'
             ? state.messages[0].content.slice(0, 30) + (state.messages[0].content.length > 30 ? '…' : '')
@@ -176,7 +267,7 @@ const actions = {
   async updateContextPapers({ state, commit }, { id, paperIds }) {
     const target = id || state.currentId
     if (!target) return
-    await Chat.updateConversationPartial(target, { context_papers: paperIds })
+    // Current Swagger only allows updating conversation title; keep paper context client-side.
     commit('PATCH_CONVERSATION', { id: target, patch: { context_papers: paperIds } })
     if (target === state.currentId) commit('SET_CONTEXT_PAPERS', paperIds)
   },
