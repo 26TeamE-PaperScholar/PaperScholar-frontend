@@ -53,9 +53,23 @@
               >{{ opt.label }}</button>
             </div>
             <div v-if="timeFilter === 'custom'" class="ps-results__filter-range">
-              <input class="basic-input" type="text" placeholder="2020" v-model="search_start_time" />
+              <input
+                class="basic-input"
+                type="text"
+                placeholder="2020"
+                v-model="search_start_time"
+                @change="applyCustomTimeFilter"
+                @keyup.enter="applyCustomTimeFilter"
+              />
               <span>~</span>
-              <input class="basic-input" type="text" placeholder="2024" v-model="search_end_time" />
+              <input
+                class="basic-input"
+                type="text"
+                placeholder="2024"
+                v-model="search_end_time"
+                @change="applyCustomTimeFilter"
+                @keyup.enter="applyCustomTimeFilter"
+              />
             </div>
           </details>
 
@@ -71,7 +85,14 @@
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': citeFilter === 1 }"
                 @click="filteByCount(1)"
-              >&gt; <input @click.stop type="text" v-model="filte_count_value" class="ps-results__filter-input" />
+              >&gt; <input
+                @click.stop
+                @change="applyCitationFilter"
+                @keyup.enter="applyCitationFilter"
+                type="text"
+                v-model="filte_count_value"
+                class="ps-results__filter-input"
+              />
               </button>
             </div>
           </details>
@@ -110,7 +131,7 @@
           </h3>
           <div class="ps-results__filter-options ps-results__filter-options--column">
             <button
-              v-for="opt in SORT_OPTIONS"
+              v-for="opt in sortOptionsForCurrentType"
               :key="opt.value"
               class="ps-results__sort-row"
               :class="{ 'ps-results__sort-row--active': activeSort === opt.value }"
@@ -176,11 +197,9 @@
           <div class="ps-results__sort-quick">
             <span>排序</span>
             <select v-model="quickSort" @change="setSort(quickSort)">
-              <option value="cited_by_count:desc">引用 高 → 低</option>
-              <option value="cited_by_count:asc">引用 低 → 高</option>
-              <option value="publication_date:desc">日期 新 → 旧</option>
-              <option value="publication_date:asc">日期 旧 → 新</option>
-              <option value="display_name:asc">名称 A → Z</option>
+              <option v-for="opt in sortOptionsForCurrentType" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
           </div>
         </div>
@@ -244,10 +263,14 @@ const PLACEHOLDERS = {
   4: '检索高校与研究机构'
 }
 
+const CURRENT_YEAR = new Date().getFullYear()
+const RECENT_2_START_YEAR = CURRENT_YEAR - 1
+const RECENT_5_START_YEAR = CURRENT_YEAR - 4
+
 const TIME_OPTIONS = [
   { value: 'all', label: '不限' },
-  { value: '2023', label: '近 2 年' },
-  { value: '2019', label: '近 5 年' },
+  { value: 'last2', label: '近 2 年' },
+  { value: 'last5', label: '近 5 年' },
   { value: '2022', label: '2022 起' },
   { value: 'custom', label: '自定义' }
 ]
@@ -273,15 +296,83 @@ const SORT_OPTIONS = [
   { value: 'display_name:asc', label: '名称 A → Z', icon: 'ArrowDown' }
 ]
 
+const ENTITY_SORT_OPTIONS = [
+  { value: 'cited_by_count:desc', label: '引用 高 → 低', icon: 'ArrowDown' },
+  { value: 'cited_by_count:asc', label: '引用 低 → 高', icon: 'ArrowUp' },
+  { value: 'works_count:desc', label: '成果 高 → 低', icon: 'ArrowDown' },
+  { value: 'works_count:asc', label: '成果 低 → 高', icon: 'ArrowUp' },
+  { value: 'display_name:asc', label: '名称 A → Z', icon: 'ArrowDown' }
+]
+
 const LEGACY_SORT_MAP = {
   'cited_by_count:': 'cited_by_count:asc',
   'publication_date:': 'publication_date:asc',
+  'works_count:': 'works_count:asc',
   'display_name:': 'display_name:asc'
 }
 
 function normalizeSortValue(sort) {
   if (!sort) return 'cited_by_count:desc'
   return LEGACY_SORT_MAP[sort] || sort
+}
+
+function sortOptionsForType(type) {
+  if (Number(type) === 1) return SORT_OPTIONS
+  return ENTITY_SORT_OPTIONS
+}
+
+function normalizeSortForType(sort, type) {
+  const normalized = normalizeSortValue(sort)
+  const allowed = sortOptionsForType(type).some((opt) => opt.value === normalized)
+  return allowed ? normalized : 'cited_by_count:desc'
+}
+
+function toPositiveInteger(value, fallback = 1) {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n < 1) return fallback
+  return Math.floor(n)
+}
+
+function filterParts(filter) {
+  return String(filter || '').split(',').map((p) => p.trim()).filter(Boolean)
+}
+
+function buildTimeFilter(timeFilter, start, end) {
+  if (timeFilter === 'last2') return `publication_year:${RECENT_2_START_YEAR}-`
+  if (timeFilter === 'last5') return `publication_year:${RECENT_5_START_YEAR}-`
+  if (timeFilter === '2022') return 'publication_year:2022-'
+  if (timeFilter !== 'custom') return ''
+
+  const from = String(start || '').trim()
+  const to = String(end || '').trim()
+  if (from && to) return `publication_year:${from}-${to}`
+  if (from) return `publication_year:${from}-`
+  if (to) return `publication_year:-${to}`
+  return ''
+}
+
+function parseTimeFilter(part) {
+  const value = part.slice('publication_year:'.length)
+  const [from = '', to = ''] = value.split('-')
+  if (from === String(RECENT_2_START_YEAR) && !to) return { timeFilter: 'last2' }
+  if (from === String(RECENT_5_START_YEAR) && !to) return { timeFilter: 'last5' }
+  if (from === '2022' && !to) return { timeFilter: '2022' }
+  return {
+    timeFilter: 'custom',
+    search_start_time: from || RECENT_2_START_YEAR,
+    search_end_time: to || CURRENT_YEAR
+  }
+}
+
+function buildAdvancedFilterParts(data) {
+  const parts = []
+  if (data.author) parts.push(`author.search:${encodeURIComponent(data.author)}`)
+  if (data.publication) parts.push(`source.search:${encodeURIComponent(data.publication)}`)
+  if (data.keyword) {
+    const field = data.is_key_title ? 'title.search' : 'abstract.search'
+    parts.push(`${field}:${encodeURIComponent(data.keyword)}`)
+  }
+  return parts
 }
 
 function sortValueOf(item, field) {
@@ -337,6 +428,7 @@ export default {
       citeFilter: 0,
       langFilter: 'all',
       journalFilter: 0,
+      advancedFilterParts: [],
 
       filte_count_value: 10,
       activeSort: 'cited_by_count:desc',
@@ -344,9 +436,10 @@ export default {
 
       totalPages: 1,
       currentPage: 1,
-      itemsPerPage: 5,
+      itemsPerPage: 10,
       displayLoading: false,
       tookMs: 0,
+      searchRequestSeq: 0,
 
       infoItems: [],
       totalCount: 0,
@@ -358,14 +451,17 @@ export default {
       page: '1',
       cursor: '',
 
-      search_start_time: 2020,
-      search_end_time: 2024,
+      search_start_time: RECENT_2_START_YEAR,
+      search_end_time: CURRENT_YEAR,
       search_type: 1
     }
   },
   computed: {
     placeholderText() {
       return PLACEHOLDERS[this.search_type] || ''
+    },
+    sortOptionsForCurrentType() {
+      return sortOptionsForType(this.search_type)
     },
     resultComponent() {
       switch (Number(this.search_type)) {
@@ -381,91 +477,143 @@ export default {
       immediate: true,
       handler(newQuery) {
         const q = newQuery || {}
-        this.currentPage = 1
+        const nextType = Number(q.search_type) || 1
+        const nextSort = normalizeSortForType(q.sort || 'cited_by_count:desc', nextType)
         this.search = q.search || ''
-        this.sort = normalizeSortValue(q.sort || 'cited_by_count:desc')
+        this.search_type = nextType
+        this.sort = nextSort
         this.quickSort = this.sort
         this.activeSort = this.sort
         this.per_page = q.per_page || '10'
-        this.itemsPerPage = Number(this.per_page) || 5
+        this.itemsPerPage = toPositiveInteger(this.per_page, 10)
+        this.currentPage = toPositiveInteger(q.page, 1)
+        this.page = String(this.currentPage)
         this.cursor = q.cursor || ''
-        this.search_type = Number(q.search_type) || 1
         this.filter = (q.filter || '').replace(/,$/, '')
+        this.applyFilterStateFromFilter(this.filter)
         this.searchmethod()
       }
     }
   },
   methods: {
+    applyFilterStateFromFilter(filter) {
+      const state = {
+        timeFilter: 'all',
+        citeFilter: 0,
+        langFilter: 'all',
+        journalFilter: 0,
+        search_start_time: RECENT_2_START_YEAR,
+        search_end_time: CURRENT_YEAR,
+        filte_count_value: this.filte_count_value,
+        advancedFilterParts: []
+      }
+
+      filterParts(filter).forEach((part) => {
+        if (part.startsWith('publication_year:')) {
+          Object.assign(state, parseTimeFilter(part))
+        } else if (part.startsWith('cited_by_count:>')) {
+          state.citeFilter = 1
+          state.filte_count_value = toPositiveInteger(part.slice('cited_by_count:>'.length), state.filte_count_value)
+        } else if (part.startsWith('language:')) {
+          state.langFilter = part.slice('language:'.length) || 'all'
+        } else if (part === 'type:journal') {
+          state.journalFilter = 1
+        } else if (part === 'type:repository') {
+          state.journalFilter = 2
+        } else if (part === 'type:conference') {
+          state.journalFilter = 3
+        } else {
+          state.advancedFilterParts.push(part)
+        }
+      })
+
+      this.timeFilter = state.timeFilter
+      this.citeFilter = state.citeFilter
+      this.langFilter = state.langFilter
+      this.journalFilter = state.journalFilter
+      this.search_start_time = state.search_start_time
+      this.search_end_time = state.search_end_time
+      this.filte_count_value = state.filte_count_value
+      this.advancedFilterParts = state.advancedFilterParts
+    },
+    buildFilter() {
+      const type = Number(this.search_type)
+      const parts = []
+      const timeFilter = buildTimeFilter(this.timeFilter, this.search_start_time, this.search_end_time)
+      if (timeFilter) parts.push(timeFilter)
+      if (this.citeFilter === 1) {
+        const citeValue = toPositiveInteger(this.filte_count_value, 0)
+        if (citeValue > 0) parts.push(`cited_by_count:>${citeValue}`)
+      }
+      if (type === 1 && this.langFilter !== 'all') {
+        parts.push(`language:${this.langFilter}`)
+      }
+      if (type === 3) {
+        if (this.journalFilter === 1) parts.push('type:journal')
+        else if (this.journalFilter === 2) parts.push('type:repository')
+        else if (this.journalFilter === 3) parts.push('type:conference')
+      }
+      parts.push(...this.advancedFilterParts)
+      return parts.join(',')
+    },
     submitMainSearch() {
       this.currentPage = 1
       this.setQuery()
     },
     setSearchTypeFromTab(type) {
       this.search_type = Number(type)
+      this.sort = normalizeSortForType(this.sort, this.search_type)
+      this.quickSort = this.sort
+      this.activeSort = this.sort
       this.currentPage = 1
       this.setQuery()
     },
     setFilterTime(value) {
       this.timeFilter = value
-      if (value === 'all') {
-        this.filter = ''
-      } else if (value === 'custom') {
-        if (this.search_start_time && this.search_end_time) {
-          this.filter = 'publication_year:' + this.search_start_time + '-' + this.search_end_time
-        }
-      } else {
-        this.filter = 'publication_year:' + value + '-'
-      }
+      this.currentPage = 1
+      this.setQuery()
+    },
+    applyCustomTimeFilter() {
+      if (this.timeFilter !== 'custom') return
+      this.currentPage = 1
       this.setQuery()
     },
     filteByCount(type) {
       this.citeFilter = type
-      if (type === 0) {
-        this.filter = ''
-      } else {
-        this.filter = 'cited_by_count:>' + this.filte_count_value
-      }
+      this.currentPage = 1
+      this.setQuery()
+    },
+    applyCitationFilter() {
+      if (this.citeFilter !== 1) return
+      this.currentPage = 1
       this.setQuery()
     },
     setLanguage(type) {
       this.langFilter = type
-      if (type === 'all') {
-        this.filter = ''
-      } else {
-        this.filter = 'language:' + type
-      }
+      this.currentPage = 1
       this.setQuery()
     },
     setJounalType(type) {
       this.journalFilter = type
-      if (type === 0) {
-        this.filter = ''
-      } else if (type === 1) {
-        this.filter = 'type:journal'
-      } else if (type === 2) {
-        this.filter = 'type:repository'
-      } else if (type === 3) {
-        this.filter = 'type:conference'
-      }
+      this.currentPage = 1
       this.setQuery()
     },
     setSort(value) {
-      this.sort = normalizeSortValue(value)
+      this.sort = normalizeSortForType(value, this.search_type)
       this.activeSort = this.sort
       this.quickSort = this.sort
+      this.currentPage = 1
       this.setQuery()
     },
     submitAdvancedSearch() {
-      let f = ''
       const data = this.advancedSearchForm
-      if (data.author) f += `author.search:${encodeURIComponent(data.author)},`
-      if (data.publication) f += `source.search:${encodeURIComponent(data.publication)},`
-      if (data.start_time && data.end_time) f += `publication_year:${data.start_time}-${data.end_time},`
-      if (data.keyword) {
-        const field = data.is_key_title ? 'title.search' : 'abstract.search'
-        f += `${field}:${encodeURIComponent(data.keyword)},`
+      if (data.start_time && data.end_time) {
+        this.timeFilter = 'custom'
+        this.search_start_time = data.start_time
+        this.search_end_time = data.end_time
       }
-      this.filter = f.replace(/,$/, '')
+      this.advancedFilterParts = buildAdvancedFilterParts(data)
+      this.currentPage = 1
       this.setQuery()
     },
     clearAll() {
@@ -474,9 +622,22 @@ export default {
       this.citeFilter = 0
       this.langFilter = 'all'
       this.journalFilter = 0
+      this.advancedFilterParts = []
+      this.advancedSearchForm = {
+        author: '',
+        publication: '',
+        start_time: '',
+        end_time: '',
+        keyword: '',
+        is_key_title: true
+      }
+      this.search_start_time = RECENT_2_START_YEAR
+      this.search_end_time = CURRENT_YEAR
+      this.currentPage = 1
       this.setQuery()
     },
     setQuery() {
+      this.filter = this.buildFilter()
       const query = {
         filter: this.filter,
         search: this.search,
@@ -489,7 +650,7 @@ export default {
       this.$router.push({ query })
     },
     changePages(page) {
-      this.currentPage = page
+      this.currentPage = toPositiveInteger(page, 1)
       this.setQuery()
     },
     changeItemPerpage(n) {
@@ -499,6 +660,7 @@ export default {
     },
     searchmethod() {
       this.displayLoading = true
+      const requestId = ++this.searchRequestSeq
       const started = Date.now()
       const params = {
         filter: this.filter,
@@ -515,6 +677,7 @@ export default {
       else if (type === 4) api = Search.searchInstitutions
       api.call(Search, params).then(
         (res) => {
+          if (requestId !== this.searchRequestSeq) return
           const data = (res && res.data) || {}
           this.infoItems = sortItemsForCurrentPage(
             (data.results || []).map((r) => ({ ...r, keyword: this.search })),
@@ -527,6 +690,7 @@ export default {
           this.displayLoading = false
         },
         () => {
+          if (requestId !== this.searchRequestSeq) return
           this.infoItems = []
           this.totalCount = 0
           this.totalPages = 1
