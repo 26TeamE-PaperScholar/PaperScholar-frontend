@@ -17,8 +17,8 @@
             @keyup.enter="changePassword"
         >
         <div class="btn-box">
-            <button class="basic-btn-outline" @click="handleClose">{{ $t('cancel_text') }}</button>
-            <button class="basic-btn" @click="changePassword">{{ $t('confirm_text') }}</button>
+            <button class="basic-btn-outline" @click="handleClose()" :disabled="isSubmitting">{{ $t('cancel_text') }}</button>
+            <button class="basic-btn" @click="changePassword" :disabled="isSubmitting">{{ isSubmitting ? $t('submitting_text') : $t('confirm_text') }}</button>
         </div>
         </div>
     </PopoutModal>
@@ -30,7 +30,6 @@ import PopoutModal from '../popout-modal/PopoutModal.vue'
 import i18n from '../../language'
 
 import { Account } from '../../api/accounts.js'
-import { User } from '../../api/users.js'
 
 export default {
     name: 'ChangePasswordModal',
@@ -39,7 +38,8 @@ export default {
         return {
             oldPassword: '',
             newPassword: '',
-            confirmPassword: ''
+            confirmPassword: '',
+            isSubmitting: false
         }
     },
     props: {
@@ -53,23 +53,56 @@ export default {
         i18n
     },
     methods: {
-        handleClose() {
+        handleClose(force = false) {
+            if (this.isSubmitting && force !== true) return
             this.$emit('close')
         },
+        resetForm() {
+            this.oldPassword = ''
+            this.newPassword = ''
+            this.confirmPassword = ''
+        },
+        getErrorMessage(error) {
+            const data = error && error.response && error.response.data
+            if (!data) return this.$t('change_password_retry_hint')
+            if (typeof data === 'string') return data
+            if (data.detail) return data.detail
+            if (data.message) return data.message
+            const firstKey = Object.keys(data)[0]
+            const firstValue = firstKey ? data[firstKey] : ''
+            if (Array.isArray(firstValue)) return firstValue.join('；')
+            if (typeof firstValue === 'string') return firstValue
+            return this.$t('change_password_check_hint')
+        },
         changePassword() {
-            let data = {
+            if (this.isSubmitting) return
+            if (!this.oldPassword || !this.newPassword || !this.confirmPassword) {
+                this.$bus.emit('message', { title: this.$t('change_password_failure'), content: this.$t('change_password_required_hint'), time: 1800 })
+                return
+            }
+            if (this.newPassword !== this.confirmPassword) {
+                this.$bus.emit('message', { title: this.$t('change_password_failure'), content: this.$t('different_password'), time: 1800 })
+                return
+            }
+
+            const data = {
                 old_password: this.oldPassword,
                 password: this.newPassword,
                 password_confirm: this.confirmPassword
             }
+            this.isSubmitting = true
             Account.passwordChange(data).then(
-                response => {
-                    // alert('修改密码成功, 请重新登录')
+                () => {
+                    this.$bus.emit('message', { title: this.$t('change_password_success'), content: this.$t('change_password_relogin_hint'), time: 1800 })
+                    this.resetForm()
+                    this.handleClose(true)
                 },
                 error => {
-                    // alert('修改密码失败')
+                    this.$bus.emit('message', { title: this.$t('change_password_failure'), content: this.getErrorMessage(error), time: 2200 })
                 }
-            )
+            ).finally(() => {
+                this.isSubmitting = false
+            })
         }
     }
 }
