@@ -26,12 +26,29 @@ const url = {
   conversations: '/chat/conversations/'
 }
 
+const normalizeContextPapers = (data = {}) => {
+  if (Array.isArray(data.context_papers)) return data.context_papers
+  if (Array.isArray(data.contextPapers)) return data.contextPapers
+  return undefined
+}
+
 const toCompletionPayload = (data = {}) => ({
+  conversation_id: data.conversation_id !== undefined
+    ? data.conversation_id
+    : (data.conversation !== undefined ? data.conversation : null),
   conversation: data.conversation !== undefined
     ? data.conversation
     : (data.conversation_id !== undefined ? data.conversation_id : null),
+  message: data.message !== undefined ? data.message : data.content,
   content: data.content !== undefined ? data.content : data.message
 })
+
+const toCompletionRequest = (data = {}) => {
+  const payload = toCompletionPayload(data)
+  const contextPapers = normalizeContextPapers(data)
+  if (contextPapers !== undefined) payload.context_papers = contextPapers
+  return payload
+}
 
 export class Chat {
   /**
@@ -58,7 +75,7 @@ export class Chat {
 
   /**
    * POST /api/chat/conversations/
-   * @param {{title?:string}} data
+   * @param {{title?:string, context_papers?:string[]}} data
    */
   static async createConversation(data = {}) {
     if (USE_MOCK) {
@@ -67,6 +84,8 @@ export class Chat {
     }
     const payload = {}
     if (data.title != null) payload.title = data.title
+    const contextPapers = normalizeContextPapers(data)
+    if (contextPapers !== undefined) payload.context_papers = contextPapers
     return service(url.conversations, { method: 'post', data: payload })
   }
 
@@ -85,7 +104,7 @@ export class Chat {
 
   /**
    * PATCH /api/chat/conversations/<id>/
-   * @param {{title?:string}} data
+   * @param {{title?:string, context_papers?:string[]}} data
    */
   static async updateConversationPartial(id, data) {
     if (USE_MOCK) {
@@ -98,6 +117,8 @@ export class Chat {
     }
     const payload = {}
     if (data.title != null) payload.title = data.title
+    const contextPapers = normalizeContextPapers(data)
+    if (contextPapers !== undefined) payload.context_papers = contextPapers
     return service(url.conversations + id + '/', { method: 'patch', data: payload })
   }
 
@@ -115,8 +136,8 @@ export class Chat {
 
   /**
    * POST /api/chat/completions/
-   * 当前后端 Swagger 请求体：{ conversation, content }
-   * 前端业务层仍可传 { conversation_id, message }，这里统一适配。
+   * 兼容新旧请求体字段：{ conversation_id, message, context_papers }
+   * 与旧版 { conversation, content }，避免联调期间字段变更导致上下文丢失。
    * mock 响应为 { user_message, assistant_message }，后端响应由接口实现决定。
    */
   static async createCompletion(data) {
@@ -126,7 +147,7 @@ export class Chat {
       mockAppendMessages(payload.conversation_id, pair.user_message, pair.assistant_message)
       return mockResponse(pair, { min: 600, max: 1200 })
     }
-    return service(url.completions, { method: 'post', data: toCompletionPayload(data) })
+    return service(url.completions, { method: 'post', data: toCompletionRequest(data) })
   }
 
   /**

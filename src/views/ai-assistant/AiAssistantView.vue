@@ -219,9 +219,9 @@ export default {
     ...mapActions('assistant', [
       'loadConversations',
       'openConversation',
-      'newConversation',
       'sendMessage',
       'deleteConversation',
+      'startDraftConversation',
       'setContextPapersLocal',
       'updateContextPapers'
     ]),
@@ -235,7 +235,7 @@ export default {
         return
       }
       if (ids.length) {
-        await this.newConversation({ context_papers: ids })
+        this.startDraftConversation({ context_papers: ids })
       }
     },
     async openConv(id) {
@@ -244,7 +244,7 @@ export default {
       this.$nextTick(this.scrollToBottom)
     },
     async startNew() {
-      await this.newConversation({ context_papers: this.contextPapers || [] })
+      this.startDraftConversation({ context_papers: this.contextPapers || [] })
       this.draft = ''
       this.$nextTick(this.scrollToBottom)
     },

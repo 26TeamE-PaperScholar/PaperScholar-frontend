@@ -16,19 +16,22 @@ const listFromPayload = (payload) => {
   return []
 }
 
-const normalizeConversation = (cv = {}, fallback = {}) => ({
-  id: cv.id,
-  title: cv.title || fallback.title || '新会话',
-  context_papers: (Array.isArray(cv.context_papers) && cv.context_papers.length)
-    ? cv.context_papers
-    : (fallback.context_papers || cv.context_papers || []),
-  created_at: cv.created_at,
-  updated_at: cv.updated_at,
-  last_message_at: cv.last_message_at || cv.updated_at || cv.created_at,
-  message_count: cv.message_count != null
-    ? cv.message_count
-    : (Array.isArray(cv.messages) ? cv.messages.length : (fallback.message_count || 0))
-})
+const normalizeConversation = (cv = {}, fallback = {}) => {
+  const hasContextPapers = Object.prototype.hasOwnProperty.call(cv, 'context_papers')
+  return {
+    id: cv.id,
+    title: cv.title || fallback.title || '新会话',
+    context_papers: hasContextPapers
+      ? (Array.isArray(cv.context_papers) ? cv.context_papers : [])
+      : (Array.isArray(fallback.context_papers) ? fallback.context_papers : []),
+    created_at: cv.created_at,
+    updated_at: cv.updated_at,
+    last_message_at: cv.last_message_at || cv.updated_at || cv.created_at,
+    message_count: cv.message_count != null
+      ? cv.message_count
+      : (Array.isArray(cv.messages) ? cv.messages.length : (fallback.message_count || 0))
+  }
+}
 
 const normalizeMessage = (msg = {}, conversationId) => ({
   ...msg,
@@ -46,6 +49,11 @@ const makeLocalMessage = (conversationId, role, content) => normalizeMessage({
   content,
   created_at: new Date().toISOString()
 }, conversationId)
+
+const makeConversationTitle = (content) => {
+  const text = String(content || '').trim()
+  return text ? text.slice(0, 30) + (text.length > 30 ? '…' : '') : '新会话'
+}
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -152,16 +160,30 @@ const actions = {
         commit('CLEAR_CURRENT')
         return null
       }
-      const cv = normalizeConversation(data)
+      let cv = normalizeConversation(data)
       const messages = Array.isArray(data.messages)
         ? data.messages.map((m) => normalizeMessage(m, cv.id))
         : await dispatch('loadConversationMessages', { id: cv.id, apply: false })
+      const firstUserMessage = messages.find((m) => m.role === 'user' && m.content)
+      const repairedTitle = cv.title === '新会话' && firstUserMessage
+        ? makeConversationTitle(firstUserMessage.content)
+        : ''
+      if (repairedTitle && repairedTitle !== cv.title) {
+        cv = { ...cv, title: repairedTitle }
+      }
       commit('PATCH_CONVERSATION', { id: cv.id, patch: cv })
       commit('SET_CURRENT', {
         id: cv.id,
         messages,
         context_papers: cv.context_papers || []
       })
+      if (repairedTitle) {
+        try {
+          await Chat.updateConversationPartial(cv.id, { title: repairedTitle })
+        } catch (e) {
+          commit('SET_ERROR', e)
+        }
+      }
       return data
     } catch (e) {
       commit('SET_ERROR', e)
@@ -203,32 +225,43 @@ const actions = {
     if (state.pendingSend) return null
 
     let conversationId = state.currentId
+    const firstMessageTitle = makeConversationTitle(content)
+    const requestContextPapers = context_papers || state.contextPapers
     if (!conversationId) {
       const cv = await dispatch('newConversation', {
-        context_papers: context_papers || state.contextPapers
+        title: firstMessageTitle,
+        context_papers: requestContextPapers
       })
       conversationId = cv && cv.id
       if (!conversationId) return null
     }
 
     const previousCount = state.messages.length
+    const shouldPersistFirstTitle = previousCount === 0
     const localUser = makeLocalMessage(conversationId, 'user', content)
     commit('APPEND_MESSAGE', localUser)
     commit('PATCH_CONVERSATION', {
       id: conversationId,
       patch: {
-        title: previousCount === 0 ? content.slice(0, 30) + (content.length > 30 ? '…' : '') : undefined,
+        title: shouldPersistFirstTitle ? firstMessageTitle : undefined,
         last_message_at: localUser.created_at,
         message_count: state.messages.length
       }
     })
+    if (shouldPersistFirstTitle) {
+      try {
+        await Chat.updateConversationPartial(conversationId, { title: firstMessageTitle })
+      } catch (e) {
+        commit('SET_ERROR', e)
+      }
+    }
 
     commit('SET_PENDING', true)
     try {
       const res = await Chat.createCompletion({
         conversation_id: conversationId,
         message: content,
-        context_papers: context_papers || state.contextPapers
+        context_papers: requestContextPapers
       })
       const data = res && res.data
       if (data && (data.user_message || data.assistant_message)) {
@@ -245,9 +278,7 @@ const actions = {
         patch: {
           last_message_at: last ? last.created_at : new Date().toISOString(),
           message_count: state.messages.length,
-          title: state.messages[0] && state.messages[0].role === 'user'
-            ? state.messages[0].content.slice(0, 30) + (state.messages[0].content.length > 30 ? '…' : '')
-            : undefined
+          title: shouldPersistFirstTitle ? firstMessageTitle : undefined
         }
       })
       return data
@@ -267,7 +298,7 @@ const actions = {
   async updateContextPapers({ state, commit }, { id, paperIds }) {
     const target = id || state.currentId
     if (!target) return
-    // Current Swagger only allows updating conversation title; keep paper context client-side.
+    await Chat.updateConversationPartial(target, { context_papers: paperIds })
     commit('PATCH_CONVERSATION', { id: target, patch: { context_papers: paperIds } })
     if (target === state.currentId) commit('SET_CONTEXT_PAPERS', paperIds)
   },
@@ -275,6 +306,11 @@ const actions = {
   async deleteConversation({ commit }, id) {
     await Chat.deleteConversation(id)
     commit('REMOVE_CONVERSATION', id)
+  },
+
+  startDraftConversation({ commit }, { context_papers = [] } = {}) {
+    commit('CLEAR_CURRENT')
+    commit('SET_CONTEXT_PAPERS', context_papers)
   },
 
   setContextPapersLocal({ commit }, ids) {
