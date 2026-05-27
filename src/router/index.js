@@ -11,6 +11,7 @@ import ScholarPortalView from '../views/scholar-portal/ScholarPortalView.vue'
 import InstitutionView from '../views/institution/InstitutionView.vue'
 import TagDetailView from '../views/tags/TagDetailView.vue'
 import AuthView from '../views/auth/AuthView.vue'
+import PasswordReset from '../views/password-reset/PasswordReset.vue'
 import PaperCompareView from '../views/paper-compare/PaperCompareView.vue'
 import AiAssistantView from '../views/ai-assistant/AiAssistantView.vue'
 
@@ -39,6 +40,7 @@ const router = createRouter({
     { path: '/auth', component: AuthView },
     { path: '/login', redirect: { path: '/auth', query: { mode: 'login' } } },
     { path: '/register', redirect: { path: '/auth', query: { mode: 'register' } } },
+    { path: '/password_reset', component: PasswordReset },
     { path: '/message', component: MessageView },
     { path: '/paper_detail/:id', component: PaperDetailView },
     { path: '/scholar_portal/:id', component: ScholarPortalView },

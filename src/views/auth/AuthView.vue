@@ -19,7 +19,7 @@
           <p class="ps-auth__eyebrow">学术检索 · 智能导航</p>
           <h1>用更可信的方式 <br />与人类知识对话</h1>
           <p class="ps-auth__lede">
-            统一的学术索引 · 引用图谱 · 生成式问答；让综述、毕设、组会、路演变得轻松而严谨。
+            统一的学术索引 · 引用图谱 · 生成式问答；让综述、毕设、组会、成果展示变得轻松而严谨。
           </p>
         </div>
         <ul class="ps-auth__bullets">
@@ -45,7 +45,7 @@
             </div>
           </li>
         </ul>
-        <p class="ps-auth__brand-foot">© PaperScholar · 学术展示与路演平台</p>
+        <p class="ps-auth__brand-foot">© PaperScholar · 学术展示与研究协作平台</p>
       </div>
     </section>
 
@@ -116,7 +116,7 @@
 
           <form v-else key="reset" class="ps-auth__form" @submit.prevent="resetPassword">
             <h2>找回密码</h2>
-            <p class="ps-auth__sub">输入注册邮箱，我们会发送重置链接。</p>
+            <p class="ps-auth__sub">输入注册邮箱，我们会发送密码重置 token。</p>
             <label>
               <span>{{ $t('email_text') || '邮箱' }}</span>
               <input type="text" class="basic-input" v-model="resetEmail" autocomplete="email" />
@@ -233,8 +233,8 @@ export default {
     resetPassword() {
       Account.sendPasswordResetEmail({ email: this.resetEmail }).then(
         () => {
-          this.$bus.emit('message', { title: '已发送重置邮件', content: this.resetEmail, time: 1800 })
-          this.setMode('login')
+          this.$bus.emit('message', { title: '已发送重置邮件', content: '请复制邮件中的 token 完成重设', time: 1800 })
+          this.$router.push({ path: '/password_reset', query: { email: this.resetEmail } })
         },
         () => {
           this.$bus.emit('message', { title: '邮件发送失败', content: '请稍后再试', time: 1800 })
