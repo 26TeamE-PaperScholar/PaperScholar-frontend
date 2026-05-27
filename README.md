@@ -160,7 +160,7 @@
   | --- | --- |
   | `AppCard` | 统一卡片壳：`title/subtitle/header/actions/footer` 插槽，`elevation`/`hover`/`interactive`/`accent` props |
   | `AppIcon` | `@vicons/ionicons5` 包装，按 ionicons 类名即可使用（如 `Search`、`Bookmark`） |
-  | `AppStat` | 大数字 + 单位 + 趋势小标签，路演必备 |
+  | `AppStat` | 大数字 + 单位 + 趋势小标签，展示常用 |
   | `AppTagChip` | 关键词/标签/学科芯片，6 种变体 `subtle/solid/outline/gold/success/warning/danger`，可点击/可删除 |
   | `AppMetricBadge` | 圆角小徽章（高被引、OA、IF…） |
   | `AppAvatar` | 圆形头像，无图片时根据 id 生成稳定渐变 + 首字母 |
@@ -182,10 +182,10 @@
 - `src/mock/index.js` 集中导出 18 篇真实风格论文、15 位学者、10 所机构、10 种期刊、6 个主题、5 条系统消息、4 条审核记录等。
 - `src/api/*.js` 中每个方法都改成 `if (USE_MOCK) return mockResponse(...)` 模式，**方法签名与后端契约保持一致**，未来接入真后端只需切换开关，无需改业务代码。
 - 切换开关：项目根目录新建 `.env.local`，加入 `VITE_USE_MOCK=false` 即可让所有请求走真后端。
-- 模拟延时：`src/mock/delay.js` 默认 220–520ms 随机延时，骨架屏因此能正常展示（路演加分项）。
+- 模拟延时：`src/mock/delay.js` 默认 220–520ms 随机延时，骨架屏因此能正常展示（体验加分项）。
 - 想要扩充演示数据，往 `src/mock/papers.js` / `authors.js` / `institutions.js` 中追加即可，schema 注释见各文件顶部。
 
-### 8 路演 / PK 检查清单
+### 8 演示 / PK 检查清单
 
 - 路由覆盖：`/`（首页）、`/search_result?search=&search_type=1`（论文检索）、`/paper_detail/W2024-001`（详情页）、`/scholar_portal/A001`（学者主页）、`/institution_detail/I001`（机构页）、`/tag_detail/C1`（学科）、`/personal_homepage`、`/message`、`/auth`、`/admin`
 - 演示用账号：mock 模式下任意邮箱密码登录即可，自动写 cookie，可直接体验关注/收藏/消息中心。
