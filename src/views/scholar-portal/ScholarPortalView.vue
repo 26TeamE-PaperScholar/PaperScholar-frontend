@@ -178,47 +178,21 @@
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="主页二维码" subtitle="路演分享方便" tag="h3" />
-          <div class="ps-scholar__qr" aria-hidden="true">
-            <svg viewBox="0 0 100 100" width="120" height="120">
-              <rect width="100" height="100" fill="#FFFFFF" />
-              <g fill="#0F0E1A">
-                <rect x="6" y="6" width="22" height="22" />
-                <rect x="72" y="6" width="22" height="22" />
-                <rect x="6" y="72" width="22" height="22" />
-                <rect x="12" y="12" width="10" height="10" fill="#FFFFFF" />
-                <rect x="78" y="12" width="10" height="10" fill="#FFFFFF" />
-                <rect x="12" y="78" width="10" height="10" fill="#FFFFFF" />
-                <rect x="36" y="6" width="6" height="6" />
-                <rect x="48" y="6" width="6" height="6" />
-                <rect x="60" y="6" width="6" height="6" />
-                <rect x="36" y="18" width="6" height="6" />
-                <rect x="54" y="18" width="6" height="6" />
-                <rect x="36" y="30" width="6" height="6" />
-                <rect x="48" y="30" width="6" height="6" />
-                <rect x="66" y="30" width="6" height="6" />
-                <rect x="6" y="36" width="6" height="6" />
-                <rect x="18" y="36" width="6" height="6" />
-                <rect x="42" y="42" width="6" height="6" />
-                <rect x="54" y="42" width="6" height="6" />
-                <rect x="72" y="42" width="6" height="6" />
-                <rect x="84" y="42" width="6" height="6" />
-                <rect x="30" y="48" width="6" height="6" />
-                <rect x="42" y="48" width="6" height="6" />
-                <rect x="60" y="48" width="6" height="6" />
-                <rect x="78" y="48" width="6" height="6" />
-                <rect x="36" y="60" width="6" height="6" />
-                <rect x="54" y="60" width="6" height="6" />
-                <rect x="66" y="60" width="6" height="6" />
-                <rect x="42" y="72" width="6" height="6" />
-                <rect x="60" y="72" width="6" height="6" />
-                <rect x="78" y="72" width="6" height="6" />
-                <rect x="36" y="84" width="6" height="6" />
-                <rect x="54" y="84" width="6" height="6" />
-                <rect x="72" y="84" width="6" height="6" />
-              </g>
-            </svg>
+          <AppSectionHeader title="主页二维码" subtitle="扫码打开学者主页" tag="h3" />
+          <div class="ps-scholar__qr" role="img" :aria-label="`学者主页二维码：${portalShareUrl}`">
+            <NQrCode
+              :value="portalShareUrl"
+              :size="132"
+              :padding="10"
+              color="#0F172A"
+              background-color="#FFFFFF"
+              error-correction-level="M"
+            />
           </div>
+          <button class="ps-scholar__qr-copy" type="button" @click="sharePortal">
+            <AppIcon name="CopyOutline" :size="14" />
+            复制链接
+          </button>
         </AppCard>
       </aside>
     </div>
@@ -236,6 +210,7 @@ import { User } from '../../api/users'
 import { mockAuthors } from '../../mock/authors'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState, AppMetricBadge, AppBreadcrumb } from '../../components/ui'
 import { buildFollowPayload, normalizeOpenAlexAuthorId } from '../../utils/personal-page.mjs'
+import { NQrCode } from 'naive-ui'
 
 export default {
   name: 'ScholarPortalView',
@@ -252,7 +227,8 @@ export default {
     AppAvatar,
     AppEmptyState,
     AppMetricBadge,
-    AppBreadcrumb
+    AppBreadcrumb,
+    NQrCode
   },
   data() {
     return {
@@ -301,6 +277,16 @@ export default {
     },
     collaboratorPreview() {
       return mockAuthors.filter((a) => a.id !== this.authorInfo.id).slice(0, 6)
+    },
+    portalShareUrl() {
+      const fallbackPath = this.authorInfo.id
+        ? `/scholar_portal/${encodeURIComponent(this.authorInfo.id)}`
+        : '/scholar_portal'
+      const routeHref = this.$router && this.$route
+        ? this.$router.resolve(this.$route.fullPath).href
+        : fallbackPath
+      if (typeof window === 'undefined') return routeHref
+      return new URL(routeHref, window.location.origin).href
     }
   },
   watch: {
@@ -427,10 +413,34 @@ export default {
       )
     },
     sharePortal() {
+      const link = this.portalShareUrl
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(
+          () => this.notifyShareCopied(link),
+          () => this.copyPortalLinkFallback(link)
+        )
+        return
+      }
+      this.copyPortalLinkFallback(link)
+    },
+    copyPortalLinkFallback(link) {
+      if (typeof document === 'undefined') return
+      const input = document.createElement('textarea')
+      input.value = link
+      input.setAttribute('readonly', '')
+      input.style.position = 'fixed'
+      input.style.opacity = '0'
+      document.body.appendChild(input)
+      input.select()
       try {
-        navigator.clipboard.writeText(window.location.href)
-        this.$bus.emit('message', { title: '已复制学者主页链接', content: window.location.href, time: 1800 })
-      } catch (e) {}
+        document.execCommand('copy')
+        this.notifyShareCopied(link)
+      } finally {
+        document.body.removeChild(input)
+      }
+    },
+    notifyShareCopied(link) {
+      this.$bus.emit('message', { title: '已复制学者主页链接', content: link, time: 1800 })
     },
     contactAuthor() {
       if (this.authorInfo.email) window.location.href = 'mailto:' + this.authorInfo.email
@@ -814,14 +824,45 @@ export default {
 .ps-scholar__qr {
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: var(--ps-space-4);
   background: linear-gradient(135deg, #FFFFFF, var(--ps-bg-sunken));
   border-radius: var(--ps-radius-md);
 }
 
-.ps-scholar__qr svg {
-  border-radius: var(--ps-radius-sm);
+.ps-scholar__qr :deep(.n-qr-code) {
+  border: 1px solid var(--ps-border-1);
+  border-radius: var(--ps-radius-md);
   box-shadow: var(--ps-shadow-1);
+}
+
+.ps-scholar__qr :deep(canvas) {
+  display: block;
+  border-radius: var(--ps-radius-sm);
+}
+
+.ps-scholar__qr-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 36px;
+  margin-top: var(--ps-space-3);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary-strong);
+  border: 1px solid rgba(45, 27, 105, 0.12);
+  border-radius: var(--ps-radius-pill);
+  font-size: var(--ps-fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    border-color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-scholar__qr-copy:hover {
+  background: var(--ps-bg-elevated);
+  border-color: var(--ps-color-primary);
 }
 
 @media screen and (max-width: 1024px) {
