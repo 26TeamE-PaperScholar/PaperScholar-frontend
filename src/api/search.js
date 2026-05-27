@@ -12,6 +12,7 @@ import {
   findAuthor,
   mockTags
 } from '../mock'
+import { normalizeOpenAlexAuthorId } from '../utils/personal-page.mjs'
 
 const url = {
   searchAuthors: '/search/authors/',
@@ -31,11 +32,12 @@ export class Search {
   }
 
   static async searchAuthorInfo(id) {
+    const authorId = normalizeOpenAlexAuthorId(id)
     if (USE_MOCK) {
-      const author = findAuthor(id)
+      const author = findAuthor(authorId)
       return mockResponse(author || {})
     }
-    return service(url.searchAuthors + '/' + id + '/', { method: 'get' })
+    return service(url.searchAuthors + encodeURIComponent(authorId) + '/', { method: 'get' })
   }
 
   static async searchConcepts() {

@@ -120,6 +120,7 @@ import { mockTags } from '../../mock/tags'
 import { mockAuthors } from '../../mock/authors'
 import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppEmptyState, AppMetricBadge, AppAvatar, AppBreadcrumb } from '../../components/ui'
+import { scholarPortalPath } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'TagDetailView',
@@ -195,7 +196,8 @@ export default {
       })
     },
     gotoAuthor(a) {
-      this.$router.push('/scholar_portal/' + a.id)
+      const path = scholarPortalPath(a)
+      if (path) this.$router.push(path)
     },
     gotoTag(t) {
       this.$router.push('/tag_detail/' + t.id)

@@ -13,6 +13,7 @@
 
 <script>
 import RelationGraph from "relation-graph/vue3";
+import { scholarPortalPath } from "../../utils/personal-page.mjs";
 
 // 节点尺寸策略：
 // - 以一个统一的“基准直径”渲染所有圆，使整体观感整齐；
@@ -223,9 +224,8 @@ export default {
     },
     onNodeClick(nodeObject) {
       if (!nodeObject || !nodeObject.id) return;
-      const idx = String(nodeObject.id).indexOf("org/");
-      const id = idx !== -1 ? nodeObject.id.substring(idx + 4) : nodeObject.id;
-      this.$router.push({ path: `/scholar_portal/${id}` });
+      const path = scholarPortalPath({ id: nodeObject.id });
+      if (path) this.$router.push({ path });
     },
     onLineClick(lineObject) {
       void lineObject;

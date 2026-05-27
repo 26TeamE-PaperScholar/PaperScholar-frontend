@@ -42,6 +42,7 @@
 
 <script>
 import { AppCard, AppAvatar, AppIcon, AppTagChip } from '../ui'
+import { scholarPortalPath } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'ScholarListItem',
@@ -61,7 +62,8 @@ export default {
       return n.toString()
     },
     jumpDetailView() {
-      this.$router.push('/scholar_portal/' + this.infoItem.id)
+      const path = scholarPortalPath(this.infoItem)
+      if (path) this.$router.push(path)
     }
   }
 }

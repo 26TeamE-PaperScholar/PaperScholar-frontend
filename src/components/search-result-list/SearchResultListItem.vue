@@ -8,16 +8,17 @@
           <AppAvatar
             v-for="(a, idx) in displayedAuthors"
             :key="idx"
-            :name="a.author.display_name"
-            :id="a.author.id"
+            :name="authorName(a)"
+            :id="authorId(a)"
             size="xs"
           />
           <span class="ps-result-item__authors-text">
             <template v-for="(a, idx) in displayedAuthors" :key="idx">
               <span
                 class="ps-result-item__author-link"
-                @click.stop="jumpAuthor(a.author.id)"
-              >{{ a.author.display_name }}</span>
+                :class="{ 'ps-result-item__author-link--disabled': !canOpenAuthor(a) }"
+                @click.stop="jumpAuthor(a)"
+              >{{ authorName(a) }}</span>
               <span v-if="idx < displayedAuthors.length - 1">、</span>
             </template>
             <span v-if="moreAuthors > 0" class="ps-result-item__author-more"> +{{ moreAuthors }} 位作者</span>
@@ -106,6 +107,8 @@
 import ChooseFavoriteModal from '../modals/ChooseFavoriteModal.vue'
 import AddToCompareButton from '../compare/AddToCompareButton.vue'
 import { AppCard, AppIcon, AppAvatar, AppTagChip, AppMetricBadge, AppIconButton } from '../ui'
+import { Search } from '../../api/search'
+import { authorIdOf, authorNameOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'SearchResultListItem',
@@ -163,9 +166,30 @@ export default {
     jumpArticle() {
       this.$router.push('/paper_detail/' + this.infoItem.id)
     },
-    jumpAuthor(id) {
-      if (!id) return
-      this.$router.push('/scholar_portal/' + id)
+    authorId(authorship) {
+      return authorIdOf(authorship)
+    },
+    authorName(authorship) {
+      return authorNameOf(authorship)
+    },
+    canOpenAuthor(authorship) {
+      return Boolean(authorIdOf(authorship) || authorNameOf(authorship))
+    },
+    async jumpAuthor(authorship) {
+      const path = scholarPortalPath(authorship)
+      if (path) {
+        this.$router.push(path)
+        return
+      }
+      const name = authorNameOf(authorship)
+      if (!name) return
+      try {
+        const res = await Search.searchAuthor({ search: name, per_page: 5, page: 1 })
+        const data = (res && res.data) || {}
+        const matched = pickAuthorSearchResult(authorship, data.results || [])
+        const fallbackPath = scholarPortalPath(matched)
+        if (fallbackPath) this.$router.push(fallbackPath)
+      } catch (e) {}
     },
     showCollectModal() {
       this.collectModalShouldShow = true
@@ -250,6 +274,16 @@ export default {
 .ps-result-item__author-link:hover {
   color: var(--ps-color-primary);
   text-decoration: underline;
+}
+
+.ps-result-item__author-link--disabled {
+  cursor: default;
+  color: inherit;
+}
+
+.ps-result-item__author-link--disabled:hover {
+  color: inherit;
+  text-decoration: none;
 }
 
 .ps-result-item__author-more {

@@ -25,9 +25,10 @@
               v-for="(a, idx) in authorships"
               :key="idx"
               class="ps-paper__author"
-              @click="gotoAuthorPage(a.author && a.author.id)"
+              :class="{ 'ps-paper__author--disabled': !canOpenAuthor(a) }"
+              @click="gotoAuthorPage(a)"
             >
-              {{ a.author && a.author.display_name }}
+              {{ authorName(a) }}
               <span v-if="idx < authorships.length - 1">,</span>
             </span>
           </p>
@@ -203,6 +204,7 @@ import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue
 import CiteModal from '../../components/modals/CiteModal.vue'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppBreadcrumb } from '../../components/ui'
 import AddToCompareButton from '../../components/compare/AddToCompareButton.vue'
+import { authorIdOf, authorNameOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
 
 export default {
   name: 'PaperDetailView',
@@ -347,8 +349,30 @@ export default {
       link.click()
       document.body.removeChild(link)
     },
-    gotoAuthorPage(id) {
-      if (id) this.$router.push('/scholar_portal/' + id)
+    authorId(authorship) {
+      return authorIdOf(authorship)
+    },
+    authorName(authorship) {
+      return authorNameOf(authorship)
+    },
+    canOpenAuthor(authorship) {
+      return Boolean(authorIdOf(authorship) || authorNameOf(authorship))
+    },
+    async gotoAuthorPage(authorship) {
+      const path = scholarPortalPath(authorship)
+      if (path) {
+        this.$router.push(path)
+        return
+      }
+      const name = authorNameOf(authorship)
+      if (!name) return
+      try {
+        const res = await Search.searchAuthor({ search: name, per_page: 5, page: 1 })
+        const data = (res && res.data) || {}
+        const matched = pickAuthorSearchResult(authorship, data.results || [])
+        const fallbackPath = scholarPortalPath(matched)
+        if (fallbackPath) this.$router.push(fallbackPath)
+      } catch (e) {}
     },
     gotoPaperLandingURL() {
       window.open(this.doi, '_blank', 'noopener')
@@ -431,6 +455,15 @@ export default {
 }
 
 .ps-paper__author:hover { color: var(--ps-hero-link-hover); text-decoration: underline; }
+
+.ps-paper__author--disabled {
+  cursor: default;
+}
+
+.ps-paper__author--disabled:hover {
+  color: var(--ps-hero-link);
+  text-decoration: none;
+}
 
 .ps-paper__institutions {
   display: inline-flex;

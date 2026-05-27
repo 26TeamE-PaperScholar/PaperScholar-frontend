@@ -190,7 +190,7 @@
           <div>
             <p class="ps-results__count">
               共 <strong>{{ totalCount }}</strong> 条结果
-              <span v-if="search" class="ps-results__count-keyword">关于 "{{ search }}"</span>
+              <span v-if="submittedSearch" class="ps-results__count-keyword">关于 "{{ submittedSearch }}"</span>
             </p>
             <p class="ps-results__took">耗时 {{ tookMs }} ms · 第 {{ currentPage }} / {{ totalPages }} 页</p>
           </div>
@@ -446,6 +446,7 @@ export default {
 
       filter: '',
       search: '',
+      submittedSearch: '',
       sort: 'cited_by_count:desc',
       per_page: '10',
       page: '1',
@@ -480,6 +481,7 @@ export default {
         const nextType = Number(q.search_type) || 1
         const nextSort = normalizeSortForType(q.sort || 'cited_by_count:desc', nextType)
         this.search = q.search || ''
+        this.submittedSearch = this.search
         this.search_type = nextType
         this.sort = nextSort
         this.quickSort = this.sort
@@ -662,9 +664,10 @@ export default {
       this.displayLoading = true
       const requestId = ++this.searchRequestSeq
       const started = Date.now()
+      const submittedSearch = this.search
       const params = {
         filter: this.filter,
-        search: this.search,
+        search: submittedSearch,
         sort: this.sort,
         per_page: this.itemsPerPage,
         page: this.currentPage,
@@ -680,9 +683,10 @@ export default {
           if (requestId !== this.searchRequestSeq) return
           const data = (res && res.data) || {}
           this.infoItems = sortItemsForCurrentPage(
-            (data.results || []).map((r) => ({ ...r, keyword: this.search })),
+            (data.results || []).map((r) => ({ ...r, keyword: submittedSearch })),
             this.sort
           )
+          this.submittedSearch = submittedSearch
           const meta = data.meta || {}
           this.totalCount = meta.count || this.infoItems.length
           this.totalPages = meta.total_pages || Math.max(1, Math.ceil(this.totalCount / this.itemsPerPage))

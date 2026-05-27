@@ -1,9 +1,68 @@
 export function normalizeOpenAlexAuthorId(authorId) {
-  return String(authorId || '').replace(/^https?:\/\/openalex\.org\//, '')
+  return String(authorId || '')
+    .trim()
+    .replace(/^https?:\/\/(?:api\.)?openalex\.org\/(?:authors\/)?/i, '')
 }
 
 export function buildFollowPayload(authorId) {
   return { openalex_id: normalizeOpenAlexAuthorId(authorId) }
+}
+
+export function authorIdOf(authorshipOrAuthor) {
+  if (!authorshipOrAuthor || typeof authorshipOrAuthor !== 'object') return ''
+  const author = authorshipOrAuthor.author && typeof authorshipOrAuthor.author === 'object'
+    ? authorshipOrAuthor.author
+    : authorshipOrAuthor
+  return normalizeOpenAlexAuthorId(
+    author.id ||
+      author.openalex_id ||
+      author.openalexId ||
+      author.author_id ||
+      author.authorId ||
+      (author.ids && author.ids.openalex) ||
+      authorshipOrAuthor.author_id ||
+      authorshipOrAuthor.authorId ||
+      authorshipOrAuthor.openalex_id ||
+      authorshipOrAuthor.openalexId ||
+      authorshipOrAuthor.id
+  )
+}
+
+export function authorNameOf(authorshipOrAuthor) {
+  if (!authorshipOrAuthor || typeof authorshipOrAuthor !== 'object') return ''
+  const author = authorshipOrAuthor.author && typeof authorshipOrAuthor.author === 'object'
+    ? authorshipOrAuthor.author
+    : authorshipOrAuthor
+  return author.display_name || author.name || authorshipOrAuthor.display_name || authorshipOrAuthor.name || ''
+}
+
+export function authorOrcidOf(authorshipOrAuthor) {
+  if (!authorshipOrAuthor || typeof authorshipOrAuthor !== 'object') return ''
+  const author = authorshipOrAuthor.author && typeof authorshipOrAuthor.author === 'object'
+    ? authorshipOrAuthor.author
+    : authorshipOrAuthor
+  return String(author.orcid || authorshipOrAuthor.orcid || '').trim().toLowerCase()
+}
+
+export function pickAuthorSearchResult(authorshipOrAuthor, results = []) {
+  const name = authorNameOf(authorshipOrAuthor).trim().toLowerCase()
+  const orcid = authorOrcidOf(authorshipOrAuthor)
+  const items = (results || []).filter((item) => authorIdOf(item))
+  if (!items.length) return null
+  if (orcid) {
+    const matchedOrcid = items.find((item) => authorOrcidOf(item) === orcid)
+    if (matchedOrcid) return matchedOrcid
+  }
+  if (name) {
+    const matchedName = items.find((item) => authorNameOf(item).trim().toLowerCase() === name)
+    if (matchedName) return matchedName
+  }
+  return items[0]
+}
+
+export function scholarPortalPath(author) {
+  const id = authorIdOf(author)
+  return id ? `/scholar_portal/${encodeURIComponent(id)}` : ''
 }
 
 export function buildProfileUpdatePayload(personalInfo) {

@@ -294,7 +294,7 @@ export default {
       immediate: true,
       handler(newId) {
         if (!newId) return
-        this.authorInfo.id = newId
+        this.authorInfo.id = normalizeOpenAlexAuthorId(newId)
         this.isFollowing = false
         this.activeTab = 'works'
         this.paginationInfo.currentPage = 1
@@ -452,7 +452,8 @@ export default {
       if (tag && tag.id) this.$router.push('/tag_detail/' + tag.id)
     },
     gotoScholar(id) {
-      if (id) this.$router.push('/scholar_portal/' + id)
+      const authorId = normalizeOpenAlexAuthorId(id)
+      if (authorId) this.$router.push('/scholar_portal/' + encodeURIComponent(authorId))
     },
     formatNumber(n) {
       if (typeof n !== 'number') return n || 0
