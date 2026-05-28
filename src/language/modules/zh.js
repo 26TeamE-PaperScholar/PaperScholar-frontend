@@ -182,7 +182,6 @@ export default {
     check_disapprove: '请告知用户未通过审核的原因',
     approve_submitted: '已通过该申请',
     disapprove_submitted: '已拒绝该申请',
-    admin_view_instruction: "教程",
     admin_view_loading: "预览加载条",
 
 
@@ -223,8 +222,6 @@ export default {
     read_it: '设为已读',
     already_read: '已读',
     delete_it: '删除',
-
-    tutorial_skip: '跳过?',
 
     maximum_image: '图片数量已达上限',
 
@@ -331,17 +328,6 @@ export default {
     submission_falure: '提交失败',
     submission_falure_hint: '检查你的认证信息',
     
-    img1: '设置主题颜色，开启一天好心情',
-    img2: '注册账户，体验更个性化的服务',
-    img3: '登录即可查看专属于你的推荐',
-    img4: '利用筛选功能，更快找到目标',
-    img5: '展开属性列表，你想找的这里都有',
-    img6: '在个人主页申请认证学者，成为 iPaper 的专家',
-    img7: 'AI 小助手，快速解答疑难问题',
-    img8: '关注学者，在个人主页更容易地跳转专家门户',
-    img9: '管理收藏夹，复制引用格式和链接',
-    img10: '在个人主页查看收藏夹，试试右键菜单',
-
     common_close: '关闭',
     common_remove: '移除',
     common_clear: '清空',
@@ -760,7 +746,6 @@ export default {
     admin_pending: '待审核',
     admin_approved: '已通过',
     admin_rejected: '已驳回',
-    admin_view_tutorial: '查看教程',
     admin_status_all: '全部',
     admin_unconfirmed: '未确认',
     admin_empty_title: '没有匹配的申请',

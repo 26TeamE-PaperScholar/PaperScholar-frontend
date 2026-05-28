@@ -20,10 +20,6 @@
             <span class="ps-admin__stat-num">{{ countByLegacyStatus(2) }}</span>
             <span class="ps-admin__stat-label">{{ $t('admin_rejected') }}</span>
           </div>
-          <button class="basic-btn-outline ps-admin__tutorial-btn" @click="displayTutorial = true">
-            <AppIcon name="HelpCircle" :size="14" />
-            {{ $t('admin_view_tutorial') }}
-          </button>
         </aside>
       </div>
     </AppGradientHero>
@@ -82,21 +78,18 @@
         </li>
       </ul>
     </div>
-    <TutorialView :display="displayTutorial" @stop-display="displayTutorial = false" />
   </div>
 </template>
 
 <script>
 import { Application } from '../../api/applications'
 import AuditDetailView from './AuditDetailView.vue'
-import TutorialView from '../tutorialView/TutorialView.vue'
 import { AppCard, AppIcon, AppGradientHero, AppEmptyState } from '../../components/ui'
 
 export default {
   name: 'AdminView',
   components: {
     AuditDetailView,
-    TutorialView,
     AppCard,
     AppIcon,
     AppGradientHero,
@@ -104,7 +97,6 @@ export default {
   },
   data() {
     return {
-      displayTutorial: false,
       selectStatus: -1,
       statusOptions: [
         { value: -1, labelKey: 'admin_status_all' },
@@ -206,11 +198,6 @@ export default {
   letter-spacing: 0.10em;
   text-transform: uppercase;
   color: var(--ps-text-3);
-}
-
-.ps-admin__tutorial-btn {
-  height: 38px;
-  gap: 6px;
 }
 
 /* ── Filters ───────────────────────────────────── */

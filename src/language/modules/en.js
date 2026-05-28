@@ -179,7 +179,6 @@ export default {
     no_images: 'No Images',
     submit_audit: 'Submit',
     public_date: "Date of Publication: ",
-    admin_view_instruction: "Instruction",
     admin_view_loading: "Preview loadbar",
 
     institution_achievement: "Achievement",
@@ -216,8 +215,6 @@ export default {
     read_it: 'Set Read',
     already_read: 'Read',
     delete_it: 'Delete',
-
-    tutorial_skip: 'Skip?',
 
     maximum_image: 'Maximum number limit',
 
@@ -326,17 +323,6 @@ export default {
     submission_success: 'Submission Success',
     submission_falure: 'Submission Failure',
     submission_falure_hint: 'Check your authentication information',
-
-    img1: 'Set your theme color of the site.',
-    img2: 'Register an account for more personalized service',
-    img3: 'Login and view your personal reccomendation',
-    img4: 'Filters help you find the target more quickly',
-    img5: 'Unfold the attribute list and search everything',
-    img6: 'Apply for certification as a scholar on your personal homepage',
-    img7: 'AI assistant, quickly answer difficult questions',
-    img8: 'Follow scholars and explore expert portals',
-    img9: 'Manage favorites, copy reference formats and links',
-    img10: 'View favorites on your personal homepage and try the right-click menu',
 
     common_close: 'Close',
     common_remove: 'Remove',
@@ -756,7 +742,6 @@ export default {
     admin_pending: 'Pending',
     admin_approved: 'Approved',
     admin_rejected: 'Rejected',
-    admin_view_tutorial: 'View tutorial',
     admin_status_all: 'All',
     admin_unconfirmed: 'Unconfirmed',
     admin_empty_title: 'No matching applications',

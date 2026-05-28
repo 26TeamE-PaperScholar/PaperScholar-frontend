@@ -9,7 +9,7 @@
  *   so the new admin shell can show summary cards / filter chips.
  */
 
-const TUTORIAL_SAMPLE = [
+const AUDIT_SAMPLE = [
   {
     raw: {
       id: 'AP-001',
@@ -120,6 +120,6 @@ const enrich = (sample) => {
   }
 }
 
-export const mockAuditList = TUTORIAL_SAMPLE.map(enrich)
+export const mockAuditList = AUDIT_SAMPLE.map(enrich)
 
 export const mockSubmittedApplications = []
