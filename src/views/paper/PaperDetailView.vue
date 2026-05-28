@@ -1,6 +1,25 @@
 <template>
   <div class="ps-paper-root">
-  <div class="ps-paper">
+  <div v-if="notFound || loadError" class="ps-paper ps-paper--error">
+    <AppCard>
+      <AppSectionHeader
+        :title="notFound ? $t('paper_not_found_title') : $t('paper_load_failed_title')"
+        tag="h2"
+      />
+      <p class="ps-paper__error-hint">
+        {{ notFound ? $t('paper_not_found_hint') : $t('paper_load_failed_hint') }}
+      </p>
+      <div class="ps-paper__error-actions">
+        <router-link to="/search_result?search_type=1" class="basic-btn">
+          {{ $t('common_back_to_search') }}
+        </router-link>
+        <button v-if="loadError" class="basic-btn-outline" @click="getPaperDetail">
+          {{ $t('common_retry') }}
+        </button>
+      </div>
+    </AppCard>
+  </div>
+  <div v-else class="ps-paper">
     <AppGradientHero variant="dark" class="ps-paper__hero">
       <AppBreadcrumb :items="breadcrumbs" class="ps-paper__crumbs" />
       <div class="ps-paper__hero-grid">
@@ -240,7 +259,9 @@ export default {
       workType: 'article',
       concepts: [],
       cited_by_count: 0,
-      isOpenAccess: false
+      isOpenAccess: false,
+      notFound: false,
+      loadError: false
     }
   },
   watch: {
@@ -283,11 +304,21 @@ export default {
   },
   methods: {
     getPaperDetail() {
-      this.paperId = this.$route.params.id
-      if (!this.paperId) return
-      Search.workRetrieve(this.paperId).then(
+      const id = this.$route.params.id
+      this.paperId = id
+      this.notFound = false
+      this.loadError = false
+      if (!id || !/^W\d+$/.test(id)) {
+        this.notFound = true
+        return
+      }
+      Search.workRetrieve(id).then(
         (response) => {
           const data = (response && response.data) || {}
+          if (!data || (!data.id && !data.title)) {
+            this.notFound = true
+            return
+          }
           this.title = data.title || ''
           this.authorships = data.authorships || []
           this.institutions = ((data.authorships || []).flatMap((a) => a.institutions || [])).filter(Boolean)
@@ -313,7 +344,16 @@ export default {
             this.getRelatedArticles(data.related_works_api_url)
           }
         },
-        () => {}
+        (err) => {
+          const resp = err && err.response
+          const status = resp && resp.status
+          const inner = resp && resp.data && resp.data.status_code
+          if (status === 404 || status === 400 || inner === 404 || inner === 400) {
+            this.notFound = true
+          } else {
+            this.loadError = true
+          }
+        }
       )
     },
     getRelatedArticles(url) {
@@ -392,6 +432,33 @@ export default {
   max-width: var(--ps-content-max);
   margin: 0 auto;
   padding: var(--ps-space-5) var(--ps-space-6) var(--ps-space-10);
+}
+
+.ps-paper--error {
+  max-width: 640px;
+  padding-top: var(--ps-space-10);
+}
+
+.ps-paper__error-hint {
+  font-size: var(--ps-fs-md);
+  color: var(--ps-text-2);
+  line-height: var(--ps-lh-relaxed);
+  margin: var(--ps-space-3) 0 var(--ps-space-5);
+}
+
+.ps-paper__error-actions {
+  display: flex;
+  gap: var(--ps-space-3);
+  flex-wrap: wrap;
+}
+
+.ps-paper__error-actions .basic-btn,
+.ps-paper__error-actions .basic-btn-outline {
+  min-width: 140px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ps-paper__hero {
