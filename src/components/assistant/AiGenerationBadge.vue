@@ -1,7 +1,7 @@
 <template>
-  <span class="ps-ai-badge" :title="title">
+  <span class="ps-ai-badge" :title="resolvedTitle">
     <AppIcon name="SparklesOutline" :size="11" inline />
-    <span class="ps-ai-badge__label">AI 生成内容</span>
+    <span class="ps-ai-badge__label">{{ $t('assistant_ai_generated') }}</span>
   </span>
 </template>
 
@@ -14,7 +14,12 @@ export default {
   props: {
     title: {
       type: String,
-      default: '本条回答由 AI 自动生成，请结合证据片段与来源进行核查。'
+      default: ''
+    }
+  },
+  computed: {
+    resolvedTitle() {
+      return this.title || this.$t('assistant_ai_generated_title')
     }
   }
 }

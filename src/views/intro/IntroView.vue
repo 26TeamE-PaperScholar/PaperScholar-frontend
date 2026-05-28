@@ -4,7 +4,7 @@
       <div class="ps-intro__hero-copy">
         <p class="ps-intro__eyebrow">PAPERSCHOLAR</p>
         <h1 class="ps-intro__title">
-          <span class="ps-intro__title-accent">帮你读懂复杂研究</span>
+          <span class="ps-intro__title-accent">{{ $t('intro_hero_title') }}</span>
         </h1>
       </div>
 
@@ -20,12 +20,12 @@
               @click="searchType = type.value"
             >
               <AppIcon :name="type.icon" :size="14" />
-              {{ type.label }}
+              {{ $t(type.labelKey) }}
             </button>
           </div>
           <div class="ps-intro__search-helper">
             <AppKbdHint size="sm">⌘K</AppKbdHint>
-            <span>快速聚焦</span>
+            <span>{{ $t('intro_quick_focus') }}</span>
           </div>
         </div>
 
@@ -43,7 +43,7 @@
             />
           </div>
           <button class="ps-intro__search-btn" type="button" @click="basicSearch">
-            {{ $t('search_text') || '检索' }}
+            {{ $t('search_text') }}
             <AppIcon name="ChevronForward" :size="14" />
           </button>
 
@@ -76,10 +76,10 @@
         </div>
       </div>
 
-      <div class="ps-intro__trust-strip" aria-label="平台数据概览">
+      <div class="ps-intro__trust-strip" :aria-label="$t('intro_trust_aria')">
         <span v-for="item in trustIndicators" :key="item.label" class="ps-intro__trust-mini">
           <strong>{{ item.value }}</strong>
-          <span>{{ item.label }}</span>
+          <span>{{ $t(item.labelKey) }}</span>
         </span>
       </div>
     </AppGradientHero>
@@ -87,12 +87,12 @@
     <section class="ps-intro__section">
       <AppSectionHeader
         eyebrow="Curated now"
-        title="前沿研究"
-        subtitle="按学术热度、引用数与您的跨学科关注倾向筛选出的最新工作。"
+        :title="$t('intro_frontier_title')"
+        :subtitle="$t('intro_frontier_subtitle')"
       >
         <template #actions>
           <button class="basic-btn-outline" @click="viewMoreHot">
-            查看全部
+            {{ $t('common_view_all') }}
             <AppIcon name="ChevronForward" :size="14" />
           </button>
         </template>
@@ -129,7 +129,7 @@
                 />
                 <span>
                   {{ paper.authorships.slice(0, 2).map((a) => a.author.display_name).join(' · ') }}
-                  <span v-if="paper.authorships.length > 2"> · 等 {{ paper.authorships.length }} 位作者</span>
+                  <span v-if="paper.authorships.length > 2"> · {{ $t('common_authors_etc', { count: paper.authorships.length }) }}</span>
                 </span>
               </div>
               <div class="ps-intro__hot-tags-row">
@@ -151,16 +151,16 @@
     <section class="ps-intro__section">
       <AppSectionHeader
         eyebrow="Workflow"
-        title="研究流程"
-        subtitle="把检索、阅读和引用整理接在一起，减少研究过程里的来回切换。"
+        :title="$t('intro_workflow_title')"
+        :subtitle="$t('intro_workflow_subtitle')"
       />
       <div class="ps-intro__feature-grid">
-        <AppCard v-for="feature in features" :key="feature.title" :elevation="1">
+        <AppCard v-for="feature in features" :key="feature.titleKey" :elevation="1">
           <div class="ps-intro__feature-icon">
             <AppIcon :name="feature.icon" :size="22" />
           </div>
-          <h3 class="ps-intro__feature-title">{{ feature.title }}</h3>
-          <p class="ps-intro__feature-desc">{{ feature.desc }}</p>
+          <h3 class="ps-intro__feature-title">{{ $t(feature.titleKey) }}</h3>
+          <p class="ps-intro__feature-desc">{{ $t(feature.descKey) }}</p>
         </AppCard>
       </div>
     </section>
@@ -177,8 +177,8 @@
           @keydown.esc="closeAssistant"
         >
           <div class="ps-intro__assistant-pop-head">
-            <span>AI 助手</span>
-            <button type="button" aria-label="关闭输入框" @click="closeAssistant">
+            <span>{{ $t('intro_assistant_title') }}</span>
+            <button type="button" :aria-label="$t('intro_assistant_close_aria')" @click="closeAssistant">
               <AppIcon name="CloseOutline" :size="16" />
             </button>
           </div>
@@ -188,7 +188,7 @@
             :pending="assistantPendingSend"
             :rows="2"
             :suggestions="[]"
-            placeholder="输入一个研究问题，例如：这篇论文的核心贡献是什么？"
+            :placeholder="$t('intro_assistant_placeholder')"
             class="ps-intro__assistant-composer"
             @send="submitAssistantPrompt"
           />
@@ -198,7 +198,7 @@
       <button
         type="button"
         class="ps-intro__assistant-fab"
-        :aria-label="assistantOpen ? '收起 AI 助手输入框' : '打开 AI 助手输入框'"
+        :aria-label="assistantOpen ? $t('intro_assistant_collapse_aria') : $t('intro_assistant_open_aria')"
         @click="toggleAssistant"
       >
         <span class="ps-intro__assistant-glow" aria-hidden="true"></span>
@@ -218,25 +218,25 @@ import { Article } from '../../api/article.js'
 import { AutoComplete } from '../../api/autocomplete.js'
 
 const SEARCH_TYPES = [
-  { value: 1, label: '论文', icon: 'Document' },
-  { value: 2, label: '学者', icon: 'Person' },
-  { value: 3, label: '期刊', icon: 'BookOutline' },
-  { value: 4, label: '机构', icon: 'School' }
+  { value: 1, labelKey: 'search_type_paper', icon: 'Document' },
+  { value: 2, labelKey: 'search_type_scholar', icon: 'Person' },
+  { value: 3, labelKey: 'common_journal', icon: 'BookOutline' },
+  { value: 4, labelKey: 'search_type_institution', icon: 'School' }
 ]
 
 const PLACEHOLDERS = {
-  1: '检索论文、关键词或 DOI——例如：retrieval-augmented generation',
-  2: '检索学者姓名或 ORCID——例如：Ming Chen',
-  3: '检索期刊或会议——例如：Nature, WWW',
-  4: '检索高校或研究机构——例如：Tsinghua University'
+  1: 'intro_search_placeholder_paper',
+  2: 'intro_search_placeholder_scholar',
+  3: 'intro_search_placeholder_journal',
+  4: 'intro_search_placeholder_institution'
 }
 
 const ENTITY_META = {
-  work: { icon: 'Document', label: '论文' },
-  author: { icon: 'Person', label: '学者' },
-  institution: { icon: 'School', label: '机构' },
-  concept: { icon: 'Sparkles', label: '主题' },
-  source: { icon: 'BookOutline', label: '期刊' }
+  work: { icon: 'Document', labelKey: 'intro_entity_work' },
+  author: { icon: 'Person', labelKey: 'intro_entity_author' },
+  institution: { icon: 'School', labelKey: 'intro_entity_institution' },
+  concept: { icon: 'Sparkles', labelKey: 'intro_entity_concept' },
+  source: { icon: 'BookOutline', labelKey: 'intro_entity_source' }
 }
 
 export default {
@@ -268,30 +268,30 @@ export default {
         { id: 'C2', name: 'Multimodal LLM' }
       ],
       trustIndicators: [
-        { value: '2.4M', label: '已收录论文' },
-        { value: '386K', label: '学者档案' },
-        { value: '12K+', label: '机构入驻' }
+        { value: '2.4M', labelKey: 'intro_trust_papers' },
+        { value: '386K', labelKey: 'intro_trust_scholars' },
+        { value: '12K+', labelKey: 'intro_trust_institutions' }
       ],
       features: [
         {
           icon: 'Search',
-          title: '语义 + 关键词 混合检索',
-          desc: '同时检索标题、摘要、全文与作者意图，让每一次搜索都更接近研究本意。'
+          titleKey: 'intro_feature_search_title',
+          descKey: 'intro_feature_search_desc'
         },
         {
           icon: 'GitBranch',
-          title: '引用图谱可视化',
-          desc: '基于引用与共现网络，自动呈现学者影响力轨迹与研究脉络。'
+          titleKey: 'intro_feature_graph_title',
+          descKey: 'intro_feature_graph_desc'
         },
         {
           icon: 'Bookmark',
-          title: '可分享的收藏夹',
-          desc: '一键归集组会、综述、毕设所需文献，并生成多格式引用清单。'
+          titleKey: 'intro_feature_favorite_title',
+          descKey: 'intro_feature_favorite_desc'
         },
         {
           icon: 'Sparkles',
-          title: 'AI 学术助手',
-          desc: '提炼方法、生成 BibTeX、对比相关工作；所有回答均附可追溯出处。'
+          titleKey: 'intro_feature_ai_title',
+          descKey: 'intro_feature_ai_desc'
         }
       ],
       loadingHot: true,
@@ -306,7 +306,7 @@ export default {
       assistantPendingSend: 'pendingSend'
     }),
     placeholderText() {
-      return PLACEHOLDERS[this.searchType] || ''
+      return this.$t(PLACEHOLDERS[this.searchType] || 'intro_search_placeholder_paper')
     }
   },
   watch: {
@@ -446,7 +446,7 @@ export default {
       return (ENTITY_META[type] || ENTITY_META.work).icon
     },
     entityLabel(type) {
-      return (ENTITY_META[type] || ENTITY_META.work).label
+      return this.$t((ENTITY_META[type] || ENTITY_META.work).labelKey)
     }
   }
 }

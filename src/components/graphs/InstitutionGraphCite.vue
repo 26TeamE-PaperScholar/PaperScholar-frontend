@@ -72,6 +72,12 @@ export default {
     this.destroyChart();
   },
   methods: {
+    applySeriesLabels() {
+      this.option.series[0].name = this.$t("institution_cite_number");
+      if (this.chart) {
+        this.chart.setOption({ series: this.option.series });
+      }
+    },
     initChart() {
       // 引入需要使用的组件和渲染器
       echarts.use([TooltipComponent, GridComponent, BarChart, CanvasRenderer]);
@@ -111,6 +117,9 @@ export default {
     },
   },
   watch: {
+    '$i18n.locale'() {
+      this.applySeriesLabels();
+    },
     info(oldVal, newVal) {
       if (!newVal || !Array.isArray(newVal)) {
         return;

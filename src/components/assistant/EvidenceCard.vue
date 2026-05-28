@@ -1,7 +1,7 @@
 <template>
   <article class="ps-evidence" :class="{ 'ps-evidence--restricted': restricted }">
     <header class="ps-evidence__head">
-      <span class="ps-evidence__num">证据 {{ index + 1 }}</span>
+      <span class="ps-evidence__num">{{ $t('assistant_evidence', { index: index + 1 }) }}</span>
       <span class="ps-evidence__loc">{{ locationLabel }}</span>
       <button
         v-if="paperTitle"
@@ -22,13 +22,10 @@
 import AppIcon from '../ui/Icon.vue'
 
 const LOCATION_LABEL = {
-  abstract: '摘要',
-  metadata: '元数据',
-  introduction: '引言',
-  conclusion: '结论',
-  table_1: '表 1',
-  table_2: '表 2',
-  table_3: '表 3'
+  abstract: 'assistant_location_abstract',
+  metadata: 'assistant_location_metadata',
+  introduction: 'assistant_location_introduction',
+  conclusion: 'assistant_location_conclusion'
 }
 
 export default {
@@ -46,11 +43,11 @@ export default {
     locationLabel() {
       const loc = this.evidence && this.evidence.location
       if (!loc) return '—'
-      if (LOCATION_LABEL[loc]) return LOCATION_LABEL[loc]
+      if (LOCATION_LABEL[loc]) return this.$t(LOCATION_LABEL[loc])
       const m = loc.match(/^section_(\d+)$/)
-      if (m) return `第 ${m[1]} 节`
+      if (m) return this.$t('assistant_location_section', { index: m[1] })
       const t = loc.match(/^table_(\d+)$/)
-      if (t) return `表 ${t[1]}`
+      if (t) return this.$t('assistant_location_table', { index: t[1] })
       return loc
     },
     paperTitleShort() {

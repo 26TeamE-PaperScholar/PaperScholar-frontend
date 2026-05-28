@@ -3,18 +3,18 @@
     <AppGradientHero variant="soft" compact class="ps-msg__hero">
       <div class="ps-msg__hero-content">
         <div>
-          <p class="ps-msg__eyebrow">消息中心</p>
-          <h1 class="ps-msg__title">所有通知</h1>
-          <p class="ps-msg__lede">系统通知、学者更新、申请反馈与私信都汇集在这里。</p>
+          <p class="ps-msg__eyebrow">{{ $t('message_center') }}</p>
+          <h1 class="ps-msg__title">{{ $t('message_all_notifications') }}</h1>
+          <p class="ps-msg__lede">{{ $t('message_center_desc') }}</p>
         </div>
         <div class="ps-msg__hero-actions">
           <button class="basic-btn-outline" @click="markAllRead">
             <AppIcon name="Notifications" :size="14" />
-            标记全部已读
+            {{ $t('message_mark_all_read') }}
           </button>
           <button class="basic-btn-outline" @click="clearAllRead">
             <AppIcon name="Close" :size="14" />
-            清空已读
+            {{ $t('message_clear_read') }}
           </button>
         </div>
       </div>
@@ -23,7 +23,7 @@
     <div class="ps-msg__layout">
       <aside class="ps-msg__sidebar">
         <AppCard>
-          <AppSectionHeader title="筛选" tag="h3" />
+          <AppSectionHeader :title="$t('message_filter')" tag="h3" />
           <ul class="ps-msg__cats">
             <li
               v-for="cat in categories"
@@ -32,22 +32,22 @@
               @click="activeCategory = cat.id"
             >
               <AppIcon :name="cat.icon" :size="14" />
-              <span>{{ cat.label }}</span>
+              <span>{{ $t(cat.labelKey) }}</span>
               <span class="ps-msg__cat-count">{{ countByCategory(cat.id) }}</span>
             </li>
           </ul>
         </AppCard>
 
         <AppCard accent="gold">
-          <AppSectionHeader title="提示" tag="h3" />
+          <AppSectionHeader :title="$t('message_tips')" tag="h3" />
           <ul class="ps-msg__hint-list">
             <li>
               <AppIcon name="Sparkles" :size="14" />
-              点击列表项查看完整内容。
+              {{ $t('message_tip_open') }}
             </li>
             <li>
               <AppIcon name="FlashOutline" :size="14" />
-              支持按类型筛选与一键已读。
+              {{ $t('message_tip_filter') }}
             </li>
           </ul>
         </AppCard>
@@ -57,13 +57,13 @@
         <div class="ps-msg__list-pane">
           <div class="ps-msg__list-head">
             <h3>{{ activeCategoryLabel }}</h3>
-            <span class="ps-msg__list-count">{{ filteredMessages.length }} 条</span>
+            <span class="ps-msg__list-count">{{ $t('common_count_items', { count: filteredMessages.length }) }}</span>
           </div>
 
           <AppEmptyState
             v-if="!filteredMessages.length"
-            title="暂无消息"
-            description="这里是空的。等关注的学者发布新论文，我们会通知你。"
+            :title="$t('message_empty_title')"
+            :description="$t('message_empty_desc')"
           />
 
           <ul v-else class="ps-msg__list">
@@ -76,12 +76,12 @@
               }"
               @click="selectMessage(m)"
             >
-              <AppAvatar :id="m.sender.id" :name="m.sender.display_name" size="sm" />
+              <AppAvatar :id="m.sender.id" :name="messageSender(m)" size="sm" />
               <div class="ps-msg__row-body">
-                <h4>{{ m.title }}</h4>
-                <p>{{ truncate(m.content, 60) }}</p>
+                <h4>{{ messageTitle(m) }}</h4>
+                <p>{{ truncate(messageContent(m), 60) }}</p>
                 <span class="ps-msg__row-meta">
-                  <span>{{ m.sender.display_name }}</span>
+                  <span>{{ messageSender(m) }}</span>
                   <span>·</span>
                   <span>{{ m.created_at }}</span>
                 </span>
@@ -95,11 +95,11 @@
           <transition name="ps-fade" mode="out-in">
             <AppCard v-if="selected" :key="selected.id" class="ps-msg__detail">
               <header class="ps-msg__detail-head">
-                <AppAvatar :id="selected.sender.id" :name="selected.sender.display_name" size="lg" />
+                <AppAvatar :id="selected.sender.id" :name="messageSender(selected)" size="lg" />
                 <div>
-                  <h2>{{ selected.title }}</h2>
+                  <h2>{{ messageTitle(selected) }}</h2>
                   <p>
-                    <span>{{ selected.sender.display_name }}</span>
+                    <span>{{ messageSender(selected) }}</span>
                     <span>·</span>
                     <span>{{ selected.created_at }}</span>
                   </p>
@@ -108,23 +108,23 @@
                   {{ categoryLabel(selected.category) }}
                 </AppTagChip>
               </header>
-              <p class="ps-msg__detail-body">{{ selected.content }}</p>
+              <p class="ps-msg__detail-body">{{ messageContent(selected) }}</p>
               <footer class="ps-msg__detail-foot">
                 <button class="basic-btn-outline" @click="deleteMessage">
                   <AppIcon name="Close" :size="14" />
-                  删除消息
+                  {{ $t('message_delete') }}
                 </button>
                 <button v-if="selected.category === 'private'" class="basic-btn">
                   <AppIcon name="Send" :size="14" />
-                  回复
+                  {{ $t('message_reply') }}
                 </button>
               </footer>
             </AppCard>
             <AppEmptyState
               v-else
               key="empty"
-              title="选择一条消息查看详情"
-              description="左侧点击任意条目，正文会显示在这里。"
+              :title="$t('message_select_title')"
+              :description="$t('message_select_desc')"
             />
           </transition>
         </div>
@@ -138,18 +138,18 @@ import { Messages } from '../../api/messages.js'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
 
 const CATEGORIES = [
-  { id: 'all', label: '全部', icon: 'Layers' },
-  { id: 'system', label: '系统通知', icon: 'Notifications' },
-  { id: 'follow', label: '关注更新', icon: 'People' },
-  { id: 'audit', label: '审核反馈', icon: 'RibbonOutline' },
-  { id: 'private', label: '私信', icon: 'Mail' }
+  { id: 'all', labelKey: 'message_category_all', icon: 'Layers' },
+  { id: 'system', labelKey: 'message_category_system', icon: 'Notifications' },
+  { id: 'follow', labelKey: 'message_category_follow', icon: 'People' },
+  { id: 'audit', labelKey: 'message_category_audit', icon: 'RibbonOutline' },
+  { id: 'private', labelKey: 'message_category_private', icon: 'Mail' }
 ]
 
 const CATEGORY_META = {
-  system: { label: '系统', variant: 'subtle' },
-  follow: { label: '关注', variant: 'gold' },
-  audit: { label: '审核', variant: 'success' },
-  private: { label: '私信', variant: 'subtle' }
+  system: { labelKey: 'message_meta_system', variant: 'subtle' },
+  follow: { labelKey: 'message_meta_follow', variant: 'gold' },
+  audit: { labelKey: 'message_meta_audit', variant: 'success' },
+  private: { labelKey: 'message_meta_private', variant: 'subtle' }
 }
 
 export default {
@@ -181,7 +181,7 @@ export default {
     },
     activeCategoryLabel() {
       const cat = CATEGORIES.find((c) => c.id === this.activeCategory)
-      return cat ? cat.label : '消息'
+      return cat ? this.$t(cat.labelKey) : this.$t('message_center')
     }
   },
   mounted() {
@@ -213,13 +213,13 @@ export default {
     markAllRead() {
       Messages.setAllMessageRead().then(() => {
         this.messages.forEach((m) => (m.is_read = true))
-        this.$bus.emit('message', { title: '已全部标记为已读', content: '', time: 1200 })
+        this.$bus.emit('message', { title: this.$t('message_marked_all_read'), content: '', time: 1200 })
       })
     },
     clearAllRead() {
       Messages.deleteAllReadMessages().then(() => {
         this.messages = this.messages.filter((m) => !m.is_read)
-        this.$bus.emit('message', { title: '已清除已读消息', content: '', time: 1200 })
+        this.$bus.emit('message', { title: this.$t('message_cleared_read'), content: '', time: 1200 })
       })
     },
     deleteMessage() {
@@ -228,15 +228,26 @@ export default {
       Messages.deleteMessageById(id).then(() => {
         this.messages = this.messages.filter((m) => m.id !== id)
         this.selectedId = this.messages[0] ? this.messages[0].id : ''
-        this.$bus.emit('message', { title: '已删除消息', content: '', time: 1200 })
+        this.$bus.emit('message', { title: this.$t('message_deleted'), content: '', time: 1200 })
       })
     },
     truncate(text, n) {
       if (!text) return ''
       return text.length > n ? text.slice(0, n) + '…' : text
     },
+    messageTitle(message) {
+      return message && message.title_key ? this.$t(message.title_key) : (message && message.title) || ''
+    },
+    messageContent(message) {
+      return message && message.content_key ? this.$t(message.content_key) : (message && message.content) || ''
+    },
+    messageSender(message) {
+      const sender = message && message.sender
+      if (!sender) return ''
+      return sender.display_name_key ? this.$t(sender.display_name_key) : sender.display_name
+    },
     categoryLabel(cat) {
-      return (CATEGORY_META[cat] || { label: '通知' }).label
+      return this.$t((CATEGORY_META[cat] || { labelKey: 'common_notification' }).labelKey)
     },
     categoryVariant(cat) {
       return (CATEGORY_META[cat] || { variant: 'subtle' }).variant

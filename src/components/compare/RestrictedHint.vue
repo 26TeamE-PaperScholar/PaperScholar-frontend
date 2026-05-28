@@ -1,7 +1,7 @@
 <template>
   <div class="ps-restricted-hint">
     <AppIcon name="AlertCircleOutline" :size="14" inline />
-    <span>{{ label }}</span>
+    <span>{{ resolvedLabel }}</span>
   </div>
 </template>
 
@@ -12,7 +12,12 @@ export default {
   name: 'RestrictedHint',
   components: { AppIcon },
   props: {
-    label: { type: String, default: '基于摘要的受限推断' }
+    label: { type: String, default: '' }
+  },
+  computed: {
+    resolvedLabel() {
+      return this.label || this.$t('compare_restricted_hint')
+    }
   }
 }
 </script>

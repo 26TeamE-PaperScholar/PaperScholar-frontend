@@ -19,7 +19,7 @@
               size="md"
             >{{ c.display_name }}</AppTagChip>
           </div>
-          <h1 class="ps-paper__title">{{ title || $t('untitled') || '暂无标题' }}</h1>
+          <h1 class="ps-paper__title">{{ title || $t('common_no_title') }}</h1>
           <p class="ps-paper__authors">
             <span
               v-for="(a, idx) in authorships"
@@ -41,32 +41,32 @@
         <aside class="ps-paper__hero-stats">
           <div class="ps-paper__stat">
             <span class="ps-paper__stat-num">{{ formattedCited }}</span>
-            <span class="ps-paper__stat-label">被引用次数</span>
+            <span class="ps-paper__stat-label">{{ $t('paper_cited_count') }}</span>
           </div>
           <div class="ps-paper__stat">
             <span class="ps-paper__stat-num">{{ date || '—' }}</span>
-            <span class="ps-paper__stat-label">发表日期</span>
+            <span class="ps-paper__stat-label">{{ $t('paper_publication_date') }}</span>
           </div>
           <div class="ps-paper__stat">
             <span class="ps-paper__stat-num">{{ relatedCount }}</span>
-            <span class="ps-paper__stat-label">相关工作</span>
+            <span class="ps-paper__stat-label">{{ $t('paper_related_work') }}</span>
           </div>
           <div class="ps-paper__action-row">
             <button class="ps-paper__action ps-paper__action--gold" @click="collectPaper">
               <AppIcon name="Bookmark" :size="16" />
-              收藏
+              {{ $t('paper_collect') }}
             </button>
             <button class="ps-paper__action" @click="citePaper">
               <AppIcon name="Create" :size="16" />
-              生成引用
+              {{ $t('paper_generate_citation') }}
             </button>
             <button class="ps-paper__action" @click="sharePaper">
               <AppIcon name="Share" :size="16" />
-              分享
+              {{ $t('common_share') }}
             </button>
             <button class="ps-paper__action ps-paper__action--ai" @click="gotoAssistant">
               <AppIcon name="SparklesOutline" :size="16" />
-              用 AI 解读
+              {{ $t('paper_use_ai') }}
             </button>
             <AddToCompareButton :paper="paperForCompare" size="md" />
           </div>
@@ -77,12 +77,12 @@
     <div class="ps-paper__layout">
       <article class="ps-paper__article">
         <AppCard>
-          <AppSectionHeader title="摘要" subtitle="Abstract" tag="h2" />
-          <p class="ps-paper__abstract">{{ abstract || '该论文暂无可用摘要。' }}</p>
+          <AppSectionHeader :title="$t('paper_detail_abstract')" subtitle="Abstract" tag="h2" />
+          <p class="ps-paper__abstract">{{ abstract || $t('paper_no_abstract') }}</p>
         </AppCard>
 
         <AppCard v-if="keywords.length">
-          <AppSectionHeader title="关键词" subtitle="Keywords" tag="h2" />
+          <AppSectionHeader :title="$t('paper_detail_keywords')" subtitle="Keywords" tag="h2" />
           <div class="ps-paper__keywords">
             <AppTagChip
               v-for="(k, idx) in keywords"
@@ -94,9 +94,9 @@
         </AppCard>
 
         <AppCard v-if="relevantArticles.length">
-          <AppSectionHeader title="相关论文" subtitle="Related works" tag="h2">
+          <AppSectionHeader :title="$t('paper_related_papers')" subtitle="Related works" tag="h2">
             <template #actions>
-              <span class="ps-paper__hint">{{ relevantArticles.length }} 项</span>
+              <span class="ps-paper__hint">{{ $t('common_items_count', { count: relevantArticles.length }) }}</span>
             </template>
           </AppSectionHeader>
           <ul class="ps-paper__related">
@@ -123,7 +123,7 @@
 
       <aside class="ps-paper__sidebar">
         <AppCard accent="violet">
-          <AppSectionHeader title="操作" tag="h3" />
+          <AppSectionHeader :title="$t('common_actions')" tag="h3" />
           <div class="ps-paper__cta-list">
             <button
               v-if="doi"
@@ -131,7 +131,7 @@
               @click="gotoPaperLandingURL"
             >
               <AppIcon name="GlobeOutline" :size="16" />
-              访问原文
+              {{ $t('paper_visit_original') }}
             </button>
             <button
               v-if="pdf_url"
@@ -139,7 +139,7 @@
               @click="gotoPdfURL"
             >
               <AppIcon name="Document" :size="16" />
-              在线 PDF
+              {{ $t('paper_online_pdf') }}
             </button>
             <button
               v-if="pdf_url"
@@ -147,13 +147,13 @@
               @click="downloadPaper"
             >
               <AppIcon name="Cloud" :size="16" />
-              下载 PDF
+              {{ $t('paper_download_pdf') }}
             </button>
           </div>
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="元数据" tag="h3" />
+          <AppSectionHeader :title="$t('common_metadata')" tag="h3" />
           <dl class="ps-paper__meta-list">
             <div v-if="doi">
               <dt>DOI</dt>
@@ -165,22 +165,22 @@
               </dd>
             </div>
             <div v-if="source">
-              <dt>来源</dt>
+              <dt>{{ $t('paper_source') }}</dt>
               <dd>{{ source }}</dd>
             </div>
             <div v-if="date">
-              <dt>日期</dt>
+              <dt>{{ $t('common_date') }}</dt>
               <dd>{{ date }}</dd>
             </div>
             <div>
-              <dt>类型</dt>
+              <dt>{{ $t('common_type') }}</dt>
               <dd>{{ workType }}</dd>
             </div>
           </dl>
         </AppCard>
 
         <AppCard v-if="tags.length" accent="gold">
-          <AppSectionHeader title="学科分类" tag="h3" />
+          <AppSectionHeader :title="$t('paper_subject_classification')" tag="h3" />
           <div class="ps-paper__keywords">
             <AppTagChip
               v-for="(t, idx) in tags"
@@ -255,9 +255,9 @@ export default {
     },
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: '检索结果', to: '/search_result?search_type=1' },
-        { label: this.title || '论文详情' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('common_search_results'), to: '/search_result?search_type=1' },
+        { label: this.title || this.$t('common_paper_detail') }
       ]
     },
     formattedCited() {
@@ -331,7 +331,7 @@ export default {
     sharePaper() {
       try {
         navigator.clipboard.writeText(window.location.href)
-        this.$bus.emit('message', { title: '已复制到剪贴板', content: window.location.href, time: 2000 })
+        this.$bus.emit('message', { title: this.$t('paper_copied_to_clipboard'), content: window.location.href, time: 2000 })
       } catch (e) {}
     },
     gotoAssistant() {

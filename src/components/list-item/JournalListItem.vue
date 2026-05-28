@@ -15,7 +15,7 @@
         </p>
         <div class="ps-journal-item__chips">
           <AppTagChip variant="subtle" size="sm">{{ typeLabel }}</AppTagChip>
-          <AppTagChip v-if="infoItem.is_oa" variant="success" size="sm" icon="GlobeOutline">开放获取</AppTagChip>
+          <AppTagChip v-if="infoItem.is_oa" variant="success" size="sm" icon="GlobeOutline">{{ $t('list_open_access') }}</AppTagChip>
           <AppTagChip v-if="infoItem.impact_factor" variant="gold" size="sm">IF {{ infoItem.impact_factor }}</AppTagChip>
         </div>
       </div>
@@ -26,11 +26,11 @@
         </div>
         <div class="ps-journal-item__stat">
           <span class="ps-journal-item__stat-num">{{ formatNumber(infoItem.works_count) }}</span>
-          <span class="ps-journal-item__stat-label">{{ $t('institution_works_count') || '收录' }}</span>
+          <span class="ps-journal-item__stat-label">{{ $t('list_included_label') }}</span>
         </div>
         <div class="ps-journal-item__stat">
           <span class="ps-journal-item__stat-num">{{ formatNumber(infoItem.cited_by_count) }}</span>
-          <span class="ps-journal-item__stat-label">{{ $t('institution_cited_by_count') || '被引' }}</span>
+          <span class="ps-journal-item__stat-label">{{ $t('list_cited_label') }}</span>
         </div>
       </div>
     </div>
@@ -41,11 +41,11 @@
 import { AppCard, AppIcon, AppTagChip } from '../ui'
 
 const TYPE_META = {
-  journal: { icon: 'BookOutline', label: '期刊' },
-  conference: { icon: 'People', label: '会议' },
-  repository: { icon: 'Cloud', label: '预印本' },
-  ebook: { icon: 'Library', label: '电子书' },
-  platform: { icon: 'Apps', label: '平台' }
+  journal: { icon: 'BookOutline', labelKey: 'common_journal' },
+  conference: { icon: 'People', labelKey: 'common_conference' },
+  repository: { icon: 'Cloud', labelKey: 'common_preprint' },
+  ebook: { icon: 'Library', labelKey: 'common_ebook' },
+  platform: { icon: 'Apps', labelKey: 'common_platform' }
 }
 
 export default {
@@ -57,7 +57,7 @@ export default {
       return (TYPE_META[this.infoItem.type] || TYPE_META.journal).icon
     },
     typeLabel() {
-      return (TYPE_META[this.infoItem.type] || TYPE_META.journal).label
+      return this.$t((TYPE_META[this.infoItem.type] || TYPE_META.journal).labelKey)
     }
   },
   methods: {

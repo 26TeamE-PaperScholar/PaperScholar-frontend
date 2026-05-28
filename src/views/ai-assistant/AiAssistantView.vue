@@ -4,23 +4,23 @@
       <AppBreadcrumb :items="breadcrumbs" class="ps-ai__crumbs" />
       <div class="ps-ai__hero-grid">
         <div class="ps-ai__hero-text">
-          <p class="ps-ai__eyebrow">AI 论文助手</p>
+          <p class="ps-ai__eyebrow">{{ $t('assistant_title') }}</p>
           <h1 class="ps-ai__title">
-            带证据片段、来源标注与受限模式提示的
-            <span class="ps-ai__title-accent">学术问答</span>
+            {{ $t('assistant_hero_title_prefix') }}
+            <span class="ps-ai__title-accent">{{ $t('assistant_hero_title_accent') }}</span>
           </h1>
           <p class="ps-ai__lede">
-            支持基于一篇或多篇论文上下文的提问。回答会显式标注「AI 生成内容」，并附带证据片段与来源；信息不足时进入受限模式。
+            {{ $t('assistant_hero_desc') }}
           </p>
         </div>
         <div class="ps-ai__hero-actions">
           <button class="ps-ai__cta-ghost" type="button" @click="openSidebar = !openSidebar">
             <AppIcon name="ListOutline" :size="14" inline />
-            {{ openSidebar ? '收起会话' : '展开会话' }}
+            {{ openSidebar ? $t('assistant_collapse_conversations') : $t('assistant_expand_conversations') }}
           </button>
           <button class="ps-ai__cta" type="button" @click="startNew()">
             <AppIcon name="AddOutline" :size="14" inline />
-            新建会话
+            {{ $t('assistant_new_conversation') }}
           </button>
         </div>
       </div>
@@ -28,13 +28,13 @@
 
     <div class="ps-ai__layout" :class="{ 'ps-ai__layout--sidebar-open': openSidebar }">
       <!-- 侧栏：会话列表 -->
-      <aside class="ps-ai__sidebar" :aria-label="'历史会话'">
+      <aside class="ps-ai__sidebar" :aria-label="$t('assistant_history')">
         <header class="ps-ai__sidebar-head">
           <h3>
             <AppIcon name="ChatbubblesOutline" :size="14" inline />
-            历史会话
+            {{ $t('assistant_history') }}
           </h3>
-          <button class="ps-ai__sidebar-new" type="button" @click="startNew()" aria-label="新建会话">
+          <button class="ps-ai__sidebar-new" type="button" @click="startNew()" :aria-label="$t('assistant_new_conversation')">
             <AppIcon name="AddOutline" :size="14" />
           </button>
         </header>
@@ -48,7 +48,7 @@
             @delete="confirmDelete"
           />
         </ul>
-        <p v-else class="ps-ai__cv-empty">还没有历史会话</p>
+        <p v-else class="ps-ai__cv-empty">{{ $t('assistant_no_history') }}</p>
       </aside>
 
       <!-- 主面板 -->
@@ -57,7 +57,7 @@
         <div v-if="contextPapers.length" class="ps-ai__context">
           <span class="ps-ai__context-label">
             <AppIcon name="DocumentTextOutline" :size="13" inline />
-            上下文论文
+            {{ $t('assistant_context_papers') }}
           </span>
           <PaperContextChip
             v-for="pid in contextPapers"
@@ -74,7 +74,7 @@
           <span class="ps-ai__convo-title" :title="currentConversation.title">
             {{ currentConversation.title }}
           </span>
-          <span class="ps-ai__convo-meta">{{ messages.length }} 条消息</span>
+          <span class="ps-ai__convo-meta">{{ $t('common_messages_count', { count: messages.length }) }}</span>
         </div>
 
         <!-- 消息流 / 欢迎屏 -->
@@ -93,7 +93,7 @@
               <span class="ps-ai__pending-dot"></span>
               <span class="ps-ai__pending-dot ps-ai__pending-dot--d2"></span>
               <span class="ps-ai__pending-dot ps-ai__pending-dot--d3"></span>
-              <span class="ps-ai__pending-text">AI 正在基于论文上下文生成回答…</span>
+              <span class="ps-ai__pending-text">{{ $t('assistant_pending') }}</span>
             </div>
           </template>
           <template v-else>
@@ -101,16 +101,14 @@
               <div class="ps-ai__welcome-icon">
                 <AppIcon name="SparklesOutline" :size="28" />
               </div>
-              <h2>开始一个新的学术问答</h2>
+              <h2>{{ $t('assistant_welcome_title') }}</h2>
               <p>
-                你可以问方法/数据集/局限性等问题。
-                <br />
-                绑定具体论文上下文后，回答会附带证据片段与来源；信息不全时进入受限模式。
+                {{ $t('assistant_welcome_desc') }}
               </p>
-              <ul class="ps-ai__feature-list" aria-label="助手能力">
-                <li><AppIcon name="DocumentTextOutline" :size="14" inline /> 基于论文上下文回答，可追溯到段落/表格</li>
-                <li><AppIcon name="ShieldCheckmarkOutline" :size="14" inline /> 所有回答显式标注「AI 生成内容」</li>
-                <li><AppIcon name="AlertCircleOutline" :size="14" inline /> 信息不足时给出受限模式横幅</li>
+              <ul class="ps-ai__feature-list" :aria-label="$t('assistant_capabilities_aria')">
+                <li><AppIcon name="DocumentTextOutline" :size="14" inline /> {{ $t('assistant_capability_context') }}</li>
+                <li><AppIcon name="ShieldCheckmarkOutline" :size="14" inline /> {{ $t('assistant_capability_ai_badge') }}</li>
+                <li><AppIcon name="AlertCircleOutline" :size="14" inline /> {{ $t('assistant_capability_restricted') }}</li>
               </ul>
             </div>
           </template>
@@ -133,7 +131,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { Compare } from '../../api/compare'
-import { mockChatSuggestions, restrictedSuggestionsForPaper } from '../../mock/chat'
 
 import AssistantMessage from '../../components/assistant/AssistantMessage.vue'
 import ConversationListItem from '../../components/assistant/ConversationListItem.vue'
@@ -145,6 +142,13 @@ import {
   AppBreadcrumb,
   AppIcon
 } from '../../components/ui'
+
+const DEFAULT_SUGGESTION_KEYS = [
+  'mock_chat_suggestion_summary',
+  'mock_chat_suggestion_bibtex',
+  'mock_chat_suggestion_collab',
+  'mock_chat_suggestion_latest'
+]
 
 export default {
   name: 'AiAssistantView',
@@ -162,7 +166,7 @@ export default {
       draft: '',
       openSidebar: true,
       paperTitles: {},
-      userInitial: '我'
+      userInitial: ''
     }
   },
   computed: {
@@ -176,16 +180,21 @@ export default {
     ]),
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: 'AI 论文助手' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('assistant_title') }
       ]
     },
     composerSuggestions() {
       if (this.messages.length > 0) return []
       if (this.contextPapers.length === 1) {
-        return restrictedSuggestionsForPaper(this.contextPapers[0])
+        const title = this.shortPaperTitle(this.paperTitles[this.contextPapers[0]] || this.contextPapers[0])
+        return [
+          this.$t('assistant_suggestion_abstract_contribution', { title }),
+          this.$t('assistant_suggestion_recent_diff'),
+          this.$t('assistant_suggestion_bibtex')
+        ]
       }
-      return mockChatSuggestions
+      return DEFAULT_SUGGESTION_KEYS.map((key) => this.$t(key))
     },
     relevantPaperIds() {
       const set = new Set(this.contextPapers || [])
@@ -250,8 +259,8 @@ export default {
     },
     async confirmDelete(id) {
       const target = this.conversations.find((c) => c.id === id)
-      const label = target ? `「${target.title}」` : '该会话'
-      if (!window.confirm(`确认删除${label}吗？此操作不可撤销。`)) return
+      const label = target ? `「${target.title}」` : this.$t('assistant_delete_this_conversation')
+      if (!window.confirm(this.$t('assistant_confirm_delete', { label }))) return
       await this.deleteConversation(id)
     },
     async onSend(text) {
@@ -262,6 +271,10 @@ export default {
     },
     onPickSuggestion(s) {
       this.draft = s
+    },
+    shortPaperTitle(title) {
+      const text = String(title || '')
+      return text.length > 24 ? text.slice(0, 24) + '...' : text
     },
     async removeContextPaper(pid) {
       const next = this.contextPapers.filter((id) => id !== pid)

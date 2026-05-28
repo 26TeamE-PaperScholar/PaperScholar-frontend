@@ -5,7 +5,7 @@
         <AppIcon name="SparklesOutline" :size="16" />
       </template>
       <template v-else>
-        <span class="ps-msg__avatar-text">{{ userInitial }}</span>
+        <span class="ps-msg__avatar-text">{{ avatarInitial }}</span>
       </template>
     </div>
 
@@ -27,11 +27,11 @@
       <section
         v-if="role === 'assistant' && evidences.length"
         class="ps-msg__evidences"
-        :aria-label="'证据片段'"
+        :aria-label="$t('assistant_evidence_snippets')"
       >
         <h4 class="ps-msg__section-title">
           <AppIcon name="DocumentTextOutline" :size="13" inline />
-          证据片段 <span class="ps-msg__count">{{ evidences.length }}</span>
+          {{ $t('assistant_evidence_snippets') }} <span class="ps-msg__count">{{ evidences.length }}</span>
         </h4>
         <div class="ps-msg__evidence-grid">
           <EvidenceCard
@@ -73,16 +73,19 @@ export default {
     message: { type: Object, required: true },
     /** 用于把 evidence.paper_id 解析到 paper 标题（外部传入 map） */
     paperTitles: { type: Object, default: () => ({}) },
-    userInitial: { type: String, default: '我' }
+    userInitial: { type: String, default: '' }
   },
   computed: {
     role() {
       return this.message && this.message.role
     },
     roleLabel() {
-      if (this.role === 'assistant') return 'AI 论文助手'
-      if (this.role === 'user') return '我'
+      if (this.role === 'assistant') return this.$t('assistant_role_label')
+      if (this.role === 'user') return this.$t('assistant_user_label')
       return this.role || ''
+    },
+    avatarInitial() {
+      return this.userInitial || this.$t('assistant_user_label')
     },
     evidences() {
       return (this.message && this.message.evidences) || []

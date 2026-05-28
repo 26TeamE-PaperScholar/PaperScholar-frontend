@@ -19,9 +19,9 @@
                 :class="{ 'ps-result-item__author-link--disabled': !canOpenAuthor(a) }"
                 @click.stop="jumpAuthor(a)"
               >{{ authorName(a) }}</span>
-              <span v-if="idx < displayedAuthors.length - 1">、</span>
+              <span v-if="idx < displayedAuthors.length - 1">{{ authorSeparator }}</span>
             </template>
-            <span v-if="moreAuthors > 0" class="ps-result-item__author-more"> +{{ moreAuthors }} 位作者</span>
+            <span v-if="moreAuthors > 0" class="ps-result-item__author-more"> {{ $t('common_authors_more', { count: moreAuthors }) }}</span>
           </span>
         </div>
       </div>
@@ -30,15 +30,15 @@
         <AppIconButton
           icon="Bookmark"
           variant="soft"
-          tooltip="收藏到我的收藏夹"
-          aria-label="收藏"
+          :tooltip="$t('list_collect_tooltip')"
+          :aria-label="$t('list_collect_aria')"
           @click="showCollectModal"
         />
         <AppIconButton
           icon="Share"
           variant="ghost"
-          tooltip="分享"
-          aria-label="分享"
+          :tooltip="$t('list_share_tooltip')"
+          :aria-label="$t('list_share_aria')"
           @click="sharePaper"
         />
       </div>
@@ -58,14 +58,14 @@
       <AppMetricBadge
         v-if="infoItem.publication_date"
         :value="infoItem.publication_date"
-        label="发表"
+        :label="$t('list_published')"
         tone="neutral"
         icon="Calendar"
       />
       <AppMetricBadge
         v-if="infoItem.open_access"
         value="OA"
-        label="开放获取"
+        :label="$t('list_open_access')"
         tone="success"
         icon="GlobeOutline"
       />
@@ -147,9 +147,12 @@ export default {
       return loc.source.display_name || ''
     },
     citationText() {
-      const label = this.$t('search_result_cited_times') || '被引用次数：'
+      const label = this.$t('search_result_cited_times')
       const count = this.infoItem.cited_by_count ?? 0
       return `${label}${count}`
+    },
+    authorSeparator() {
+      return this.$i18n.locale === 'zh' ? '、' : ', '
     }
   },
   methods: {
@@ -198,9 +201,9 @@ export default {
       const text = window.location.origin + '/paper_detail/' + this.infoItem.id
       try {
         navigator.clipboard.writeText(text)
-        this.$bus.emit('message', { title: '已复制链接', content: text, time: 1800 })
+        this.$bus.emit('message', { title: this.$t('list_link_copied'), content: text, time: 1800 })
       } catch (e) {
-        this.$bus.emit('message', { title: '复制失败', content: text, time: 1800 })
+        this.$bus.emit('message', { title: this.$t('common_copy_failed'), content: text, time: 1800 })
       }
     }
   }

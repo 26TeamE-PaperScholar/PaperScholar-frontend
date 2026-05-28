@@ -16,36 +16,36 @@
           <span>PaperScholar</span>
         </div>
         <div class="ps-auth__brand-text">
-          <p class="ps-auth__eyebrow">学术检索 · 智能导航</p>
-          <h1>用更可信的方式 <br />与人类知识对话</h1>
+          <p class="ps-auth__eyebrow">{{ $t('auth_brand_eyebrow') }}</p>
+          <h1>{{ authBrandTitleFirst }} <br />{{ authBrandTitleSecond }}</h1>
           <p class="ps-auth__lede">
-            统一的学术索引 · 引用图谱 · 生成式问答；让综述、毕设、组会、成果展示变得轻松而严谨。
+            {{ $t('auth_brand_desc') }}
           </p>
         </div>
         <ul class="ps-auth__bullets">
           <li>
             <AppIcon name="FlashOutline" :size="16" />
             <div>
-              <strong>2.4M+ 学术成果</strong>
-              <span>多语言、跨学科语义检索</span>
+              <strong>{{ $t('auth_bullet_results') }}</strong>
+              <span>{{ $t('auth_bullet_results_desc') }}</span>
             </div>
           </li>
           <li>
             <AppIcon name="GitBranch" :size="16" />
             <div>
-              <strong>实时引用图谱</strong>
-              <span>追踪研究脉络，发现潜力工作</span>
+              <strong>{{ $t('auth_bullet_graph') }}</strong>
+              <span>{{ $t('auth_bullet_graph_desc') }}</span>
             </div>
           </li>
           <li>
             <AppIcon name="Sparkles" :size="16" />
             <div>
-              <strong>AI 学术助手</strong>
-              <span>可追溯出处、可生成 BibTeX</span>
+              <strong>{{ $t('auth_bullet_ai') }}</strong>
+              <span>{{ $t('auth_bullet_ai_desc') }}</span>
             </div>
           </li>
         </ul>
-        <p class="ps-auth__brand-foot">© PaperScholar · 学术展示与研究协作平台</p>
+        <p class="ps-auth__brand-foot">{{ $t('auth_brand_foot') }}</p>
       </div>
     </section>
 
@@ -58,54 +58,54 @@
             :class="{ 'ps-auth__tab--active': currentMode === t.mode }"
             class="ps-auth__tab"
             @click="setMode(t.mode)"
-          >{{ t.label }}</button>
+          >{{ $t(t.labelKey) }}</button>
         </nav>
 
         <transition name="ps-fade" mode="out-in">
           <form v-if="currentMode === 'login'" key="login" class="ps-auth__form" @submit.prevent="login">
-            <h2>欢迎回来</h2>
-            <p class="ps-auth__sub">输入邮箱与密码继续。</p>
+            <h2>{{ $t('auth_welcome_back') }}</h2>
+            <p class="ps-auth__sub">{{ $t('auth_login_subtitle') }}</p>
             <label>
-              <span>{{ $t('email_text') || '邮箱' }}</span>
+              <span>{{ $t('email_text') }}</span>
               <input type="text" class="basic-input" v-model="loginForm.email" autocomplete="email" placeholder="you@example.edu" />
             </label>
             <label>
-              <span>{{ $t('password_text') || '密码' }}</span>
+              <span>{{ $t('password_text') }}</span>
               <input type="password" class="basic-input" v-model="loginForm.password" autocomplete="current-password" placeholder="••••••••" />
             </label>
             <div class="ps-auth__row">
               <label class="ps-auth__check">
                 <input type="checkbox" v-model="rememberMe" />
-                <span>记住我</span>
+                <span>{{ $t('auth_remember_me') }}</span>
               </label>
-              <button type="button" class="ps-auth__text-link" @click="setMode('reset')">忘记密码？</button>
+              <button type="button" class="ps-auth__text-link" @click="setMode('reset')">{{ $t('auth_forgot_password') }}</button>
             </div>
             <button class="basic-btn ps-auth__submit" type="submit">
               <AppIcon name="LogIn" :size="16" />
               {{ $t('login_text') }}
             </button>
-            <p class="ps-auth__divider"><span>或</span></p>
-            <p class="ps-auth__hint">还没有账号？ <button type="button" class="ps-auth__text-link" @click="setMode('register')">免费注册</button></p>
+            <p class="ps-auth__divider"><span>{{ $t('auth_or') }}</span></p>
+            <p class="ps-auth__hint">{{ $t('auth_no_account') }} <button type="button" class="ps-auth__text-link" @click="setMode('register')">{{ $t('auth_free_register') }}</button></p>
           </form>
 
           <form v-else-if="currentMode === 'register'" key="register" class="ps-auth__form" @submit.prevent="register">
-            <h2>创建账号</h2>
-            <p class="ps-auth__sub">两分钟开启你的学术工作台。</p>
+            <h2>{{ $t('auth_create_account') }}</h2>
+            <p class="ps-auth__sub">{{ $t('auth_register_subtitle') }}</p>
             <label>
-              <span>{{ $t('email_text') || '邮箱' }}</span>
+              <span>{{ $t('email_text') }}</span>
               <input type="text" class="basic-input" v-model="registerForm.email" autocomplete="email" placeholder="you@example.edu" />
             </label>
-            <p class="ps-auth__field-note">{{ $t('email_usage_prompt') || '我们将向该邮箱发送验证邮件。' }}</p>
+            <p class="ps-auth__field-note">{{ $t('email_usage_prompt') }}</p>
             <label>
-              <span>{{ $t('username_text') || '用户名' }}</span>
+              <span>{{ $t('username_text') }}</span>
               <input type="text" class="basic-input" v-model="registerForm.username" autocomplete="username" />
             </label>
             <label>
-              <span>{{ $t('password_text') || '密码' }}</span>
+              <span>{{ $t('password_text') }}</span>
               <input type="password" class="basic-input" v-model="registerForm.password" autocomplete="new-password" />
             </label>
             <label>
-              <span>{{ $t('confirm_password_text') || '确认密码' }}</span>
+              <span>{{ $t('confirm_password_text') }}</span>
               <input type="password" class="basic-input" v-model="registerForm.password_confirm" autocomplete="new-password" />
             </label>
             <button class="basic-btn ps-auth__submit" type="submit">
@@ -115,23 +115,29 @@
           </form>
 
           <form v-else key="reset" class="ps-auth__form" @submit.prevent="resetPassword">
-            <h2>找回密码</h2>
-            <p class="ps-auth__sub">输入注册邮箱，我们会发送密码重置 token。</p>
+            <h2>{{ $t('auth_reset_title') }}</h2>
+            <p class="ps-auth__sub">{{ $t('auth_reset_subtitle') }}</p>
             <label>
-              <span>{{ $t('email_text') || '邮箱' }}</span>
+              <span>{{ $t('email_text') }}</span>
               <input type="text" class="basic-input" v-model="resetEmail" autocomplete="email" />
             </label>
             <button class="basic-btn ps-auth__submit" type="submit">
               <AppIcon name="Mail" :size="16" />
-              {{ $t('confirm_text') || '发送重置邮件' }}
+              {{ $t('auth_send_reset_email') }}
             </button>
             <p class="ps-auth__hint">
-              <button type="button" class="ps-auth__text-link" @click="setMode('login')">返回登录</button>
+              <button type="button" class="ps-auth__text-link" @click="setMode('login')">{{ $t('common_back_to_login') }}</button>
             </p>
           </form>
         </transition>
 
-        <p class="ps-auth__legal">登录即表示同意 <a href="#" @click.prevent>服务条款</a> 与 <a href="#" @click.prevent>隐私政策</a>。</p>
+        <p class="ps-auth__legal">
+          {{ $t('auth_legal_prefix') }}
+          <a href="#" @click.prevent>{{ $t('common_service_terms') }}</a>
+          {{ $t('auth_legal_middle') }}
+          <a href="#" @click.prevent>{{ $t('common_privacy_policy') }}</a>
+          {{ $t('auth_legal_suffix') }}
+        </p>
       </div>
     </section>
   </main>
@@ -150,13 +156,21 @@ export default {
       currentMode: 'login',
       routeNoticeKey: '',
       tabs: [
-        { mode: 'login', label: this.$t('login_text') || '登录' },
-        { mode: 'register', label: this.$t('register_text') || '注册' }
+        { mode: 'login', labelKey: 'login_text' },
+        { mode: 'register', labelKey: 'register_text' }
       ],
       loginForm: { email: '', password: '' },
       registerForm: { email: '', username: '', password: '', password_confirm: '' },
       resetEmail: '',
       rememberMe: true
+    }
+  },
+  computed: {
+    authBrandTitleFirst() {
+      return this.$t('auth_brand_title').split('\n')[0]
+    },
+    authBrandTitleSecond() {
+      return this.$t('auth_brand_title').split('\n')[1] || ''
     }
   },
   watch: {
@@ -200,44 +214,44 @@ export default {
       if (this.routeNoticeKey === noticeKey) return
       this.routeNoticeKey = noticeKey
       const content = redirect.startsWith('/personal_homepage')
-        ? '登录后即可查看我的页面'
-        : '登录后即可继续访问'
-      this.$bus.emit('message', { title: '请先登录', content, time: 1600 })
+        ? this.$t('personal_login_required_content')
+        : this.$t('auth_login_required_continue')
+      this.$bus.emit('message', { title: this.$t('login_text'), content, time: 1600 })
     },
     login() {
       Account.login(this.loginForm).then(
         () => {
           this.setIsLoggedIn(true)
-          this.$bus.emit('message', { title: '登录成功', content: '已进入工作台', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('auth_login_success'), content: this.$t('auth_entered_workspace'), time: 1500 })
           this.$router.push(this.getSafeRedirect())
         },
         () => {
-          this.$bus.emit('message', { title: this.$t('login_failure') || '登录失败', content: this.$t('login_failure_hint') || '请检查邮箱与密码', time: 2000 })
+          this.$bus.emit('message', { title: this.$t('login_failure'), content: this.$t('login_failure_hint'), time: 2000 })
         }
       )
     },
     register() {
       Account.register(this.registerForm).then(
         () => {
-          this.$bus.emit('message', { title: this.$t('register_success') || '注册成功', content: this.$t('check_email_hint') || '请前往邮箱完成验证', time: 1800 })
+          this.$bus.emit('message', { title: this.$t('register_success'), content: this.$t('check_email_hint'), time: 1800 })
           this.setMode('login')
         },
         () => {
           const content = this.registerForm.password !== this.registerForm.password_confirm
-            ? (this.$t('different_password') || '两次密码不一致')
-            : (this.$t('register_failure_hint') || '注册失败')
-          this.$bus.emit('message', { title: this.$t('register_failure') || '注册失败', content, time: 1800 })
+            ? this.$t('different_password')
+            : this.$t('register_failure_hint')
+          this.$bus.emit('message', { title: this.$t('register_failure'), content, time: 1800 })
         }
       )
     },
     resetPassword() {
       Account.sendPasswordResetEmail({ email: this.resetEmail }).then(
         () => {
-          this.$bus.emit('message', { title: '已发送重置邮件', content: '请复制邮件中的 token 完成重设', time: 1800 })
+          this.$bus.emit('message', { title: this.$t('auth_reset_email_sent'), content: this.$t('auth_reset_email_sent_content'), time: 1800 })
           this.$router.push({ path: '/password_reset', query: { email: this.resetEmail } })
         },
         () => {
-          this.$bus.emit('message', { title: '邮件发送失败', content: '请稍后再试', time: 1800 })
+          this.$bus.emit('message', { title: this.$t('auth_reset_email_failed'), content: this.$t('common_retry_later'), time: 1800 })
         }
       )
     }

@@ -138,7 +138,7 @@ export class User {
     if (USE_MOCK) {
       const favorite = {
         id: 'F-mock-' + Date.now(),
-        name: (_data && _data.name) || '未命名收藏夹',
+        name: (_data && _data.name) || 'Untitled favorite',
         paper_ids: [],
         showContextMenu: false
       }

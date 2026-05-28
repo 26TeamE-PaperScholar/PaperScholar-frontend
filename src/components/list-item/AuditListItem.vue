@@ -55,15 +55,15 @@ export default {
     props: {
         userName: {
             type: String,
-            default: '用户名'
+            default: ''
         },
         realName: {
             type: String,
-            default: '真实姓名'
+            default: ''
         },
         applicationType: {
             type: String,
-            default: '学者门户认证'
+            default: ''
         },
         avatar: {
             type: String,

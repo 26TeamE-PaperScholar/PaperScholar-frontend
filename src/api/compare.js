@@ -18,7 +18,7 @@ export class Compare {
    */
   static async extract(paperIds) {
     if (!Array.isArray(paperIds) || paperIds.length < 2) {
-      throw new Error('paperIds 至少需要 2 个')
+      throw new Error('paperIds requires at least 2 items')
     }
     if (USE_MOCK) {
       return mockResponse(mockCompareExtract(paperIds), { min: 350, max: 750 })

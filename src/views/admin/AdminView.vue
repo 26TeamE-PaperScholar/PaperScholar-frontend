@@ -3,26 +3,26 @@
     <AppGradientHero variant="soft" compact class="ps-admin__hero">
       <div class="ps-admin__hero-content">
         <div>
-          <p class="ps-admin__eyebrow">管理后台 · ADMIN</p>
-          <h1 class="ps-admin__title">身份认证审核</h1>
-          <p class="ps-admin__lede">审阅、审批与驳回学者身份认证申请，维护平台学术生态的真实性。</p>
+          <p class="ps-admin__eyebrow">{{ $t('admin_eyebrow') }}</p>
+          <h1 class="ps-admin__title">{{ $t('admin_title') }}</h1>
+          <p class="ps-admin__lede">{{ $t('admin_desc') }}</p>
         </div>
         <aside class="ps-admin__hero-stats">
           <div class="ps-admin__stat">
             <span class="ps-admin__stat-num">{{ countByLegacyStatus(0) }}</span>
-            <span class="ps-admin__stat-label">待审核</span>
+            <span class="ps-admin__stat-label">{{ $t('admin_pending') }}</span>
           </div>
           <div class="ps-admin__stat">
             <span class="ps-admin__stat-num">{{ countByLegacyStatus(1) }}</span>
-            <span class="ps-admin__stat-label">已通过</span>
+            <span class="ps-admin__stat-label">{{ $t('admin_approved') }}</span>
           </div>
           <div class="ps-admin__stat">
             <span class="ps-admin__stat-num">{{ countByLegacyStatus(2) }}</span>
-            <span class="ps-admin__stat-label">已驳回</span>
+            <span class="ps-admin__stat-label">{{ $t('admin_rejected') }}</span>
           </div>
           <button class="basic-btn-outline ps-admin__tutorial-btn" @click="displayTutorial = true">
             <AppIcon name="HelpCircle" :size="14" />
-            查看教程
+            {{ $t('admin_view_tutorial') }}
           </button>
         </aside>
       </div>
@@ -32,7 +32,7 @@
       <div class="ps-admin__filter-row">
         <label class="ps-admin__filter-label">
           <AppIcon name="FilterOutline" :size="14" />
-          状态
+          {{ $t('common_status') }}
         </label>
         <div class="ps-admin__chips">
           <button
@@ -41,11 +41,11 @@
             class="ps-admin__chip"
             :class="{ 'ps-admin__chip--active': selectStatus === s.value }"
             @click="selectStatus = s.value"
-          >{{ s.label }}</button>
+          >{{ $t(s.labelKey) }}</button>
         </div>
         <button class="basic-btn-outline ps-admin__refresh" @click="load">
           <AppIcon name="Refresh" :size="14" />
-          刷新
+          {{ $t('common_refresh') }}
         </button>
       </div>
     </AppCard>
@@ -53,8 +53,8 @@
     <div class="ps-admin__list">
       <AppEmptyState
         v-if="!filteredRows.length"
-        title="没有匹配的申请"
-        description="当前筛选条件下未发现申请记录。"
+        :title="$t('admin_empty_title')"
+        :description="$t('admin_empty_desc')"
       />
       <ul v-else>
         <li v-for="data in filteredRows" :key="data.id">
@@ -107,11 +107,11 @@ export default {
       displayTutorial: false,
       selectStatus: -1,
       statusOptions: [
-        { value: -1, label: '全部' },
-        { value: 0, label: '待审核' },
-        { value: 1, label: '已通过' },
-        { value: 2, label: '已驳回' },
-        { value: 3, label: '未确认' }
+        { value: -1, labelKey: 'admin_status_all' },
+        { value: 0, labelKey: 'admin_pending' },
+        { value: 1, labelKey: 'admin_approved' },
+        { value: 2, labelKey: 'admin_rejected' },
+        { value: 3, labelKey: 'admin_unconfirmed' }
       ],
       rows: []
     }

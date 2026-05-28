@@ -25,14 +25,14 @@
       <div class="ps-inst-item__stats">
         <div class="ps-inst-item__stat">
           <span class="ps-inst-item__stat-num">{{ formatNumber(infoItem.works_count) }}</span>
-          <span class="ps-inst-item__stat-label">{{ $t('institution_works_count') || '发表' }}</span>
+          <span class="ps-inst-item__stat-label">{{ $t('list_works_label') }}</span>
         </div>
         <div class="ps-inst-item__stat">
           <span class="ps-inst-item__stat-num">{{ formatNumber(infoItem.cited_by_count) }}</span>
-          <span class="ps-inst-item__stat-label">{{ $t('institution_cited_by_count') || '被引' }}</span>
+          <span class="ps-inst-item__stat-label">{{ $t('list_cited_label') }}</span>
         </div>
         <div class="ps-inst-item__stat">
-          <AppTagChip variant="gold" size="md">{{ infoItem.type === 'company' ? '产业研究' : '教研机构' }}</AppTagChip>
+          <AppTagChip variant="gold" size="md">{{ infoItem.type === 'company' ? $t('institution_type_company_chip') : $t('institution_type_education_chip') }}</AppTagChip>
         </div>
       </div>
     </div>

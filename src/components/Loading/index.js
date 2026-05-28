@@ -5,12 +5,12 @@ export const showLoading = () => {
   // 1.返回 vnode
   const vnode = h(customLoadingVue);
   // 2. render函数渲染 vnode
-  console.log("开始加载");
+  console.log("Loading started");
   render(vnode, document.body);
 }
 
 export const hideLoading = () => {
   // 3. loading 组件销毁
-  console.log("加载结束");
+  console.log("Loading finished");
   render(null, document.body);
 }

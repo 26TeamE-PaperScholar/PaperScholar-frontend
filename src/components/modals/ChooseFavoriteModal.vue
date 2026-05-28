@@ -96,7 +96,7 @@ export default {
       this.isCreating = false
       const normalizedName = normalizeFavoriteName(name)
       if (!normalizedName) {
-        this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
+        this.$bus.emit('message', { title: this.$t('favorite_name_required'), content: '', time: 1500 })
         return
       }
       const optimisticId = 'F-pending-' + Date.now()
@@ -111,11 +111,11 @@ export default {
           const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
           const created = extractCreatedFavorite(response, normalizedName, optimisticId)
           if (index !== -1) this.favouritesInfo.splice(index, 1, created)
-          this.$bus.emit('message', { title: '收藏夹已创建', content: created.name, time: 1500 })
+          this.$bus.emit('message', { title: this.$t('favorite_created'), content: created.name, time: 1500 })
         },
         () => {
           this.favouritesInfo = this.favouritesInfo.filter((item) => item.id !== optimisticId)
-          this.$bus.emit('message', { title: '创建收藏夹失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('favorite_create_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     },

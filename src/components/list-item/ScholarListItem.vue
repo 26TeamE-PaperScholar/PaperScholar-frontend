@@ -29,11 +29,11 @@
         </div>
         <div class="ps-scholar-item__stat">
           <span class="ps-scholar-item__stat-num">{{ formatNumber(infoItem.works_count) }}</span>
-          <span class="ps-scholar-item__stat-label">{{ $t('institution_works_count') || '发表' }}</span>
+          <span class="ps-scholar-item__stat-label">{{ $t('list_works_label') }}</span>
         </div>
         <div class="ps-scholar-item__stat">
           <span class="ps-scholar-item__stat-num">{{ formatNumber(infoItem.cited_by_count) }}</span>
-          <span class="ps-scholar-item__stat-label">{{ $t('institution_cited_by_count') || '被引' }}</span>
+          <span class="ps-scholar-item__stat-label">{{ $t('list_cited_label') }}</span>
         </div>
       </div>
     </div>

@@ -57,8 +57,7 @@ export function mockCompareExtract(paperIds) {
       const conceptsB = (papers[1].concepts || []).map((c) => c.display_name)
       const overlap = conceptsA.filter((c) => conceptsB.includes(c))
       if (overlap.length === 0) {
-        comparability_warning =
-          '所选两篇论文的研究领域差异较大（概念无交集），对比结果可能仅供参考。'
+        comparability_warning = 'compare_warning_different_fields'
       }
     }
   }

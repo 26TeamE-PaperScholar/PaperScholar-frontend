@@ -3,7 +3,7 @@
     <section class="ps-reset__panel">
       <button type="button" class="ps-reset__back" @click="goLogin">
         <AppIcon name="ArrowBack" :size="16" />
-        {{ $t('login_text') || '登录' }}
+        {{ $t('login_text') }}
       </button>
 
       <div class="ps-reset__heading">
@@ -11,52 +11,52 @@
           <AppIcon name="ShieldCheckmark" :size="26" />
         </div>
         <p class="ps-reset__eyebrow">PaperScholar</p>
-        <h1>{{ $t('reset_password') || '重新设置你的密码' }}</h1>
-        <p>{{ $t('password_reset_subtitle') || '输入邮件中的重置 token，并设置一个新密码。' }}</p>
+        <h1>{{ $t('reset_password') }}</h1>
+        <p>{{ $t('password_reset_subtitle') }}</p>
       </div>
 
       <form class="ps-reset__form" @submit.prevent="resetPassword">
         <label>
-          <span>{{ $t('password_reset_token') || '重置 Token' }}</span>
+          <span>{{ $t('password_reset_token') }}</span>
           <input
             type="text"
             class="basic-input"
             v-model.trim="token"
             autocomplete="one-time-code"
-            :placeholder="$t('password_reset_token_placeholder') || '复制邮件中的 token'"
+            :placeholder="$t('password_reset_token_placeholder')"
           />
         </label>
         <label>
-          <span>{{ $t('new_password') || '新密码' }}</span>
+          <span>{{ $t('new_password') }}</span>
           <input
             type="password"
             class="basic-input"
             v-model="password"
             autocomplete="new-password"
-            :placeholder="$t('password_reset_password_placeholder') || '输入新密码'"
+            :placeholder="$t('password_reset_password_placeholder')"
           />
         </label>
         <label>
-          <span>{{ $t('confirm_password') || '确认密码' }}</span>
+          <span>{{ $t('confirm_password') }}</span>
           <input
             type="password"
             class="basic-input"
             v-model="password_confirm"
             autocomplete="new-password"
-            :placeholder="$t('confirm_password_text') || '确认密码'"
+            :placeholder="$t('confirm_password_text')"
           />
         </label>
 
         <button class="basic-btn ps-reset__submit" type="submit" :disabled="isSubmitting">
           <AppIcon name="Key" :size="16" />
-          {{ isSubmitting ? ($t('submitting_text') || '提交中') : ($t('password_reset_submit') || '重设密码') }}
+          {{ isSubmitting ? $t('submitting_text') : $t('password_reset_submit') }}
         </button>
       </form>
 
       <p class="ps-reset__hint">
-        {{ $t('password_reset_missing_token') || '还没有 token？' }}
+        {{ $t('password_reset_missing_token') }}
         <button type="button" class="ps-reset__link" @click="goRetrieve">
-          {{ $t('password_reset_resend') || '重新发送邮件' }}
+          {{ $t('password_reset_resend') }}
         </button>
       </p>
     </section>
@@ -94,7 +94,7 @@ export default {
       this.$router.push({ path: '/auth', query: { mode: 'reset' } })
     },
     getErrorMessage(error) {
-      const fallback = this.$t('password_reset_check_hint') || '请检查 token 和新密码'
+      const fallback = this.$t('password_reset_check_hint')
       const data = error && error.response && error.response.data
       if (!data) return fallback
       if (typeof data === 'string') return data
@@ -110,8 +110,8 @@ export default {
       const token = this.token.trim()
       if (!token || !this.password || !this.password_confirm) {
         this.$bus.emit('message', {
-          title: this.$t('password_reset_failure') || '密码重设失败',
-          content: this.$t('password_reset_required_hint') || '请完整填写 token 和新密码',
+          title: this.$t('password_reset_failure'),
+          content: this.$t('password_reset_required_hint'),
           time: 1800
         })
         return
@@ -119,8 +119,8 @@ export default {
 
       if (this.password !== this.password_confirm) {
         this.$bus.emit('message', {
-          title: this.$t('password_reset_failure') || '密码重设失败',
-          content: this.$t('different_password') || '两次输入的密码不一致',
+          title: this.$t('password_reset_failure'),
+          content: this.$t('different_password'),
           time: 1800
         })
         return
@@ -134,14 +134,14 @@ export default {
           password_confirm: this.password_confirm
         })
         this.$bus.emit('message', {
-          title: this.$t('password_reset_success') || '密码重设成功',
-          content: this.$t('change_password_relogin_hint') || '请使用新密码重新登录',
+          title: this.$t('password_reset_success'),
+          content: this.$t('change_password_relogin_hint'),
           time: 1800
         })
         this.$router.replace({ path: '/auth', query: { mode: 'login' } })
       } catch (error) {
         this.$bus.emit('message', {
-          title: this.$t('password_reset_failure') || '密码重设失败',
+          title: this.$t('password_reset_failure'),
           content: this.getErrorMessage(error),
           time: 2200
         })

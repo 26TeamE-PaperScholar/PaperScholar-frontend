@@ -48,14 +48,14 @@ export default {
       return 'GitCompareOutline'
     },
     label() {
-      if (this.inCart) return '已加入'
-      if (this.locked) return '上限 2 篇'
-      return '加入对比'
+      if (this.inCart) return this.$t('compare_add_joined')
+      if (this.locked) return this.$t('compare_add_limit')
+      return this.$t('compare_add_label')
     },
     tipText() {
-      if (this.inCart) return '点击从对比中移除'
-      if (this.locked) return '对比上限为 2 篇，请先在底部对比栏移除一项'
-      return '加入横向对比'
+      if (this.inCart) return this.$t('compare_add_remove_tip')
+      if (this.locked) return this.$t('compare_add_limit_tip')
+      return this.$t('compare_add_tip')
     },
     stateClass() {
       if (this.inCart) return 'ps-compare-add--active'
@@ -75,8 +75,8 @@ export default {
         setTimeout(() => { this.shaking = false }, 450)
         if (this.$bus) {
           this.$bus.emit('message', {
-            title: '对比上限',
-            content: '最多对比 2 篇，请先移除一项再加入。',
+            title: this.$t('compare_limit_title'),
+            content: this.$t('compare_limit_content'),
             time: 1800
           })
         }

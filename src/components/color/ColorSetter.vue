@@ -2,7 +2,7 @@
   <button
     type="button"
     class="ps-color-setter"
-    :aria-label="theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'"
+    :aria-label="theme === 'dark' ? $t('theme_light_mode') : $t('theme_dark_mode')"
     @click="toggleColorMode"
   >
     <svg v-if="theme === 'dark'" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

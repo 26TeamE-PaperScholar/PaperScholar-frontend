@@ -83,6 +83,11 @@ export default {
         },
         showInterestTag() {
             if (this.show) this.syncSelectedInterests()
+        },
+        '$i18n.locale'() {
+            if (this.formInterestTag.length) {
+                this.showInterestTag = this.transformInterestTag()
+            }
         }
     },
     components: {
@@ -110,11 +115,11 @@ export default {
             if (!this.formInterestTag.length) return []
             if (this.formInterestTag.every(item => item && item.id && item.name)) {
                 return [{
-                    label: '推荐主题',
+                    label: this.$t('interest_recommend_topic'),
                     key: 'category-recommend',
                     checkboxDisabled: true,
                     children: this.formInterestTag.map(item => ({
-                        label: item.name_zh ? `${item.name_zh} / ${item.name}` : item.name,
+                        label: this.interestTagLabel(item),
                         key: Number(item.id),
                     })).sort(this.compareTreeNode)
                 }]
@@ -139,6 +144,13 @@ export default {
                 }
             })
             return result.sort(this.compareTreeNode)
+        },
+        interestTagLabel(item) {
+            if (!item) return ''
+            if (this.$i18n.locale === 'zh' && item.name_zh && item.name) {
+                return `${item.name_zh} / ${item.name}`
+            }
+            return item.name || item.name_zh || ''
         },
         compareTreeNode(a, b) {
             return String(a.label || '').localeCompare(String(b.label || ''), 'en', { sensitivity: 'base' })

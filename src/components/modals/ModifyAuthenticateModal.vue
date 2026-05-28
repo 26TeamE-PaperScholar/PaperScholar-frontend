@@ -119,7 +119,7 @@ export default {
             formData.append('concepts', JSON.stringify(concepts_data))
             formData.append('work_email', this.workEmail)
             if (this.content.length == 0) {
-                formData.append('content', '无备注')
+                formData.append('content', this.$t('common_no_remark'))
             } else {
                 formData.append('content', this.content)
             }

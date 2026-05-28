@@ -6,7 +6,7 @@
       v-if="removable"
       type="button"
       class="ps-pcc__remove"
-      aria-label="移除"
+      :aria-label="$t('common_remove')"
       @click.stop="$emit('remove', paperId)"
     >
       <AppIcon name="Close" :size="11" />

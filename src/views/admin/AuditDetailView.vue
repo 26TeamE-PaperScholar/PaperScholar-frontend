@@ -210,7 +210,7 @@ export default {
         },
         userName: {
             type: String,
-            default: '未提供用户名'
+            default: ''
         },
         isDetail: {
             type: Boolean,
@@ -219,41 +219,41 @@ export default {
         realName: {
             type: String,
             required: true,
-            default: '未提供真实姓名',
+            default: '',
         },
         institution: {
             type: String,
-            default: '未提供机构信息',
+            default: '',
         },
         position: {
             type: String,
-            default: '未提供职务信息',
+            default: '',
         },
         concepts: {
             type: Array,
-            default: '未提供科研领域信息',
+            default: () => [],
         },
         workEmail: {
             type: String,
-            default: '未提供工作邮箱',
+            default: '',
         },
         content: {
             type: String,
-            default: '没有备注',
+            default: '',
         },
         submitTime: {
             type: String,
             required: true,
-            default: '提交时间'
+            default: ''
         },
         status: {
             type: Number,
             required: true,
-            default: '审核状态'
+            default: 0
         },
         applicationType: {
             type: String,
-            default: '学者门户认证'
+            default: ''
         },
         images: {
             type: Array,

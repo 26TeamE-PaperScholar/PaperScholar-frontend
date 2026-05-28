@@ -15,24 +15,24 @@
         ref="ta"
         class="ps-composer__input"
         :value="value"
-        :placeholder="placeholder"
+        :placeholder="resolvedPlaceholder"
         :rows="rows"
         @input="onInput"
         @keydown.enter.exact.prevent="submit"
         @keydown.shift.enter.exact="onShiftEnter"
       />
       <div class="ps-composer__actions">
-        <span class="ps-composer__hint">Enter 发送 · Shift+Enter 换行</span>
+        <span class="ps-composer__hint">{{ $t('assistant_composer_hint') }}</span>
         <button
           class="ps-composer__send"
           type="button"
           :disabled="disabled || !canSend"
           @click="submit"
-          aria-label="发送"
+          :aria-label="$t('assistant_composer_send_aria')"
         >
           <span v-if="pending" class="ps-composer__spinner" aria-hidden="true"></span>
           <AppIcon v-else name="ArrowUpOutline" :size="16" />
-          <span class="ps-composer__send-label">{{ pending ? '生成中…' : '发送' }}</span>
+          <span class="ps-composer__send-label">{{ pending ? $t('assistant_composer_pending') : $t('chat_send') }}</span>
         </button>
       </div>
     </div>
@@ -50,13 +50,16 @@ export default {
     value: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
     pending: { type: Boolean, default: false },
-    placeholder: { type: String, default: '向 AI 论文助手提问，例如：帮我对比这两篇方法的差异…' },
+    placeholder: { type: String, default: '' },
     rows: { type: Number, default: 3 },
     suggestions: { type: Array, default: () => [] }
   },
   computed: {
     canSend() {
       return !this.pending && (this.value || '').trim().length > 0
+    },
+    resolvedPlaceholder() {
+      return this.placeholder || this.$t('assistant_composer_placeholder')
     }
   },
   methods: {

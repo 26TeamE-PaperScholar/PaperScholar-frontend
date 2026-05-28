@@ -4,21 +4,21 @@
       <AppBreadcrumb :items="breadcrumbs" class="ps-tag__crumbs" />
       <div class="ps-tag__hero-grid">
         <div class="ps-tag__hero-main">
-          <p class="ps-tag__eyebrow">学科主题 · CONCEPT</p>
+          <p class="ps-tag__eyebrow">{{ $t('tag_eyebrow') }}</p>
           <h1 class="ps-tag__name">
-            {{ tag.name_zh || tag.name }}
+            {{ displayTagName(tag) }}
           </h1>
-          <p v-if="tag.name && tag.name_zh" class="ps-tag__alt">{{ tag.name }}</p>
-          <p class="ps-tag__desc">{{ tag.description || '在 PaperScholar 上探索该主题的核心论文与代表学者。' }}</p>
+          <p v-if="tag.name && tag.name_zh" class="ps-tag__alt">{{ secondaryTagName(tag) }}</p>
+          <p class="ps-tag__desc">{{ tag.description || $t('tag_default_desc') }}</p>
 
           <div class="ps-tag__hero-actions">
             <button class="ps-tag__follow-btn" @click="toggleSubscribe">
               <AppIcon :name="subscribed ? 'Bookmark' : 'Add'" :size="14" />
-              {{ subscribed ? '已订阅' : '订阅主题' }}
+              {{ subscribed ? $t('tag_subscribed') : $t('tag_subscribe') }}
             </button>
             <button class="ps-tag__action-secondary" @click="goSearch">
               <AppIcon name="Search" :size="14" />
-              检索该主题
+              {{ $t('tag_search_topic') }}
             </button>
           </div>
         </div>
@@ -26,15 +26,15 @@
         <aside class="ps-tag__hero-stats">
           <div class="ps-tag__stat">
             <span class="ps-tag__stat-num">{{ formatNumber(tag.works_count) }}</span>
-            <span class="ps-tag__stat-label">收录论文</span>
+            <span class="ps-tag__stat-label">{{ $t('tag_papers_count') }}</span>
           </div>
           <div class="ps-tag__stat">
             <span class="ps-tag__stat-num">{{ topAuthors.length }}</span>
-            <span class="ps-tag__stat-label">活跃学者</span>
+            <span class="ps-tag__stat-label">{{ $t('tag_active_scholars') }}</span>
           </div>
           <div class="ps-tag__stat">
             <span class="ps-tag__stat-num">L{{ tag.level !== undefined ? tag.level : '—' }}</span>
-            <span class="ps-tag__stat-label">学科层级</span>
+            <span class="ps-tag__stat-label">{{ $t('tag_level') }}</span>
           </div>
         </aside>
       </div>
@@ -42,7 +42,7 @@
 
     <section class="ps-tag__section ps-tag__charts">
       <AppCard>
-        <AppSectionHeader title="主题热度趋势" subtitle="近 6 年关注度分布" tag="h2" />
+        <AppSectionHeader :title="$t('tag_trend_title')" :subtitle="$t('tag_trend_subtitle')" tag="h2" />
         <div class="ps-tag__trend">
           <div
             v-for="(t, idx) in tag.trend || []"
@@ -56,28 +56,28 @@
         </div>
       </AppCard>
       <AppCard>
-        <AppSectionHeader title="活跃学者 Top 5" subtitle="按该方向发表数加权" tag="h2" />
+        <AppSectionHeader :title="$t('tag_active_top_title')" :subtitle="$t('tag_active_top_subtitle')" tag="h2" />
         <!-- 恢复原 ECharts 饼图 -->
         <TagDetailGraphScholar :authorList="topAuthors" class="ps-tag__pie" />
-        <AppEmptyState v-if="!topAuthors.length" title="暂无学者数据" />
+        <AppEmptyState v-if="!topAuthors.length" :title="$t('tag_no_scholars')" />
       </AppCard>
     </section>
 
     <div class="ps-tag__grid">
       <section>
-        <AppSectionHeader title="代表论文" subtitle="按引用与热度精选" tag="h2" />
+        <AppSectionHeader :title="$t('tag_representative_papers')" :subtitle="$t('tag_representative_subtitle')" tag="h2" />
         <SearchResultListItem
           v-for="(info, idx) in infoItems"
           :key="info.id || idx"
           :infoItem="info"
           :index="idx"
         />
-        <AppEmptyState v-if="!infoItems.length" title="暂无代表论文" />
+        <AppEmptyState v-if="!infoItems.length" :title="$t('tag_no_papers')" />
       </section>
 
       <aside class="ps-tag__sidebar">
         <AppCard accent="gold">
-          <AppSectionHeader title="活跃学者" tag="h3" />
+          <AppSectionHeader :title="$t('tag_active_scholars')" tag="h3" />
           <ul class="ps-tag__author-list">
             <li
               v-for="a in topAuthors"
@@ -95,7 +95,7 @@
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="相关主题" tag="h3" />
+          <AppSectionHeader :title="$t('tag_related_topics')" tag="h3" />
           <div class="ps-tag__related">
             <AppTagChip
               v-for="t in relatedTags"
@@ -104,7 +104,7 @@
               variant="subtle"
               size="md"
               @click="gotoTag(t)"
-            >{{ t.name_zh || t.name }}</AppTagChip>
+            >{{ displayTagName(t) }}</AppTagChip>
           </div>
         </AppCard>
       </aside>
@@ -147,9 +147,9 @@ export default {
   computed: {
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: '主题', to: '/search_result?search_type=1' },
-        { label: this.tag.name_zh || this.tag.name || '主题详情' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('common_topic'), to: '/search_result?search_type=1' },
+        { label: this.displayTagName(this.tag) || this.$t('common_topic_detail') }
       ]
     },
     topAuthors() {
@@ -187,12 +187,12 @@ export default {
     },
     toggleSubscribe() {
       this.subscribed = !this.subscribed
-      this.$bus.emit('message', { title: this.subscribed ? '订阅成功' : '已取消订阅', content: this.tag.name_zh || this.tag.name, time: 1500 })
+      this.$bus.emit('message', { title: this.subscribed ? this.$t('tag_subscribe_success') : this.$t('tag_unsubscribe_success'), content: this.displayTagName(this.tag), time: 1500 })
     },
     goSearch() {
       this.$router.push({
         path: '/search_result',
-        query: { search: this.tag.name_zh || this.tag.name, search_type: 1, per_page: '10', page: '1' }
+        query: { search: this.displayTagName(this.tag), search_type: 1, per_page: '10', page: '1' }
       })
     },
     gotoAuthor(a) {
@@ -201,6 +201,14 @@ export default {
     },
     gotoTag(t) {
       this.$router.push('/tag_detail/' + t.id)
+    },
+    displayTagName(tag) {
+      if (!tag) return ''
+      return this.$i18n.locale === 'zh' ? (tag.name_zh || tag.name) : (tag.name || tag.name_zh)
+    },
+    secondaryTagName(tag) {
+      if (!tag || !tag.name || !tag.name_zh) return ''
+      return this.$i18n.locale === 'zh' ? tag.name : tag.name_zh
     }
   }
 }

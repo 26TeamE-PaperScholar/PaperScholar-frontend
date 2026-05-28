@@ -19,7 +19,7 @@ export default {
           symbolSize: 20,
           id: "-1",
           userid: "",
-          description: "这是中心节点",
+          description: this.$t("graph_center_node"),
         },
       ],
       edges: [],
@@ -105,6 +105,12 @@ export default {
   },
 
   watch: {
+    '$i18n.locale'() {
+      if (this.data[0]) this.data[0].description = this.$t("graph_center_node");
+      if (this.myChart) {
+        this.myChart.setOption({ series: [{ data: this.data }] });
+      }
+    },
     relationList(newList) {
       if (newList && newList.length > 0) {
         this.processRelationList();
@@ -113,8 +119,7 @@ export default {
   },
 };
 </script>
-  
-  <style>
+
+<style>
 /* Style your component */
 </style>
-  

@@ -2,10 +2,10 @@
   <div class="ps-restricted-banner" role="status">
     <AppIcon name="AlertCircleOutline" :size="16" inline />
     <div class="ps-restricted-banner__body">
-      <strong>受限模式：</strong>
-      <span>{{ message }}</span>
+      <strong>{{ $t('assistant_restricted_label') }}</strong>
+      <span>{{ resolvedMessage }}</span>
       <span v-if="papers && papers.length" class="ps-restricted-banner__papers">
-        相关论文：{{ papers.map((p) => p.title || p.id).join('、') }}
+        {{ $t('assistant_related_papers', { papers: papers.map((p) => p.title || p.id).join(paperSeparator) }) }}
       </span>
     </div>
   </div>
@@ -20,10 +20,18 @@ export default {
   props: {
     message: {
       type: String,
-      default: '本回答仅基于论文题录、摘要、关键词等有限数据生成，结论强度低于全文阅读。'
+      default: ''
     },
     /** [{id, title}] */
     papers: { type: Array, default: () => [] }
+  },
+  computed: {
+    resolvedMessage() {
+      return this.message || this.$t('assistant_restricted_message')
+    },
+    paperSeparator() {
+      return this.$i18n.locale === 'zh' ? '、' : ', '
+    }
   }
 }
 </script>

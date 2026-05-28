@@ -4,13 +4,13 @@
       <AppBreadcrumb :items="breadcrumbs" class="ps-pc__crumbs" />
       <div class="ps-pc__hero-grid">
         <div class="ps-pc__hero-text">
-          <p class="ps-pc__eyebrow">论文横向对比 · 用例 804</p>
+          <p class="ps-pc__eyebrow">{{ $t('compare_eyebrow') }}</p>
           <h1 class="ps-pc__title">
-            方法 / 数据 / 指标 / 贡献 / 局限
-            <span class="ps-pc__title-accent">五维结构化对比</span>
+            {{ $t('compare_title_main') }}
+            <span class="ps-pc__title-accent">{{ $t('compare_title_accent') }}</span>
           </h1>
           <p class="ps-pc__lede">
-            对比内容由 AI 抽取生成，并标注来源；遇到信息不全时进入受限模式。
+            {{ $t('compare_desc') }}
           </p>
         </div>
         <div class="ps-pc__hero-actions">
@@ -20,17 +20,17 @@
             @click="goBack"
           >
             <AppIcon name="ArrowBack" :size="14" inline />
-            返回检索
+            {{ $t('compare_back_search') }}
           </button>
           <button
             class="ps-pc__cta"
             type="button"
             :disabled="!canFollowUp"
-            :title="canFollowUp ? '基于这两篇论文继续向 AI 助手追问' : '需要 2 篇有效论文'"
+            :title="canFollowUp ? $t('compare_follow_up_title') : $t('compare_need_two_title')"
             @click="gotoAssistant"
           >
             <AppIcon name="SparklesOutline" :size="14" inline />
-            继续追问
+            {{ $t('compare_follow_up') }}
           </button>
         </div>
       </div>
@@ -38,30 +38,30 @@
 
     <div v-if="!hasEnough" class="ps-pc__layout ps-pc__layout--empty">
       <AppEmptyState
-        title="未选满 2 篇论文"
-        description="请回到检索结果或论文详情，使用 + 对比 按钮选满两篇后再发起对比。"
+        :title="$t('compare_not_enough_title')"
+        :description="$t('compare_not_enough_desc')"
       >
         <template #actions>
-          <button class="ps-pc__cta" type="button" @click="goSearch">去检索</button>
+          <button class="ps-pc__cta" type="button" @click="goSearch">{{ $t('compare_go_search') }}</button>
         </template>
       </AppEmptyState>
     </div>
 
     <div v-else class="ps-pc__layout">
       <!-- 可比性警告 -->
-      <div v-if="warning" class="ps-pc__warn">
+      <div v-if="displayWarning" class="ps-pc__warn">
         <AppIcon name="WarningOutline" :size="16" inline />
-        <span>{{ warning }}</span>
+        <span>{{ displayWarning }}</span>
       </div>
 
       <!-- 受限论文横幅 -->
       <div v-if="restrictedIds.length" class="ps-pc__restricted-banner">
         <AppIcon name="AlertCircleOutline" :size="16" inline />
         <div>
-          <strong>受限模式：</strong>
-          <span>以下论文仅有题录/摘要级信息，部分对比维度可能为推断结果：</span>
+          <strong>{{ $t('compare_restricted_prefix') }}</strong>
+          <span>{{ $t('compare_restricted_desc') }}</span>
           <span class="ps-pc__restricted-list">
-            {{ restrictedIds.map(id => paperTitleById(id) || id).join('、') }}
+            {{ restrictedIds.map(id => paperTitleById(id) || id).join(paperSeparator) }}
           </span>
         </div>
       </div>
@@ -74,17 +74,17 @@
           class="ps-pc__paper"
           :class="{ 'ps-pc__paper--restricted': restrictedIds.includes(p.id) }"
         >
-          <span class="ps-pc__paper-idx">论文 {{ idx + 1 }}</span>
+          <span class="ps-pc__paper-idx">{{ $t('compare_paper_index', { index: idx + 1 }) }}</span>
           <h2 class="ps-pc__paper-title" @click="goPaper(p.id)" :title="p.title">{{ p.title }}</h2>
           <p class="ps-pc__paper-meta">
             <span v-if="p.authorships && p.authorships.length">
               {{ p.authorships.slice(0, 2).map(a => a.author && a.author.display_name).join(' · ') }}
-              <span v-if="p.authorships.length > 2"> · 等 {{ p.authorships.length }} 位作者</span>
+              <span v-if="p.authorships.length > 2"> · {{ $t('common_authors_etc', { count: p.authorships.length }) }}</span>
             </span>
             <span v-if="p.publication_year"> · {{ p.publication_year }}</span>
             <span v-if="p.primary_location && p.primary_location.source"> · {{ p.primary_location.source.display_name }}</span>
           </p>
-          <button class="ps-pc__paper-remove" type="button" @click="removeFromCart(p.id)" aria-label="从对比中移除">
+          <button class="ps-pc__paper-remove" type="button" @click="removeFromCart(p.id)" :aria-label="$t('compare_remove_aria')">
             <AppIcon name="Close" :size="14" />
           </button>
         </article>
@@ -96,7 +96,7 @@
       </div>
 
       <!-- 对比矩阵 -->
-      <section v-else class="ps-pc__matrix" :aria-label="'对比矩阵'">
+      <section v-else class="ps-pc__matrix" :aria-label="$t('compare_matrix_aria')">
         <div
           v-for="row in rows"
           :key="row.key"
@@ -104,7 +104,7 @@
         >
           <div class="ps-pc__row-head">
             <AppIcon :name="row.icon" :size="16" inline />
-            <span class="ps-pc__row-label">{{ row.label }}</span>
+            <span class="ps-pc__row-label">{{ $t(row.labelKey) }}</span>
             <span v-if="row.subtle" class="ps-pc__row-subtle">{{ row.subtle }}</span>
           </div>
           <div class="ps-pc__row-cells">
@@ -135,11 +135,11 @@ import {
 } from '../../components/ui'
 
 const ROWS = [
-  { key: 'method',       label: '方法',         icon: 'CogOutline',          subtle: 'Method' },
-  { key: 'dataset',      label: '数据集',       icon: 'ServerOutline',       subtle: 'Dataset' },
-  { key: 'metrics',      label: '评价指标',     icon: 'StatsChartOutline',   subtle: 'Metrics' },
-  { key: 'contribution', label: '主要贡献',     icon: 'BulbOutline',         subtle: 'Contribution' },
-  { key: 'limitation',   label: '局限性',       icon: 'WarningOutline',      subtle: 'Limitation' }
+  { key: 'method',       labelKey: 'compare_row_method',       icon: 'CogOutline',        subtle: 'Method' },
+  { key: 'dataset',      labelKey: 'compare_row_dataset',      icon: 'ServerOutline',     subtle: 'Dataset' },
+  { key: 'metrics',      labelKey: 'compare_row_metrics',      icon: 'StatsChartOutline', subtle: 'Metrics' },
+  { key: 'contribution', labelKey: 'compare_row_contribution', icon: 'BulbOutline',       subtle: 'Contribution' },
+  { key: 'limitation',   labelKey: 'compare_row_limitation',   icon: 'WarningOutline',    subtle: 'Limitation' }
 ]
 
 export default {
@@ -181,10 +181,18 @@ export default {
     },
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: '检索结果', to: '/search_result' },
-        { label: '论文对比' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('common_search_results'), to: '/search_result' },
+        { label: this.$t('compare_title') }
       ]
+    },
+    displayWarning() {
+      if (!this.warning) return ''
+      const translated = this.$t(this.warning)
+      return translated === this.warning ? this.warning : translated
+    },
+    paperSeparator() {
+      return this.$i18n.locale === 'zh' ? '、' : ', '
     }
   },
   watch: {

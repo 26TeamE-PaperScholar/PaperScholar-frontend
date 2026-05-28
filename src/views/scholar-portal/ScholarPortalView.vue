@@ -10,7 +10,7 @@
               <AppIcon name="RibbonOutline" :size="14" />
               ORCID {{ authorInfo.orcid }}
             </p>
-            <h1 class="ps-scholar__name">{{ authorInfo.nickName || '未知学者' }}</h1>
+            <h1 class="ps-scholar__name">{{ authorInfo.nickName || $t('common_unknown_scholar') }}</h1>
             <p v-if="authorInfo.institution.name" class="ps-scholar__affil">
               <AppIcon name="School" :size="16" />
               <a class="ps-scholar__affil-link" @click="gotoInstitution(authorInfo.institution)">
@@ -32,11 +32,11 @@
                 @click="toggleFollow"
               >
                 <AppIcon :name="isFollowing ? 'Bookmark' : 'Add'" :size="14" />
-                {{ isFollowing ? '已关注' : $t('scholar_portal_follow') || '关注' }}
+                {{ isFollowing ? $t('scholar_followed') : $t('scholar_portal_follow') }}
               </button>
               <button class="ps-scholar__action-secondary" @click="sharePortal">
                 <AppIcon name="Share" :size="14" />
-                分享主页
+                {{ $t('scholar_share_homepage') }}
               </button>
               <button v-if="authorInfo.email" class="ps-scholar__action-secondary" @click="contactAuthor">
                 <AppIcon name="Mail" :size="14" />
@@ -53,15 +53,15 @@
           </div>
           <div class="ps-scholar__stat">
             <span class="ps-scholar__stat-num">{{ formatNumber(authorInfo.totalWork) }}</span>
-            <span class="ps-scholar__stat-label">发表数</span>
+            <span class="ps-scholar__stat-label">{{ $t('scholar_publications') }}</span>
           </div>
           <div class="ps-scholar__stat">
             <span class="ps-scholar__stat-num">{{ formatNumber(authorInfo.totalCitations) }}</span>
-            <span class="ps-scholar__stat-label">总被引</span>
+            <span class="ps-scholar__stat-label">{{ $t('scholar_total_citations') }}</span>
           </div>
           <div class="ps-scholar__stat">
             <span class="ps-scholar__stat-num">+{{ formatNumber(authorInfo.yearCitations) }}</span>
-            <span class="ps-scholar__stat-label">近一年</span>
+            <span class="ps-scholar__stat-label">{{ $t('scholar_past_year') }}</span>
           </div>
         </aside>
       </div>
@@ -80,7 +80,7 @@
             @click="activeTab = tab.id"
           >
             <AppIcon :name="tab.icon" :size="14" />
-            {{ tab.label }}
+            {{ $t(tab.labelKey) }}
           </button>
         </div>
 
@@ -91,7 +91,7 @@
             :infoItem="info"
             :index="idx"
           />
-          <AppEmptyState v-if="!infoItems.length" title="尚无发表记录" description="该学者主页还没有可展示的学术成果。" />
+          <AppEmptyState v-if="!infoItems.length" :title="$t('scholar_empty_works_title')" :description="$t('scholar_empty_works_desc')" />
           <div class="ps-scholar__pagination" v-if="infoItems.length">
             <PaginationBar
               :items-per-page="paginationInfo.itemsPerPage"
@@ -106,32 +106,32 @@
         <div v-show="activeTab === 'trend'" class="ps-scholar__tab-panel">
           <AppCard>
             <AppSectionHeader
-              title="发表与引用趋势"
-              subtitle="按年聚合，反映学者活跃度与影响力轨迹"
+              :title="$t('scholar_trend_title')"
+              :subtitle="$t('scholar_trend_subtitle')"
               tag="h2"
             />
             <!-- 恢复原 ECharts 双轴柱状图 -->
             <ScholarGraphCite v-if="counts_by_year.length" :info="counts_by_year" />
             <AppEmptyState
               v-else
-              title="暂无趋势数据"
-              description="该学者尚未提供逐年统计信息。"
+              :title="$t('scholar_empty_trend_title')"
+              :description="$t('scholar_empty_trend_desc')"
             />
           </AppCard>
         </div>
 
         <div v-show="activeTab === 'network'" class="ps-scholar__tab-panel">
           <AppCard>
-            <AppSectionHeader title="合作网络" subtitle="基于共同发表论文构建" tag="h2" />
+            <AppSectionHeader :title="$t('scholar_network_title')" :subtitle="$t('scholar_network_subtitle')" tag="h2" />
             <!-- 恢复原 relation-graph 关系网络可视化 -->
             <AuthorRelationGraph v-if="relationList && relationList.length" :relationList="relationList" />
             <AppEmptyState
               v-else
-              title="暂无合作者数据"
-              description="此学者主页还没有可展示的合作网络。"
+              :title="$t('scholar_empty_network_title')"
+              :description="$t('scholar_empty_network_desc')"
             />
             <div v-if="collaboratorPreview.length" class="ps-scholar__network">
-              <h3 class="ps-scholar__network-title">部分合作者一览</h3>
+              <h3 class="ps-scholar__network-title">{{ $t('scholar_collaborators_preview') }}</h3>
               <div class="ps-scholar__network-grid">
                 <div
                   v-for="(node, idx) in collaboratorPreview"
@@ -154,7 +154,7 @@
 
       <aside class="ps-scholar__sidebar">
         <AppCard accent="gold">
-          <AppSectionHeader title="研究方向" tag="h3" />
+          <AppSectionHeader :title="$t('scholar_research_directions')" tag="h3" />
           <div class="ps-scholar__keywords">
             <AppTagChip
               v-for="(tag, idx) in interestTag"
@@ -168,7 +168,7 @@
         </AppCard>
 
         <AppCard v-if="authorInfo.urls.length">
-          <AppSectionHeader title="对外链接" tag="h3" />
+          <AppSectionHeader :title="$t('personal_external_links')" tag="h3" />
           <ul class="ps-scholar__links">
             <li v-for="(url, idx) in authorInfo.urls" :key="idx">
               <AppIcon name="GlobeOutline" :size="14" />
@@ -178,8 +178,8 @@
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="主页二维码" subtitle="扫码打开学者主页" tag="h3" />
-          <div class="ps-scholar__qr" role="img" :aria-label="`学者主页二维码：${portalShareUrl}`">
+          <AppSectionHeader :title="$t('scholar_homepage_qr')" :subtitle="$t('scholar_homepage_qr_subtitle')" tag="h3" />
+          <div class="ps-scholar__qr" role="img" :aria-label="$t('scholar_homepage_qr_aria', { url: portalShareUrl })">
             <NQrCode
               :value="portalShareUrl"
               :size="132"
@@ -191,7 +191,7 @@
           </div>
           <button class="ps-scholar__qr-copy" type="button" @click="sharePortal">
             <AppIcon name="CopyOutline" :size="14" />
-            复制链接
+            {{ $t('scholar_copy_link') }}
           </button>
         </AppCard>
       </aside>
@@ -235,9 +235,9 @@ export default {
       isFollowing: false,
       activeTab: 'works',
       tabs: [
-        { id: 'works', label: '代表论文', icon: 'Document' },
-        { id: 'trend', label: '引用趋势', icon: 'TrendingUp' },
-        { id: 'network', label: '合作网络', icon: 'GitBranch' }
+        { id: 'works', labelKey: 'scholar_tab_representative', icon: 'Document' },
+        { id: 'trend', labelKey: 'scholar_tab_citation_trend', icon: 'TrendingUp' },
+        { id: 'network', labelKey: 'scholar_tab_network', icon: 'GitBranch' }
       ],
       authorInfo: {
         id: '',
@@ -266,9 +266,9 @@ export default {
   computed: {
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: '学者', to: '/search_result?search_type=2' },
-        { label: this.authorInfo.nickName || '学者主页' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('common_scholar'), to: '/search_result?search_type=2' },
+        { label: this.authorInfo.nickName || this.$t('common_scholar_homepage') }
       ]
     },
     maxCitations() {
@@ -390,11 +390,11 @@ export default {
       this.isFollowing = true
       User.followUser(buildFollowPayload(this.authorInfo.id)).then(
         () => {
-          this.$bus.emit('message', { title: '关注成功', content: this.authorInfo.nickName, time: 1500 })
+          this.$bus.emit('message', { title: this.$t('scholar_follow_success'), content: this.authorInfo.nickName, time: 1500 })
         },
         () => {
           this.isFollowing = original
-          this.$bus.emit('message', { title: '关注失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('scholar_follow_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     },
@@ -404,11 +404,11 @@ export default {
       this.isFollowing = false
       User.cancelFollowUser(buildFollowPayload(this.authorInfo.id)).then(
         () => {
-          this.$bus.emit('message', { title: '已取消关注', content: '', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('scholar_unfollow_success'), content: '', time: 1500 })
         },
         () => {
           this.isFollowing = original
-          this.$bus.emit('message', { title: '取消关注失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('scholar_unfollow_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     },
@@ -440,7 +440,7 @@ export default {
       }
     },
     notifyShareCopied(link) {
-      this.$bus.emit('message', { title: '已复制学者主页链接', content: link, time: 1800 })
+      this.$bus.emit('message', { title: this.$t('scholar_link_copied'), content: link, time: 1800 })
     },
     contactAuthor() {
       if (this.authorInfo.email) window.location.href = 'mailto:' + this.authorInfo.email

@@ -88,6 +88,13 @@ export default {
     this.destroyChart();
   },
   methods: {
+    applySeriesLabels() {
+      this.option.series[0].name = this.$t("institution_achievement_number");
+      this.option.series[1].name = this.$t("institution_cite_number");
+      if (this.chart) {
+        this.chart.setOption({ series: this.option.series });
+      }
+    },
     containerIsVisible() {
       const dom = this.$refs.chartEl;
       return !!dom && dom.clientWidth > 0 && dom.clientHeight > 0;
@@ -186,6 +193,9 @@ export default {
   },
 
   watch: {
+    '$i18n.locale'() {
+      this.applySeriesLabels();
+    },
     info: {
       immediate: true,
       handler(newVal) {

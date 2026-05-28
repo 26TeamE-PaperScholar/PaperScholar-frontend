@@ -1,7 +1,7 @@
 <template>
   <header class="ps-nav">
     <div class="ps-nav__inner">
-      <button class="ps-nav__brand" @click="backToHome" aria-label="PaperScholar 主页">
+      <button class="ps-nav__brand" @click="backToHome" :aria-label="$t('nav_brand_home_aria')">
         <span class="ps-nav__brand-mark" aria-hidden="true">
           <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -16,7 +16,7 @@
         </span>
         <span class="ps-nav__brand-text">
           <span class="ps-nav__brand-name">PaperScholar</span>
-          <span class="ps-nav__brand-tag">学术检索 · 智能导航</span>
+          <span class="ps-nav__brand-tag">{{ $t('nav_brand_tagline') }}</span>
         </span>
       </button>
 
@@ -93,6 +93,7 @@ import ChangePasswordModal from '../modals/ChangePasswordModal.vue'
 import ColorSetter from '../color/ColorSetter.vue'
 import { Account } from '../../api/accounts.js'
 import { User } from '../../api/users.js'
+import { toggleAppLocale } from '../../language'
 import AppIcon from '../ui/Icon.vue'
 import AppAvatar from '../ui/Avatar.vue'
 import AppKbdHint from '../ui/KbdHint.vue'
@@ -114,10 +115,10 @@ export default {
       currentUserId: '',
       navSearchKeyword: '',
       links: [
-        { path: '/', labelKey: 'nav_home', fallback: '首页' },
-        { path: '/search_result', labelKey: 'nav_explore', fallback: '探索' },
-        { path: '/ai_assistant', labelKey: 'nav_assistant', fallback: 'AI 助手', requireLogin: true },
-        { path: '/personal_homepage', labelKey: 'nav_my', fallback: '我的', requireLogin: true }
+        { path: '/', labelKey: 'nav_home' },
+        { path: '/search_result', labelKey: 'nav_explore' },
+        { path: '/ai_assistant', labelKey: 'nav_assistant', requireLogin: true },
+        { path: '/personal_homepage', labelKey: 'nav_my', requireLogin: true }
       ]
     }
   },
@@ -162,7 +163,7 @@ export default {
       document.documentElement.classList.add('document-fade-out')
       setTimeout(() => {
         document.documentElement.classList.remove('document-fade-out')
-        this.$i18n.locale = this.$i18n.locale === 'zh' ? 'en' : 'zh'
+        toggleAppLocale()
         document.documentElement.classList.add('document-fade-in')
         setTimeout(() => document.documentElement.classList.remove('document-fade-in'), 610)
       }, 200)

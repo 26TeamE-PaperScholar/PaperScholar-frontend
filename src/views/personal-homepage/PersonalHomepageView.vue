@@ -21,19 +21,19 @@
             />
             <span class="ps-me__avatar-overlay" aria-hidden="true">
               <AppIcon name="Pencil" :size="16" />
-              更换头像
+              {{ $t('personal_change_avatar') }}
             </span>
             <input type="file" accept="image/*" ref="avatarInput" class="ps-me__file-input" @change="handleAvatarFile" />
           </div>
           <div>
-            <p class="ps-me__eyebrow">个人主页</p>
+            <p class="ps-me__eyebrow">{{ $t('personal_page_eyebrow') }}</p>
             <h1 class="ps-me__name">
               <template v-if="!isEditing">{{ personalInfo.nickName }}</template>
               <input v-else class="basic-input ps-me__name-input" v-model="personalInfo.nickName" />
             </h1>
             <p class="ps-me__realname">
-              <template v-if="!isEditing">{{ personalInfo.realName || '尚未设置真实姓名' }}</template>
-              <input v-else class="basic-input ps-me__realname-input" v-model="personalInfo.realName" :placeholder="$t('personal_info_real_name') || '真实姓名'" />
+              <template v-if="!isEditing">{{ personalInfo.realName || $t('personal_real_name_unset') }}</template>
+              <input v-else class="basic-input ps-me__realname-input" v-model="personalInfo.realName" :placeholder="$t('personal_info_real_name')" />
             </p>
             <p class="ps-me__bio">{{ personalInfo.bio }}</p>
           </div>
@@ -42,35 +42,35 @@
         <aside class="ps-me__hero-stats">
           <div class="ps-me__stat">
             <span class="ps-me__stat-num">{{ favouritesInfo.length }}</span>
-            <span class="ps-me__stat-label">收藏夹</span>
+            <span class="ps-me__stat-label">{{ $t('personal_stat_favorites') }}</span>
           </div>
           <div class="ps-me__stat">
             <span class="ps-me__stat-num">{{ interests.length }}</span>
-            <span class="ps-me__stat-label">兴趣标签</span>
+            <span class="ps-me__stat-label">{{ $t('personal_stat_interests') }}</span>
           </div>
           <div class="ps-me__stat">
             <span class="ps-me__stat-num">{{ followingCount }}</span>
-            <span class="ps-me__stat-label">关注学者</span>
+            <span class="ps-me__stat-label">{{ $t('personal_stat_following') }}</span>
           </div>
           <div class="ps-me__hero-actions">
             <button v-if="!isEditing" class="ps-me__action-primary" @click="enterEditingMode">
               <AppIcon name="Pencil" :size="14" />
-              编辑资料
+              {{ $t('personal_edit_profile') }}
             </button>
             <template v-else>
               <button class="ps-me__action-primary" @click="submitChangePersonalInfo">
                 <AppIcon name="Cloud" :size="14" />
-                保存
+                {{ $t('personal_save') }}
               </button>
-              <button class="ps-me__action-secondary" @click="cancelChangePersonalInfo">取消</button>
+              <button class="ps-me__action-secondary" @click="cancelChangePersonalInfo">{{ $t('cancel_text') }}</button>
             </template>
             <button v-if="!isEditing && !auditStatus" class="ps-me__action-secondary" @click="authenticateModalShouldShow = true">
               <AppIcon name="RibbonOutline" :size="14" />
-              申请认证
+              {{ $t('personal_apply_auth') }}
             </button>
             <button v-if="!isEditing && auditStatus" class="ps-me__action-secondary" @click="auditDetailModalShouldShow = true">
               <AppIcon name="HelpCircle" :size="14" />
-              查看审核
+              {{ $t('personal_view_audit') }}
             </button>
           </div>
         </aside>
@@ -80,34 +80,34 @@
     <div class="ps-me__layout">
       <aside class="ps-me__sidebar">
         <AppCard>
-          <AppSectionHeader title="账户信息" tag="h3" />
+          <AppSectionHeader :title="$t('personal_account_info')" tag="h3" />
           <dl class="ps-me__info">
             <div>
-              <dt><AppIcon name="Mail" :size="13" inline /> 邮箱</dt>
+              <dt><AppIcon name="Mail" :size="13" inline /> {{ $t('personal_info_email') }}</dt>
               <dd>
                 <template v-if="!isEditing">{{ personalInfo.email }}</template>
                 <input v-else class="basic-input ps-me__inline-input" v-model="personalInfo.email" />
               </dd>
             </div>
             <div>
-              <dt><AppIcon name="LocationOutline" :size="13" inline /> 地区</dt>
-              <dd>{{ personalInfo.region || '未填写' }}</dd>
+              <dt><AppIcon name="LocationOutline" :size="13" inline /> {{ $t('personal_info_region') }}</dt>
+              <dd>{{ personalInfo.region || $t('common_unfilled') }}</dd>
             </div>
             <div>
-              <dt><AppIcon name="School" :size="13" inline /> 机构</dt>
+              <dt><AppIcon name="School" :size="13" inline /> {{ $t('personal_info_institution') }}</dt>
               <dd>
-                <template v-if="!isEditing">{{ personalInfo.institution || '未填写' }}</template>
+                <template v-if="!isEditing">{{ personalInfo.institution || $t('common_unfilled') }}</template>
                 <input v-else class="basic-input ps-me__inline-input" v-model="personalInfo.institution" />
               </dd>
             </div>
             <div>
-              <dt><AppIcon name="Person" :size="13" inline /> 性别</dt>
+              <dt><AppIcon name="Person" :size="13" inline /> {{ $t('personal_info_gender') }}</dt>
               <dd>
-                <template v-if="!isEditing">{{ $t(personalInfo.gender) || '未填写' }}</template>
+                <template v-if="!isEditing">{{ $t(personalInfo.gender) || $t('common_unfilled') }}</template>
                 <select v-else v-model="personalInfo.gender" class="ps-me__inline-select">
-                  <option value="gender_male">男</option>
-                  <option value="gender_female">女</option>
-                  <option value="gender_unset">不公开</option>
+                  <option value="gender_male">{{ $t('gender_male') }}</option>
+                  <option value="gender_female">{{ $t('gender_female') }}</option>
+                  <option value="gender_unset">{{ $t('personal_gender_private') }}</option>
                 </select>
               </dd>
             </div>
@@ -115,7 +115,7 @@
         </AppCard>
 
         <AppCard accent="gold">
-          <AppSectionHeader title="对外链接" tag="h3">
+          <AppSectionHeader :title="$t('personal_external_links')" tag="h3">
             <template #actions>
               <button v-if="!isEditing" class="ps-me__link-edit" @click="enterEditingMode">
                 <AppIcon name="Pencil" :size="12" />
@@ -146,7 +146,7 @@
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="兴趣标签" tag="h3">
+          <AppSectionHeader :title="$t('personal_interest_tags')" tag="h3">
             <template #actions>
               <button class="ps-me__link-edit" @click="interestTagSelectorModalShow = true">
                 <AppIcon name="Add" :size="12" />
@@ -166,8 +166,8 @@
             >{{ tag.name }}</AppTagChip>
             <AppEmptyState
               v-if="!interests.length"
-              title="尚未选择兴趣"
-              description="选择 3–5 个关心的主题，获取个性化推荐。"
+              :title="$t('personal_empty_interests_title')"
+              :description="$t('personal_empty_interests_desc')"
             />
           </div>
         </AppCard>
@@ -183,17 +183,17 @@
             @click="activeTab = t.id"
           >
             <AppIcon :name="t.icon" :size="14" />
-            {{ t.label }}
+            {{ $t(t.labelKey) }}
           </button>
         </div>
 
         <!-- Favorites: 使用原 FavouriteList 组件，保留 CRUD 能力 -->
         <div v-if="activeTab === 'favourites'" class="ps-me__panel">
           <div class="ps-me__panel-header">
-            <p class="ps-me__panel-hint">{{ favouritesInfo.length }} 个收藏夹 · 总计 {{ totalFavoriteCount }} 篇文献</p>
+            <p class="ps-me__panel-hint">{{ $t('personal_favorites_summary', { count: favouritesInfo.length, total: totalFavoriteCount }) }}</p>
             <button class="basic-btn-outline ps-me__new-fav" @click="isCreating = true">
               <AppIcon name="Add" :size="14" />
-              新建收藏夹
+              {{ $t('create_favourites') }}
             </button>
           </div>
           <AppCard class="ps-me__fav-wrap">
@@ -205,8 +205,8 @@
             />
             <AppEmptyState
               v-if="!favouritesInfo.length && !isCreating"
-              title="还没有收藏夹"
-              description="点击「新建收藏夹」开始整理你的阅读清单。"
+              :title="$t('personal_empty_favorites_title')"
+              :description="$t('personal_empty_favorites_desc')"
             />
           </AppCard>
         </div>
@@ -221,25 +221,25 @@
         <!-- History -->
         <div v-if="activeTab === 'history'" class="ps-me__panel">
           <AppCard>
-            <AppSectionHeader title="近期检索" subtitle="" tag="h3" />
+            <AppSectionHeader :title="$t('personal_recent_searches')" subtitle="" tag="h3" />
             <ul class="ps-me__history">
               <li v-for="h in searchHistory" :key="h.id" @click="searchAgain(h)">
                 <AppIcon name="Search" :size="13" />
                 <span class="ps-me__history-keyword">{{ h.keyword }}</span>
                 <span class="ps-me__history-meta">{{ h.timestamp }}</span>
               </li>
-              <AppEmptyState v-if="!searchHistory.length" title="暂无搜索记录" />
+              <AppEmptyState v-if="!searchHistory.length" :title="$t('personal_no_search_history')" />
             </ul>
           </AppCard>
           <AppCard>
-            <AppSectionHeader title="阅读历史" subtitle="" tag="h3" />
+            <AppSectionHeader :title="$t('personal_reading_history')" subtitle="" tag="h3" />
             <ul class="ps-me__history">
               <li v-for="v in viewHistoryWithMeta" :key="v.id" @click="$router.push('/paper_detail/' + v.paper_id)">
                 <AppIcon name="Eye" :size="13" />
                 <span class="ps-me__history-keyword">{{ v.title }}</span>
                 <span class="ps-me__history-meta">{{ v.viewed_at }}</span>
               </li>
-              <AppEmptyState v-if="!viewHistoryWithMeta.length" title="暂无阅读记录" />
+              <AppEmptyState v-if="!viewHistoryWithMeta.length" :title="$t('personal_no_reading_history')" />
             </ul>
           </AppCard>
         </div>
@@ -302,9 +302,9 @@ export default {
       auditDetailModalShouldShow: false,
       activeTab: 'favourites',
       tabs: [
-        { id: 'favourites', label: '我的收藏', icon: 'Bookmark' },
-        { id: 'following', label: '关注学者', icon: 'People' },
-        { id: 'history', label: '浏览历史', icon: 'Time' }
+        { id: 'favourites', labelKey: 'personal_tab_favorites', icon: 'Bookmark' },
+        { id: 'following', labelKey: 'personal_tab_following', icon: 'People' },
+        { id: 'history', labelKey: 'personal_tab_history', icon: 'Time' }
       ],
       personalInfo: {
         id: '',
@@ -366,7 +366,7 @@ export default {
     ensureLoggedIn() {
       const userId = this.$cookies.get('user_id')
       if (userId) return userId
-      this.$bus.emit('message', { title: '请先登录', content: '登录后即可查看我的页面', time: 1600 })
+      this.$bus.emit('message', { title: this.$t('login_text'), content: this.$t('personal_login_required_content'), time: 1600 })
       this.$router.replace({
         path: '/auth',
         query: {
@@ -464,12 +464,12 @@ export default {
       const ready = this.interestOptions.length ? Promise.resolve(this.interestOptions) : this.loadInterestOptions()
       ready.then(submit).then(
         () => {
-          this.$bus.emit('message', { title: '兴趣标签已删除', content: tag.name || '', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('personal_interest_deleted'), content: tag.name || '', time: 1500 })
           this.flushInterets()
         },
         () => {
           this.interests = previous
-          this.$bus.emit('message', { title: '删除失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('personal_delete_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     },
@@ -496,11 +496,11 @@ export default {
       User.changePersonalInfo(userId, data).then(
         () => {
           this.cur2savePersonalInfo()
-          this.$bus.emit('message', { title: '资料已更新', content: '', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('personal_profile_updated'), content: '', time: 1500 })
         },
         () => {
           this.save2curPersonalInfo()
-          this.$bus.emit('message', { title: '更新失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('personal_update_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     },
@@ -543,8 +543,8 @@ export default {
       const formData = new FormData()
       formData.append('avatar', file)
       User.changePersonalInfo(userId, formData).then(
-        () => { this.$bus.emit('message', { title: '头像已更新', content: '', time: 1500 }) },
-        () => { this.$bus.emit('message', { title: '头像上传失败', content: '请稍后再试', time: 1500 }) }
+        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_updated'), content: '', time: 1500 }) },
+        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_failed'), content: this.$t('common_retry_later'), time: 1500 }) }
       )
     },
 
@@ -556,7 +556,7 @@ export default {
       this.isCreating = false
       const normalizedName = normalizeFavoriteName(name)
       if (!normalizedName) {
-        this.$bus.emit('message', { title: '收藏夹名称不能为空', content: '', time: 1500 })
+        this.$bus.emit('message', { title: this.$t('favorite_name_required'), content: '', time: 1500 })
         return
       }
       const optimisticId = 'F-pending-' + Date.now()
@@ -573,11 +573,11 @@ export default {
           const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
           const created = extractCreatedFavorite(res, normalizedName, optimisticId)
           if (index !== -1) this.favouritesInfo.splice(index, 1, created)
-          this.$bus.emit('message', { title: '收藏夹已创建', content: created.name, time: 1500 })
+          this.$bus.emit('message', { title: this.$t('favorite_created'), content: created.name, time: 1500 })
         },
         () => {
           this.favouritesInfo = this.favouritesInfo.filter((item) => item.id !== optimisticId)
-          this.$bus.emit('message', { title: '创建收藏夹失败', content: '请稍后再试', time: 1500 })
+          this.$bus.emit('message', { title: this.$t('favorite_create_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
       )
     }

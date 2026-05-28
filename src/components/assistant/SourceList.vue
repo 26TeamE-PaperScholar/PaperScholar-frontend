@@ -2,7 +2,7 @@
   <div v-if="sources && sources.length" class="ps-sources">
     <span class="ps-sources__label">
       <AppIcon name="LinkOutline" :size="13" inline />
-      来源
+      {{ $t('assistant_sources') }}
     </span>
     <ol class="ps-sources__list">
       <li v-for="(s, idx) in sources" :key="(s.paper_id || idx) + '-src'" class="ps-sources__item">
@@ -23,7 +23,7 @@
           :title="s.title"
         >{{ s.title }}</button>
         <span v-if="s.authors && s.authors.length" class="ps-sources__authors">
-          — {{ s.authors.join(', ') }}{{ s.authors.length >= 3 ? ' 等' : '' }}
+          — {{ s.authors.join(', ') }}{{ s.authors.length >= 3 ? authorSuffix : '' }}
         </span>
       </li>
     </ol>
@@ -39,6 +39,11 @@ export default {
   emits: ['open-paper'],
   props: {
     sources: { type: Array, default: () => [] }
+  },
+  computed: {
+    authorSuffix() {
+      return this.$t('common_et_al_suffix')
+    }
   }
 }
 </script>

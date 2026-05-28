@@ -12,7 +12,7 @@
               <AppIcon name="LocationOutline" :size="14" />
               {{ locationText }}
             </p>
-            <h1 class="ps-inst__name">{{ institution.display_name || '机构详情' }}</h1>
+            <h1 class="ps-inst__name">{{ institution.display_name || $t('common_institution_detail') }}</h1>
             <p v-if="institution.display_name_alt" class="ps-inst__alt">{{ institution.display_name_alt }}</p>
             <div class="ps-inst__chips">
               <AppTagChip variant="outline" size="md">{{ typeLabel }}</AppTagChip>
@@ -32,7 +32,7 @@
                 rel="noopener"
               >
                 <AppIcon name="GlobeOutline" :size="14" />
-                官网
+                {{ $t('common_official_website') }}
               </a>
               <a
                 v-if="institution.ror"
@@ -42,7 +42,7 @@
                 rel="noopener"
               >
                 <AppIcon name="GitBranch" :size="14" />
-                ROR 标识
+                {{ $t('common_ror') }}
               </a>
             </div>
           </div>
@@ -51,15 +51,15 @@
         <aside class="ps-inst__hero-stats">
           <div class="ps-inst__stat">
             <span class="ps-inst__stat-num">{{ formatNumber(institution.works_count) }}</span>
-            <span class="ps-inst__stat-label">发表数</span>
+            <span class="ps-inst__stat-label">{{ $t('institution_publications') }}</span>
           </div>
           <div class="ps-inst__stat">
             <span class="ps-inst__stat-num">{{ formatNumber(institution.cited_by_count) }}</span>
-            <span class="ps-inst__stat-label">总被引</span>
+            <span class="ps-inst__stat-label">{{ $t('institution_total_citations') }}</span>
           </div>
           <div class="ps-inst__stat">
             <span class="ps-inst__stat-num">{{ scholarsCount }}</span>
-            <span class="ps-inst__stat-label">在册学者</span>
+            <span class="ps-inst__stat-label">{{ $t('institution_registered_scholars') }}</span>
           </div>
         </aside>
       </div>
@@ -76,12 +76,12 @@
             @click="activeTab = t.id"
           >
             <AppIcon :name="t.icon" :size="14" />
-            {{ t.label }}
+            {{ $t(t.labelKey) }}
           </button>
         </div>
 
         <div v-show="activeTab === 'scholars'" class="ps-inst__panel">
-          <AppEmptyState v-if="!scholars.length" title="未关联学者" description="该机构暂未在 PaperScholar 同步学者信息。" />
+          <AppEmptyState v-if="!scholars.length" :title="$t('institution_empty_scholars_title')" :description="$t('institution_empty_scholars_desc')" />
           <ScholarListItem
             v-for="s in scholars"
             :key="s.id"
@@ -96,22 +96,22 @@
             :infoItem="info"
             :index="idx"
           />
-          <AppEmptyState v-if="!works.length" title="暂无机构发表" description="该机构尚未关联到任何论文记录。" />
+          <AppEmptyState v-if="!works.length" :title="$t('institution_empty_works_title')" :description="$t('institution_empty_works_desc')" />
         </div>
 
         <div v-show="activeTab === 'trend'" class="ps-inst__panel">
           <AppCard>
-            <AppSectionHeader title="逐年产出" subtitle="发表与引用按年变化趋势" tag="h2" />
+            <AppSectionHeader :title="$t('institution_trend_title')" :subtitle="$t('institution_trend_subtitle')" tag="h2" />
             <div class="ps-inst__trend">
               <div v-for="(item, idx) in counts_by_year" :key="idx" class="ps-inst__trend-row">
                 <span class="ps-inst__trend-year">{{ item.year }}</span>
                 <div class="ps-inst__trend-bar">
                   <span class="ps-inst__trend-fill" :style="{ width: pct(item.cited_by_count) + '%' }"></span>
                 </div>
-                <span class="ps-inst__trend-val">{{ formatNumber(item.cited_by_count) }} 引用</span>
-                <span class="ps-inst__trend-val ps-inst__trend-val--mini">{{ formatNumber(item.works_count) }} 篇</span>
+                <span class="ps-inst__trend-val">{{ $t('institution_citations_unit', { count: formatNumber(item.cited_by_count) }) }}</span>
+                <span class="ps-inst__trend-val ps-inst__trend-val--mini">{{ $t('institution_papers_unit', { count: formatNumber(item.works_count) }) }}</span>
               </div>
-              <AppEmptyState v-if="!counts_by_year.length" title="暂无逐年数据" />
+              <AppEmptyState v-if="!counts_by_year.length" :title="$t('institution_empty_yearly')" />
             </div>
           </AppCard>
         </div>
@@ -119,13 +119,13 @@
 
       <aside class="ps-inst__sidebar">
         <AppCard accent="gold">
-          <AppSectionHeader title="机构关键信息" tag="h3" />
+          <AppSectionHeader :title="$t('institution_key_info')" tag="h3" />
           <dl class="ps-inst__meta">
-            <div v-if="institution.type"><dt>类型</dt><dd>{{ typeLabel }}</dd></div>
-            <div v-if="institution.country"><dt>国家/地区</dt><dd>{{ institution.country }}</dd></div>
-            <div v-if="institution.geo && institution.geo.city"><dt>所在城市</dt><dd>{{ institution.geo.city }}</dd></div>
+            <div v-if="institution.type"><dt>{{ $t('common_type') }}</dt><dd>{{ typeLabel }}</dd></div>
+            <div v-if="institution.country"><dt>{{ $t('institution_country_region') }}</dt><dd>{{ institution.country }}</dd></div>
+            <div v-if="institution.geo && institution.geo.city"><dt>{{ $t('institution_city') }}</dt><dd>{{ institution.geo.city }}</dd></div>
             <div v-if="institution.homepage_url">
-              <dt>官网</dt>
+              <dt>{{ $t('common_official_website') }}</dt>
               <dd>
                 <a :href="institution.homepage_url" target="_blank" rel="noopener">{{ domain(institution.homepage_url) }}</a>
               </dd>
@@ -134,7 +134,7 @@
         </AppCard>
 
         <AppCard>
-          <AppSectionHeader title="主要研究方向" tag="h3" />
+          <AppSectionHeader :title="$t('institution_main_topics')" tag="h3" />
           <div class="ps-inst__keywords">
             <AppTagChip
               v-for="(c, idx) in institution.top_concepts || []"
@@ -157,11 +157,11 @@ import { mockAuthors } from '../../mock/authors'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppEmptyState, AppBreadcrumb } from '../../components/ui'
 
 const TYPE_LABELS = {
-  education: '高校 / 研究机构',
-  company: '产业实验室',
-  facility: '研究设施',
-  government: '政府研究机构',
-  nonprofit: '非营利组织'
+  education: 'institution_type_education',
+  company: 'institution_type_company',
+  facility: 'institution_type_facility',
+  government: 'institution_type_government',
+  nonprofit: 'institution_type_nonprofit'
 }
 
 export default {
@@ -181,9 +181,9 @@ export default {
     return {
       activeTab: 'scholars',
       tabs: [
-        { id: 'scholars', label: '在册学者', icon: 'People' },
-        { id: 'works', label: '近期发表', icon: 'Document' },
-        { id: 'trend', label: '产出趋势', icon: 'TrendingUp' }
+        { id: 'scholars', labelKey: 'institution_tab_scholars', icon: 'People' },
+        { id: 'works', labelKey: 'institution_tab_recent', icon: 'Document' },
+        { id: 'trend', labelKey: 'institution_tab_trend', icon: 'TrendingUp' }
       ],
       institution: {
         display_name: '',
@@ -206,13 +206,13 @@ export default {
   computed: {
     breadcrumbs() {
       return [
-        { label: '首页', to: '/' },
-        { label: '机构', to: '/search_result?search_type=4' },
-        { label: this.institution.display_name || '机构详情' }
+        { label: this.$t('common_home'), to: '/' },
+        { label: this.$t('common_institution'), to: '/search_result?search_type=4' },
+        { label: this.institution.display_name || this.$t('common_institution_detail') }
       ]
     },
     typeLabel() {
-      return TYPE_LABELS[this.institution.type] || '研究机构'
+      return this.$t(TYPE_LABELS[this.institution.type] || 'common_research_institution')
     },
     locationText() {
       const parts = [this.institution.geo && this.institution.geo.city, this.institution.country].filter(Boolean)

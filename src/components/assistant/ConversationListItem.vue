@@ -11,7 +11,7 @@
       <p class="ps-cv-item__meta">
         <span v-if="conversation.context_papers && conversation.context_papers.length" class="ps-cv-item__papers">
           <AppIcon name="DocumentTextOutline" :size="11" inline />
-          {{ conversation.context_papers.length }} 篇上下文
+          {{ $t('assistant_context_count', { count: conversation.context_papers.length }) }}
         </span>
         <span v-if="formatted" class="ps-cv-item__time">{{ formatted }}</span>
       </p>
@@ -20,8 +20,8 @@
     <button
       class="ps-cv-item__del"
       type="button"
-      aria-label="删除会话"
-      :title="'删除'"
+      :aria-label="$t('assistant_delete_conversation_aria')"
+      :title="$t('delete')"
       @click.stop="$emit('delete', conversation.id)"
     >
       <AppIcon name="TrashOutline" :size="13" />
@@ -48,9 +48,9 @@ export default {
       if (Number.isNaN(d.getTime())) return iso
       const now = new Date()
       const diff = (now - d) / 1000
-      if (diff < 60) return '刚刚'
-      if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前'
-      if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前'
+      if (diff < 60) return this.$t('assistant_just_now')
+      if (diff < 3600) return this.$t('assistant_minutes_ago', { count: Math.floor(diff / 60) })
+      if (diff < 86400) return this.$t('assistant_hours_ago', { count: Math.floor(diff / 3600) })
       const mo = String(d.getMonth() + 1).padStart(2, '0')
       const dy = String(d.getDate()).padStart(2, '0')
       return `${mo}-${dy}`

@@ -3,7 +3,7 @@
     <transition name="ps-modal">
       <div v-if="show" class="ps-modal-mask" @mousedown.self="handleClose">
         <div class="ps-modal" :class="'ps-modal--' + size">
-          <button class="ps-modal__close" type="button" aria-label="关闭" @click="handleClose">
+          <button class="ps-modal__close" type="button" :aria-label="$t('common_close')" @click="handleClose">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path
                 d="M6 6l12 12M18 6 6 18"

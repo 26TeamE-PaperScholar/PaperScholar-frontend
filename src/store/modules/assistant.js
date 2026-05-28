@@ -6,6 +6,15 @@
  * - mock 支持同步响应；真实后端消息列表通过 chat_messages 刷新
  */
 import { Chat } from '../../api/chat'
+import i18n from '../../language'
+
+const DEFAULT_CONVERSATION_TITLES = ['New chat']
+const defaultConversationTitle = () => i18n.global.t('mock_chat_new_conversation')
+const legacyDefaultConversationTitle = () => i18n.global.getLocaleMessage('zh').mock_chat_new_conversation
+const isDefaultConversationTitle = (title) =>
+  DEFAULT_CONVERSATION_TITLES.includes(title) ||
+  title === defaultConversationTitle() ||
+  title === legacyDefaultConversationTitle()
 
 const listFromPayload = (payload) => {
   if (!payload) return []
@@ -20,7 +29,7 @@ const normalizeConversation = (cv = {}, fallback = {}) => {
   const hasContextPapers = Object.prototype.hasOwnProperty.call(cv, 'context_papers')
   return {
     id: cv.id,
-    title: cv.title || fallback.title || '新会话',
+    title: cv.title || fallback.title || defaultConversationTitle(),
     context_papers: hasContextPapers
       ? (Array.isArray(cv.context_papers) ? cv.context_papers : [])
       : (Array.isArray(fallback.context_papers) ? fallback.context_papers : []),
@@ -52,7 +61,7 @@ const makeLocalMessage = (conversationId, role, content) => normalizeMessage({
 
 const makeConversationTitle = (content) => {
   const text = String(content || '').trim()
-  return text ? text.slice(0, 30) + (text.length > 30 ? '…' : '') : '新会话'
+  return text ? text.slice(0, 30) + (text.length > 30 ? '…' : '') : defaultConversationTitle()
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -165,7 +174,7 @@ const actions = {
         ? data.messages.map((m) => normalizeMessage(m, cv.id))
         : await dispatch('loadConversationMessages', { id: cv.id, apply: false })
       const firstUserMessage = messages.find((m) => m.role === 'user' && m.content)
-      const repairedTitle = cv.title === '新会话' && firstUserMessage
+      const repairedTitle = isDefaultConversationTitle(cv.title) && firstUserMessage
         ? makeConversationTitle(firstUserMessage.content)
         : ''
       if (repairedTitle && repairedTitle !== cv.title) {
@@ -191,7 +200,7 @@ const actions = {
     }
   },
 
-  async newConversation({ commit }, { title = '新会话', context_papers = [] } = {}) {
+  async newConversation({ commit }, { title = defaultConversationTitle(), context_papers = [] } = {}) {
     const res = await Chat.createConversation({ title, context_papers })
     const cv = normalizeConversation(res && res.data, { title, context_papers })
     if (!cv.id) return null

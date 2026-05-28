@@ -1,16 +1,16 @@
 <template>
   <div class="ps-compare-cell" :class="[low ? 'ps-compare-cell--low' : '', empty ? 'ps-compare-cell--empty' : '']">
     <template v-if="empty">
-      <RestrictedHint :label="emptyLabel" />
+      <RestrictedHint :label="resolvedEmptyLabel" />
     </template>
     <template v-else>
       <div class="ps-compare-cell__head">
-        <span v-if="low" class="ps-compare-cell__confidence">推断</span>
+        <span v-if="low" class="ps-compare-cell__confidence">{{ $t('compare_inferred') }}</span>
         <button
           v-if="source"
           type="button"
           class="ps-compare-cell__src-btn"
-          :aria-label="'查看来源'"
+          :aria-label="$t('compare_view_source_aria')"
           @click="popoverOpen = !popoverOpen"
           @blur="popoverOpen = false"
         >
@@ -26,7 +26,7 @@
             <span class="ps-compare-cell__metric-src">{{ formatLocation(m.source) }}</span>
           </li>
         </ul>
-        <p v-if="!metrics.length" class="ps-compare-cell__hint">作者未列出对比指标</p>
+        <p v-if="!metrics.length" class="ps-compare-cell__hint">{{ $t('compare_metric_empty') }}</p>
       </template>
       <template v-else>
         <p class="ps-compare-cell__value">{{ value }}</p>
@@ -35,11 +35,11 @@
       <transition name="ps-pop">
         <div v-if="popoverOpen" class="ps-compare-cell__popover" @mousedown.prevent>
           <p class="ps-compare-cell__popover-row">
-            <strong>来源：</strong>{{ formatLocation(source) }}
+            <strong>{{ $t('compare_source_label') }}</strong>{{ formatLocation(source) }}
           </p>
           <p v-if="confidence" class="ps-compare-cell__popover-row">
-            <strong>置信度：</strong>
-            <span :class="'ps-confidence-' + confidence">{{ confidence === 'high' ? '高' : '低（多为基于摘要的推断）' }}</span>
+            <strong>{{ $t('compare_confidence_label') }}</strong>
+            <span :class="'ps-confidence-' + confidence">{{ confidence === 'high' ? $t('compare_confidence_high') : $t('compare_confidence_low') }}</span>
           </p>
         </div>
       </transition>
@@ -52,13 +52,10 @@ import AppIcon from '../ui/Icon.vue'
 import RestrictedHint from './RestrictedHint.vue'
 
 const LOCATION_LABEL = {
-  abstract: '摘要',
-  metadata: '元数据',
-  introduction: '引言',
-  conclusion: '结论',
-  table_1: '表 1',
-  table_2: '表 2',
-  table_3: '表 3'
+  abstract: 'assistant_location_abstract',
+  metadata: 'assistant_location_metadata',
+  introduction: 'assistant_location_introduction',
+  conclusion: 'assistant_location_conclusion'
 }
 
 export default {
@@ -72,7 +69,7 @@ export default {
     /** 整篇是否进入 restricted 模式（用于空态文案） */
     restricted: { type: Boolean, default: false },
     /** 空态自定义标签 */
-    emptyLabel: { type: String, default: '基于摘要的受限推断' }
+    emptyLabel: { type: String, default: '' }
   },
   data() {
     return { popoverOpen: false }
@@ -93,16 +90,19 @@ export default {
     },
     low() {
       return this.confidence === 'low'
+    },
+    resolvedEmptyLabel() {
+      return this.emptyLabel || this.$t('compare_restricted_hint')
     }
   },
   methods: {
     formatLocation(loc) {
       if (!loc) return '—'
-      if (LOCATION_LABEL[loc]) return LOCATION_LABEL[loc]
+      if (LOCATION_LABEL[loc]) return this.$t(LOCATION_LABEL[loc])
       const m = loc.match(/^section_(\d+)$/)
-      if (m) return `第 ${m[1]} 节`
+      if (m) return this.$t('assistant_location_section', { index: m[1] })
       const t = loc.match(/^table_(\d+)$/)
-      if (t) return `表 ${t[1]}`
+      if (t) return this.$t('assistant_location_table', { index: t[1] })
       return loc
     }
   }

@@ -1,13 +1,13 @@
 <template>
   <transition name="ps-compare-bar">
-    <div v-if="count > 0" class="ps-compare-bar" role="region" aria-label="论文对比浮动栏">
+    <div v-if="count > 0" class="ps-compare-bar" role="region" :aria-label="$t('compare_bar_aria')">
       <div class="ps-compare-bar__inner">
         <div class="ps-compare-bar__head">
           <AppIcon name="GitCompareOutline" :size="18" />
           <span class="ps-compare-bar__title">
-            对比 <strong>{{ count }}</strong> / {{ maxCompare }}
+            <span v-html="$t('compare_bar_title', { count: '<strong>' + count + '</strong>', max: maxCompare })"></span>
           </span>
-          <span v-if="count < 2" class="ps-compare-bar__hint">再选 1 篇即可发起对比</span>
+          <span v-if="count < 2" class="ps-compare-bar__hint">{{ $t('compare_bar_hint') }}</span>
         </div>
 
         <ul class="ps-compare-bar__chips">
@@ -16,7 +16,7 @@
             <button
               type="button"
               class="ps-compare-bar__chip-remove"
-              :aria-label="'移除 ' + p.title"
+              :aria-label="$t('compare_bar_remove_aria', { title: p.title })"
               @click="remove(p.id)"
             >
               <AppIcon name="Close" :size="12" />
@@ -27,7 +27,7 @@
         <div class="ps-compare-bar__actions">
           <button class="ps-compare-bar__clear" type="button" @click="clear">
             <AppIcon name="Trash" :size="14" inline />
-            清空
+            {{ $t('compare_bar_clear') }}
           </button>
           <button
             class="ps-compare-bar__go"
@@ -35,7 +35,7 @@
             :disabled="count < 2"
             @click="gotoCompare"
           >
-            进入对比
+            {{ $t('compare_bar_go') }}
             <AppIcon name="ChevronForward" :size="14" inline />
           </button>
         </div>

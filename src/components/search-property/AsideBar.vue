@@ -117,8 +117,8 @@ export default {
       isSidebarOpen: false,
       toggleShouldShow: true,
       searchType: 0,
-      dropdownOptions: ["选项1", "选项2", "选项3"], // 下拉列表的选项
-      selectedOption: "", // 选中的选项
+      dropdownOptions: [],
+      selectedOption: "",
     };
   },
   watch: {
@@ -297,4 +297,3 @@ export default {
 *::-webkit-scrollbar {
   display: none !important;
 }</style>
-  

@@ -10,17 +10,17 @@
           :placeholder="placeholderText"
           @keyup.enter="submitMainSearch"
         />
-        <button class="ps-results__search-clear" v-if="search" @click="search = ''" aria-label="清空">
+        <button class="ps-results__search-clear" v-if="search" @click="search = ''" :aria-label="$t('search_results_clear_aria')">
           <AppIcon name="Close" :size="14" />
         </button>
         <button class="ps-results__search-btn" @click="submitMainSearch">
-          {{ $t('search_text') || '检索' }}
+          {{ $t('search_text') }}
         </button>
       </div>
 
       <div class="ps-results__type-tabs">
         <button
-          v-for="t in TYPE_TABS"
+          v-for="t in typeTabs"
           :key="t.value"
           type="button"
           class="ps-results__type-tab"
@@ -28,7 +28,7 @@
           @click="setSearchTypeFromTab(t.value)"
         >
           <AppIcon :name="t.icon" :size="14" />
-          {{ t.label }}
+          {{ $t(t.labelKey) }}
         </button>
       </div>
     </div>
@@ -39,18 +39,18 @@
         <div class="ps-results__sidebar-section">
           <h3 class="ps-results__sidebar-title">
             <AppIcon name="FilterOutline" :size="14" />
-            筛选
+            {{ $t('search_results_filter') }}
           </h3>
           <details class="ps-results__filter" open>
-            <summary>发表时间</summary>
+            <summary>{{ $t('search_results_publication_time') }}</summary>
             <div class="ps-results__filter-options">
               <button
-                v-for="opt in TIME_OPTIONS"
+                v-for="opt in timeOptions"
                 :key="opt.value"
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': timeFilter === opt.value }"
                 @click="setFilterTime(opt.value)"
-              >{{ opt.label }}</button>
+              >{{ $t(opt.labelKey) }}</button>
             </div>
             <div v-if="timeFilter === 'custom'" class="ps-results__filter-range">
               <input
@@ -74,13 +74,13 @@
           </details>
 
           <details class="ps-results__filter" open>
-            <summary>引用次数</summary>
+            <summary>{{ $t('search_results_citations') }}</summary>
             <div class="ps-results__filter-options">
               <button
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': citeFilter === 0 }"
                 @click="filteByCount(0)"
-              >不限</button>
+              >{{ $t('search_option_all') }}</button>
               <button
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': citeFilter === 1 }"
@@ -98,28 +98,28 @@
           </details>
 
           <details v-if="search_type == 1" class="ps-results__filter" open>
-            <summary>语言</summary>
+            <summary>{{ $t('search_results_language') }}</summary>
             <div class="ps-results__filter-options">
               <button
-                v-for="opt in LANG_OPTIONS"
+                v-for="opt in langOptions"
                 :key="opt.value"
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': langFilter === opt.value }"
                 @click="setLanguage(opt.value)"
-              >{{ opt.label }}</button>
+              >{{ opt.labelKey ? $t(opt.labelKey) : opt.label }}</button>
             </div>
           </details>
 
           <details v-if="search_type == 3" class="ps-results__filter">
-            <summary>来源类型</summary>
+            <summary>{{ $t('search_results_source_type') }}</summary>
             <div class="ps-results__filter-options">
               <button
-                v-for="opt in JOURNAL_TYPES"
+                v-for="opt in journalTypes"
                 :key="opt.value"
                 class="ps-results__filter-chip"
                 :class="{ 'ps-results__filter-chip--active': journalFilter === opt.value }"
                 @click="setJounalType(opt.value)"
-              >{{ opt.label }}</button>
+              >{{ $t(opt.labelKey) }}</button>
             </div>
           </details>
         </div>
@@ -127,7 +127,7 @@
         <div class="ps-results__sidebar-section">
           <h3 class="ps-results__sidebar-title">
             <AppIcon name="StatsChart" :size="14" />
-            排序
+            {{ $t('sort') }}
           </h3>
           <div class="ps-results__filter-options ps-results__filter-options--column">
             <button
@@ -137,7 +137,7 @@
               :class="{ 'ps-results__sort-row--active': activeSort === opt.value }"
               @click="setSort(opt.value)"
             >
-              <span>{{ opt.label }}</span>
+              <span>{{ $t(opt.labelKey) }}</span>
               <AppIcon :name="opt.icon" :size="13" />
             </button>
           </div>
@@ -146,23 +146,23 @@
         <div class="ps-results__sidebar-section">
           <h3 class="ps-results__sidebar-title">
             <AppIcon name="Layers" :size="14" />
-            高级检索
+            {{ $t('advanced_search') }}
           </h3>
           <button class="ps-results__advanced-toggle" @click="showAdvancedSearch = !showAdvancedSearch">
-            {{ showAdvancedSearch ? '收起表单' : '展开表单' }}
+            {{ showAdvancedSearch ? $t('search_results_advanced_toggle_collapse') : $t('search_results_advanced_toggle_expand') }}
             <AppIcon :name="showAdvancedSearch ? 'ChevronDown' : 'ChevronForward'" :size="14" />
           </button>
           <div v-show="showAdvancedSearch" class="ps-results__advanced">
             <label>
-              <span>作者</span>
+              <span>{{ $t('author_search') }}</span>
               <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
             </label>
             <label>
-              <span>来源期刊</span>
+              <span>{{ $t('search_results_source_journal') }}</span>
               <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
             </label>
             <label>
-              <span>年份范围</span>
+              <span>{{ $t('search_results_year_range') }}</span>
               <div class="ps-results__advanced-range">
                 <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
                 <span>~</span>
@@ -170,15 +170,15 @@
               </div>
             </label>
             <label>
-              <span>关键词</span>
+              <span>{{ $t('advanced_search_publish_keyword') }}</span>
               <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
             </label>
             <label class="ps-results__advanced-check">
               <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
-              <span>仅匹配标题</span>
+              <span>{{ $t('search_results_title_only') }}</span>
             </label>
             <button class="basic-btn ps-results__advanced-submit" @click="submitAdvancedSearch">
-              应用高级检索
+              {{ $t('search_results_apply_advanced') }}
             </button>
           </div>
         </div>
@@ -189,16 +189,16 @@
         <div class="ps-results__header">
           <div>
             <p class="ps-results__count">
-              共 <strong>{{ totalCount }}</strong> 条结果
-              <span v-if="submittedSearch" class="ps-results__count-keyword">关于 "{{ submittedSearch }}"</span>
+              <span v-html="$t('search_results_total', { count: '<strong>' + totalCount + '</strong>' })"></span>
+              <span v-if="submittedSearch" class="ps-results__count-keyword">{{ $t('search_results_about', { keyword: submittedSearch }) }}</span>
             </p>
-            <p class="ps-results__took">耗时 {{ tookMs }} ms · 第 {{ currentPage }} / {{ totalPages }} 页</p>
+            <p class="ps-results__took">{{ $t('search_results_took', { ms: tookMs, page: currentPage, total: totalPages }) }}</p>
           </div>
           <div class="ps-results__sort-quick">
-            <span>排序</span>
+            <span>{{ $t('sort') }}</span>
             <select v-model="quickSort" @change="setSort(quickSort)">
               <option v-for="opt in sortOptionsForCurrentType" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
+                {{ $t(opt.labelKey) }}
               </option>
             </select>
           </div>
@@ -209,9 +209,9 @@
         </template>
 
         <template v-else-if="!infoItems.length">
-          <AppEmptyState title="未找到结果" description="试试更换关键词、降低筛选条件，或切换检索类型。">
+          <AppEmptyState :title="$t('search_results_empty_title')" :description="$t('search_results_empty_desc')">
             <template #actions>
-              <button class="basic-btn-outline" @click="clearAll">清除筛选</button>
+              <button class="basic-btn-outline" @click="clearAll">{{ $t('search_results_clear_filters') }}</button>
             </template>
           </AppEmptyState>
         </template>
@@ -250,17 +250,17 @@ import { Search } from '../../api/search.js'
 import { AppCard, AppIcon, AppSkeletonCard, AppEmptyState } from '../../components/ui'
 
 const TYPE_TABS = [
-  { value: 1, label: '论文', icon: 'Document' },
-  { value: 2, label: '学者', icon: 'Person' },
-  { value: 3, label: '期刊/会议', icon: 'BookOutline' },
-  { value: 4, label: '机构', icon: 'School' }
+  { value: 1, labelKey: 'search_type_paper', icon: 'Document' },
+  { value: 2, labelKey: 'search_type_scholar', icon: 'Person' },
+  { value: 3, labelKey: 'search_type_journal_conference', icon: 'BookOutline' },
+  { value: 4, labelKey: 'search_type_institution', icon: 'School' }
 ]
 
 const PLACEHOLDERS = {
-  1: '检索论文标题、摘要或关键词',
-  2: '检索学者姓名、ORCID 或机构',
-  3: '检索期刊或会议名称',
-  4: '检索高校与研究机构'
+  1: 'search_placeholder_paper',
+  2: 'search_placeholder_scholar',
+  3: 'search_placeholder_journal',
+  4: 'search_placeholder_institution'
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -268,40 +268,40 @@ const RECENT_2_START_YEAR = CURRENT_YEAR - 1
 const RECENT_5_START_YEAR = CURRENT_YEAR - 4
 
 const TIME_OPTIONS = [
-  { value: 'all', label: '不限' },
-  { value: 'last2', label: '近 2 年' },
-  { value: 'last5', label: '近 5 年' },
-  { value: '2022', label: '2022 起' },
-  { value: 'custom', label: '自定义' }
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'last2', labelKey: 'search_option_recent_2' },
+  { value: 'last5', labelKey: 'search_option_recent_5' },
+  { value: '2022', labelKey: 'search_option_since_2022' },
+  { value: 'custom', labelKey: 'search_option_custom' }
 ]
 
 const LANG_OPTIONS = [
-  { value: 'all', label: '不限' },
+  { value: 'all', labelKey: 'search_option_all' },
   { value: 'en', label: 'English' },
-  { value: 'zh-cn', label: '中文' }
+  { value: 'zh-cn', labelKey: 'search_option_chinese' }
 ]
 
 const JOURNAL_TYPES = [
-  { value: 0, label: '不限' },
-  { value: 1, label: '期刊' },
-  { value: 2, label: '预印本' },
-  { value: 3, label: '会议' }
+  { value: 0, labelKey: 'search_option_all' },
+  { value: 1, labelKey: 'search_option_journal' },
+  { value: 2, labelKey: 'search_option_preprint' },
+  { value: 3, labelKey: 'search_option_conference' }
 ]
 
 const SORT_OPTIONS = [
-  { value: 'cited_by_count:desc', label: '引用 高 → 低', icon: 'ArrowDown' },
-  { value: 'cited_by_count:asc', label: '引用 低 → 高', icon: 'ArrowUp' },
-  { value: 'publication_date:desc', label: '日期 新 → 旧', icon: 'ArrowDown' },
-  { value: 'publication_date:asc', label: '日期 旧 → 新', icon: 'ArrowUp' },
-  { value: 'display_name:asc', label: '名称 A → Z', icon: 'ArrowDown' }
+  { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
+  { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
+  { value: 'publication_date:desc', labelKey: 'sort_date_desc', icon: 'ArrowDown' },
+  { value: 'publication_date:asc', labelKey: 'sort_date_asc', icon: 'ArrowUp' },
+  { value: 'display_name:asc', labelKey: 'sort_name_asc', icon: 'ArrowDown' }
 ]
 
 const ENTITY_SORT_OPTIONS = [
-  { value: 'cited_by_count:desc', label: '引用 高 → 低', icon: 'ArrowDown' },
-  { value: 'cited_by_count:asc', label: '引用 低 → 高', icon: 'ArrowUp' },
-  { value: 'works_count:desc', label: '成果 高 → 低', icon: 'ArrowDown' },
-  { value: 'works_count:asc', label: '成果 低 → 高', icon: 'ArrowUp' },
-  { value: 'display_name:asc', label: '名称 A → Z', icon: 'ArrowDown' }
+  { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
+  { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
+  { value: 'works_count:desc', labelKey: 'sort_works_desc', icon: 'ArrowDown' },
+  { value: 'works_count:asc', labelKey: 'sort_works_asc', icon: 'ArrowUp' },
+  { value: 'display_name:asc', labelKey: 'sort_name_asc', icon: 'ArrowDown' }
 ]
 
 const LEGACY_SORT_MAP = {
@@ -409,10 +409,6 @@ export default {
   },
   data() {
     return {
-      TYPE_TABS,
-      TIME_OPTIONS,
-      LANG_OPTIONS,
-      JOURNAL_TYPES,
       SORT_OPTIONS,
       showAdvancedSearch: false,
       advancedSearchForm: {
@@ -459,7 +455,19 @@ export default {
   },
   computed: {
     placeholderText() {
-      return PLACEHOLDERS[this.search_type] || ''
+      return this.$t(PLACEHOLDERS[this.search_type] || 'search_placeholder_paper')
+    },
+    typeTabs() {
+      return TYPE_TABS
+    },
+    timeOptions() {
+      return TIME_OPTIONS
+    },
+    langOptions() {
+      return LANG_OPTIONS
+    },
+    journalTypes() {
+      return JOURNAL_TYPES
     },
     sortOptionsForCurrentType() {
       return sortOptionsForType(this.search_type)

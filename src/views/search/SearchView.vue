@@ -5,22 +5,22 @@
         <div>
           <p class="ps-dash__eyebrow">{{ greeting }}</p>
           <h1 class="ps-dash__title">
-            {{ userName }}，<br />
-            <span class="ps-dash__title-accent">今天准备研究什么？</span>
+            {{ userName }}{{ titleSeparator }}<br />
+            <span class="ps-dash__title-accent">{{ $t('dashboard_title_suffix') }}</span>
           </h1>
           <div class="ps-dash__search">
             <AppIcon name="Search" :size="18" />
             <input
               v-model="searchKeyword"
               type="text"
-              placeholder="检索论文、学者、机构、主题——⌘K 快速聚焦"
+              :placeholder="$t('dashboard_search_placeholder')"
               @keyup.enter="basicSearch"
             />
             <AppKbdHint>⌘K</AppKbdHint>
-            <button class="ps-dash__search-btn" @click="basicSearch">检索</button>
+            <button class="ps-dash__search-btn" @click="basicSearch">{{ $t('dashboard_search_button') }}</button>
           </div>
           <div class="ps-dash__quick">
-            <span>常用主题</span>
+            <span>{{ $t('dashboard_quick_topics') }}</span>
             <AppTagChip
               v-for="tag in quickTopics"
               :key="tag.id"
@@ -31,21 +31,21 @@
           </div>
         </div>
         <aside class="ps-dash__hero-stats">
-          <p class="ps-dash__stats-label">今日动态</p>
+          <p class="ps-dash__stats-label">{{ $t('dashboard_today') }}</p>
           <ul>
-            <li><span>{{ stats.unreadMessages }}</span> 条未读消息</li>
-            <li><span>{{ stats.newFromFollowing }}</span> 篇关注更新</li>
-            <li><span>{{ stats.recommended }}</span> 篇推荐阅读</li>
+            <li><span>{{ stats.unreadMessages }}</span> {{ $t('dashboard_unread_messages', { count: '' }).trim() }}</li>
+            <li><span>{{ stats.newFromFollowing }}</span> {{ $t('dashboard_follow_updates', { count: '' }).trim() }}</li>
+            <li><span>{{ stats.recommended }}</span> {{ $t('dashboard_recommended_reads', { count: '' }).trim() }}</li>
           </ul>
         </aside>
       </div>
     </AppGradientHero>
 
     <section class="ps-dash__section">
-      <AppSectionHeader eyebrow="为你推荐" title="兴趣订阅" subtitle="基于您选择的兴趣标签自动生成">
+      <AppSectionHeader :eyebrow="$t('dashboard_for_you')" :title="$t('dashboard_interest_subscription')" :subtitle="$t('dashboard_interest_subtitle')">
         <template #actions>
           <button class="basic-btn-outline ps-dash__more" @click="viewMore('recommend')">
-            查看全部
+            {{ $t('common_view_all') }}
             <AppIcon name="ChevronForward" :size="14" />
           </button>
         </template>
@@ -59,24 +59,24 @@
           @click="goPaper(paper.id)"
         >
           <div class="ps-dash__card-header">
-            <AppTagChip variant="subtle" size="sm">{{ paper.matched_interest || '推荐' }}</AppTagChip>
+            <AppTagChip variant="subtle" size="sm">{{ paper.matched_interest || $t('dashboard_recommend_tag') }}</AppTagChip>
             <span class="ps-dash__card-date">{{ paper.publication_date }}</span>
           </div>
           <h3 class="ps-dash__card-title">{{ paper.title }}</h3>
           <p class="ps-dash__card-abstract">{{ paper.abstract }}</p>
           <div class="ps-dash__card-meta">
-            <span><AppIcon name="FlameOutline" :size="12" /> {{ paper.cited_by_count }} 引用</span>
-            <span><AppIcon name="People" :size="12" /> {{ (paper.authorships || []).length }} 位作者</span>
+            <span><AppIcon name="FlameOutline" :size="12" /> {{ $t('dashboard_citations', { count: paper.cited_by_count }) }}</span>
+            <span><AppIcon name="People" :size="12" /> {{ $t('dashboard_authors_count', { count: (paper.authorships || []).length }) }}</span>
           </div>
         </AppCard>
       </div>
     </section>
 
     <section class="ps-dash__section">
-      <AppSectionHeader eyebrow="近期热点" title="学术热度榜" subtitle="基于引用突增与跨学科曝光">
+      <AppSectionHeader :eyebrow="$t('dashboard_hot_eyebrow')" :title="$t('dashboard_hot_title')" :subtitle="$t('dashboard_hot_subtitle')">
         <template #actions>
           <button class="basic-btn-outline ps-dash__more" @click="viewMore('hot')">
-            查看全部
+            {{ $t('common_view_all') }}
             <AppIcon name="ChevronForward" :size="14" />
           </button>
         </template>
@@ -96,14 +96,14 @@
                 {{ a.author.display_name }}
                 <span v-if="ai < Math.min(p.authorships.length, 2) - 1">·</span>
               </span>
-              <span v-if="(p.authorships || []).length > 2"> · 等 {{ p.authorships.length }} 位作者</span>
+              <span v-if="(p.authorships || []).length > 2"> · {{ $t('common_authors_etc', { count: p.authorships.length }) }}</span>
             </p>
           </div>
           <div class="ps-dash__hot-meta">
             <AppMetricBadge :value="p.cited_by_count" tone="violet" icon="FlameOutline" />
           </div>
         </div>
-        <AppEmptyState v-if="!hotPapers.length" title="暂无热点数据" />
+        <AppEmptyState v-if="!hotPapers.length" :title="$t('dashboard_no_hot')" />
       </div>
     </section>
   </div>
@@ -133,9 +133,9 @@ export default {
       interestList: [],
       quickTopics: [
         { id: 'C1', name: 'Retrieval-Augmented Generation' },
-        { id: 'C5', name: '图神经网络' },
-        { id: 'C20', name: '因果推断' },
-        { id: 'C14', name: '量子计算' },
+        { id: 'C5', name: 'Graph Neural Networks' },
+        { id: 'C20', name: 'Causal Inference' },
+        { id: 'C14', name: 'Quantum Computing' },
         { id: 'C2', name: 'Multimodal LLM' }
       ],
       stats: { unreadMessages: 2, newFromFollowing: 5, recommended: 12 }
@@ -144,13 +144,16 @@ export default {
   computed: {
     greeting() {
       const h = new Date().getHours()
-      if (h < 6) return '清晨好'
-      if (h < 12) return '上午好'
-      if (h < 18) return '下午好'
-      return '晚上好'
+      if (h < 6) return this.$t('greeting_early')
+      if (h < 12) return this.$t('greeting_morning')
+      if (h < 18) return this.$t('greeting_afternoon')
+      return this.$t('greeting_evening')
     },
     userName() {
-      return this.$cookies && this.$cookies.get('user_id') ? '同学' : '研究者'
+      return this.$cookies && this.$cookies.get('user_id') ? this.$t('user_student') : this.$t('user_researcher')
+    },
+    titleSeparator() {
+      return this.$i18n.locale === 'zh' ? '，' : ','
     }
   },
   mounted() {
