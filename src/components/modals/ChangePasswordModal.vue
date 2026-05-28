@@ -29,6 +29,7 @@ import PopoutModal from '../popout-modal/PopoutModal.vue'
 
 import i18n from '../../language'
 
+import VueCookies from 'vue-cookies'
 import { Account } from '../../api/accounts.js'
 
 export default {
@@ -96,6 +97,9 @@ export default {
                     this.$bus.emit('message', { title: this.$t('change_password_success'), content: this.$t('change_password_relogin_hint'), time: 1800 })
                     this.resetForm()
                     this.handleClose(true)
+                    this.$store.commit('setIsLoggedIn', false)
+                    VueCookies.remove('user_id')
+                    this.$router.push({ path: '/auth', query: { mode: 'login' } })
                 },
                 error => {
                     this.$bus.emit('message', { title: this.$t('change_password_failure'), content: this.getErrorMessage(error), time: 2200 })
