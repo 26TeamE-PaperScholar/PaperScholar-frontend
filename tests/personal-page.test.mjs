@@ -4,16 +4,21 @@ import assert from 'node:assert/strict'
 import {
   buildFavoriteCreatePayload,
   buildFollowPayload,
+  authorWorksFilter,
+  dedupeWorks,
   buildInterestDeletePayload,
   buildInterestSelectPayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
   normalizeConceptId,
+  normalizeDoi,
   normalizeInterestId,
   normalizeOpenAlexAuthorId,
+  normalizeOpenAlexWorkId,
   normalizeFavoriteName,
   normalizeFavoriteChoices,
-  shouldFetchOnShowChange
+  shouldFetchOnShowChange,
+  workBelongsToAuthor
 } from '../src/utils/personal-page.mjs'
 
 test('buildFollowPayload uses openalex_id for follow APIs', () => {
@@ -23,6 +28,40 @@ test('buildFollowPayload uses openalex_id for follow APIs', () => {
     { openalex_id: 'A5102001778' }
   )
   assert.equal(normalizeOpenAlexAuthorId('https://openalex.org/A5102001778'), 'A5102001778')
+})
+
+test('author work helpers build exact OpenAlex filters and normalize ids', () => {
+  assert.equal(authorWorksFilter('https://api.openalex.org/authors/A5102001778'), 'author.id:A5102001778')
+  assert.equal(normalizeOpenAlexWorkId('https://openalex.org/W2741809807'), 'W2741809807')
+  assert.equal(normalizeDoi('https://doi.org/10.1038/S41586-020-2649-2'), '10.1038/s41586-020-2649-2')
+})
+
+test('workBelongsToAuthor validates authorships by id, orcid, then exact name', () => {
+  const work = {
+    authorships: [
+      { author: { id: 'https://openalex.org/A1', display_name: 'Ada Lovelace' } },
+      { author: { id: 'A2', display_name: 'Grace Hopper', orcid: '0000-0002' } }
+    ]
+  }
+
+  assert.equal(workBelongsToAuthor(work, { id: 'A1', nickName: 'Someone Else' }), true)
+  assert.equal(workBelongsToAuthor(work, { id: 'A9', orcid: '0000-0002' }), true)
+  assert.equal(workBelongsToAuthor(work, { id: 'A9', nickName: 'Grace Hopper' }), true)
+  assert.equal(workBelongsToAuthor(work, { id: 'A9', nickName: 'Grace' }), false)
+  assert.equal(workBelongsToAuthor({ authorships: [] }, { id: 'A1', nickName: 'Ada Lovelace' }), false)
+})
+
+test('dedupeWorks removes repeated papers by id, DOI, or normalized title without merging metadata', () => {
+  const first = { id: 'https://openalex.org/W1', title: 'SciPy 1.0: Fundamental Algorithms', cited_by_count: 10 }
+  const sameId = { id: 'W1', title: 'Different title', cited_by_count: 99 }
+  const sameDoi = { id: 'W2', doi: 'https://doi.org/10.1000/XYZ', title: 'Another paper' }
+  const sameDoiAgain = { id: 'W3', doi: '10.1000/xyz', title: 'A preprint copy' }
+  const sameTitle = { id: 'W4', title: 'SciPy 1.0 fundamental algorithms' }
+
+  assert.deepEqual(
+    dedupeWorks([first, sameId, sameDoi, sameDoiAgain, sameTitle]),
+    [first, sameDoi]
+  )
 })
 
 test('buildProfileUpdatePayload keeps editable profile fields including email', () => {

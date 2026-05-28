@@ -209,8 +209,34 @@ import { History } from '../../api/history.js'
 import { User } from '../../api/users'
 import { mockAuthors } from '../../mock/authors'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState, AppMetricBadge, AppBreadcrumb } from '../../components/ui'
-import { buildFollowPayload, normalizeOpenAlexAuthorId } from '../../utils/personal-page.mjs'
+import {
+  authorWorksFilter,
+  buildFollowPayload,
+  dedupeWorks,
+  normalizeOpenAlexAuthorId,
+  workBelongsToAuthor
+} from '../../utils/personal-page.mjs'
 import { NQrCode } from 'naive-ui'
+
+function createEmptyAuthorInfo(id = '') {
+  return {
+    id,
+    orcid: '',
+    worksApiUrl: '',
+    nickName: '',
+    realName: '',
+    region: '',
+    institution: { id: '', ror: '', name: '' },
+    email: '',
+    gender: '',
+    urls: [],
+    major: '',
+    totalCitations: 0,
+    totalWork: 0,
+    yearCitations: 0,
+    hIndex: 0
+  }
+}
 
 export default {
   name: 'ScholarPortalView',
@@ -239,28 +265,15 @@ export default {
         { id: 'trend', labelKey: 'scholar_tab_citation_trend', icon: 'TrendingUp' },
         { id: 'network', labelKey: 'scholar_tab_network', icon: 'GitBranch' }
       ],
-      authorInfo: {
-        id: '',
-        orcid: '',
-        worksApiUrl: '',
-        nickName: '',
-        realName: '',
-        region: '',
-        institution: { id: '', ror: '', name: '' },
-        email: '',
-        gender: '',
-        urls: [],
-        major: '',
-        totalCitations: 0,
-        totalWork: 0,
-        yearCitations: 0,
-        hIndex: 0
-      },
+      authorInfo: createEmptyAuthorInfo(),
       paginationInfo: { itemsPerPage: 5, currentPage: 1, totalPages: 1 },
       infoItems: [],
       interestTag: [],
       counts_by_year: [],
-      relationList: []
+      relationList: [],
+      authorRequestSeq: 0,
+      worksRequestSeq: 0,
+      relationRequestSeq: 0
     }
   },
   computed: {
@@ -294,14 +307,7 @@ export default {
       immediate: true,
       handler(newId) {
         if (!newId) return
-        this.authorInfo.id = normalizeOpenAlexAuthorId(newId)
-        this.isFollowing = false
-        this.activeTab = 'works'
-        this.paginationInfo.currentPage = 1
-        this.infoItems = []
-        this.counts_by_year = []
-        this.relationList = []
-        this.interestTag = []
+        this.resetAuthorState(normalizeOpenAlexAuthorId(newId))
         this.getAuthorInfo()
         this.loadFollowState()
         this.getRelationMap()
@@ -309,53 +315,92 @@ export default {
     }
   },
   methods: {
+    resetAuthorState(authorId) {
+      this.authorInfo = createEmptyAuthorInfo(authorId)
+      this.isFollowing = false
+      this.activeTab = 'works'
+      this.paginationInfo.currentPage = 1
+      this.paginationInfo.totalPages = 1
+      this.infoItems = []
+      this.counts_by_year = []
+      this.relationList = []
+      this.interestTag = []
+    },
     getAuthorInfo() {
       if (!this.authorInfo.id) return
-      Search.searchAuthorInfo(this.authorInfo.id).then(
+      const authorId = normalizeOpenAlexAuthorId(this.authorInfo.id)
+      const requestId = ++this.authorRequestSeq
+      Search.searchAuthorInfo(authorId).then(
         (res) => {
+          if (requestId !== this.authorRequestSeq || authorId !== normalizeOpenAlexAuthorId(this.authorInfo.id)) return
           const data = (res && res.data) || {}
-          this.authorInfo.nickName = data.display_name || ''
-          this.authorInfo.realName = data.display_name_alt || ''
-          this.authorInfo.totalWork = data.works_count || 0
-          this.authorInfo.totalCitations = data.cited_by_count || 0
-          this.authorInfo.hIndex = data.h_index || 0
-          this.authorInfo.orcid = data.orcid || ''
+          const nextAuthorInfo = {
+            ...createEmptyAuthorInfo(authorId),
+            nickName: data.display_name || '',
+            realName: data.display_name_alt || '',
+            totalWork: data.works_count || 0,
+            totalCitations: data.cited_by_count || 0,
+            hIndex: data.h_index || 0,
+            orcid: data.orcid || '',
+            worksApiUrl: data.works_api_url || data.worksApiUrl || '',
+            email: data.email || '',
+            urls: Array.isArray(data.urls) ? data.urls : (Array.isArray(data.websites) ? data.websites : [])
+          }
           if (data.last_known_institution) {
-            this.authorInfo.institution = {
+            nextAuthorInfo.institution = {
               id: data.last_known_institution.id || '',
               name: data.last_known_institution.display_name || '',
               ror: data.last_known_institution.ror || ''
             }
           }
-          this.authorInfo.email = data.email || ''
-          this.authorInfo.urls = data.urls || data.websites || []
+          this.authorInfo = nextAuthorInfo
           if (typeof data.is_followed === 'boolean') this.isFollowing = data.is_followed
           this.interestTag = (data.research_interests || []).map((n) => ({ name: n, id: '' }))
           this.counts_by_year = data.counts_by_year || []
-          const latest = (data.counts_by_year || []).slice(-1)[0]
+          const latest = (data.counts_by_year || [])
+            .slice()
+            .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))[0]
           if (latest) this.authorInfo.yearCitations = latest.cited_by_count
-          this.loadWorks()
+          this.loadWorks(authorId)
         },
         () => {}
       )
     },
-    loadWorks() {
+    loadWorks(authorId = this.authorInfo.id) {
+      const normalizedAuthorId = normalizeOpenAlexAuthorId(authorId)
+      const filter = authorWorksFilter(normalizedAuthorId)
+      if (!filter) return
+      const requestId = ++this.worksRequestSeq
+      const currentAuthor = {
+        id: normalizedAuthorId,
+        nickName: this.authorInfo.nickName,
+        orcid: this.authorInfo.orcid
+      }
       Search.searchWorks({
-        search: this.authorInfo.nickName,
+        filter,
+        search: '',
         per_page: this.paginationInfo.itemsPerPage,
         page: this.paginationInfo.currentPage,
         sort: 'cited_by_count:desc'
       }).then((res) => {
+        if (requestId !== this.worksRequestSeq || normalizedAuthorId !== normalizeOpenAlexAuthorId(this.authorInfo.id)) return
         const data = (res && res.data) || {}
-        this.infoItems = (data.results || []).map((r) => ({ ...r, keyword: '' }))
+        const verifiedWorks = (data.results || [])
+          .filter((work) => workBelongsToAuthor(work, currentAuthor))
+        this.infoItems = dedupeWorks(verifiedWorks).map((r) => ({ ...r, keyword: '' }))
         const meta = data.meta || {}
         this.paginationInfo.totalPages = meta.total_pages || 1
       })
     },
     getRelationMap() {
       if (!this.authorInfo.id) return
-      History.getRelationMap(this.authorInfo.id).then(
-        (res) => { this.relationList = (res && res.data) || [] },
+      const authorId = normalizeOpenAlexAuthorId(this.authorInfo.id)
+      const requestId = ++this.relationRequestSeq
+      History.getRelationMap(authorId).then(
+        (res) => {
+          if (requestId !== this.relationRequestSeq || authorId !== normalizeOpenAlexAuthorId(this.authorInfo.id)) return
+          this.relationList = (res && res.data) || []
+        },
         () => {}
       )
     },

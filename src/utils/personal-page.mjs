@@ -4,6 +4,28 @@ export function normalizeOpenAlexAuthorId(authorId) {
     .replace(/^https?:\/\/(?:api\.)?openalex\.org\/(?:authors\/)?/i, '')
 }
 
+export function normalizeOpenAlexWorkId(workId) {
+  return String(workId || '')
+    .trim()
+    .replace(/^https?:\/\/(?:api\.)?openalex\.org\/(?:works\/)?/i, '')
+}
+
+export function normalizeDoi(doi) {
+  return String(doi || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
+}
+
+export function normalizeTitleForMatch(title) {
+  return String(title || '')
+    .toLowerCase()
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
 export function buildFollowPayload(authorId) {
   return { openalex_id: normalizeOpenAlexAuthorId(authorId) }
 }
@@ -42,6 +64,79 @@ export function authorOrcidOf(authorshipOrAuthor) {
     ? authorshipOrAuthor.author
     : authorshipOrAuthor
   return String(author.orcid || authorshipOrAuthor.orcid || '').trim().toLowerCase()
+}
+
+export function workIdOf(work) {
+  if (!work || typeof work !== 'object') return ''
+  return normalizeOpenAlexWorkId(
+    work.id ||
+      work.openalex_id ||
+      work.openalexId ||
+      work.work_id ||
+      work.workId ||
+      work.paper_id ||
+      work.paperId ||
+      (work.ids && work.ids.openalex)
+  )
+}
+
+export function workDoiOf(work) {
+  if (!work || typeof work !== 'object') return ''
+  return normalizeDoi(
+    work.doi ||
+      work.doi_url ||
+      work.doiUrl ||
+      (work.ids && work.ids.doi)
+  )
+}
+
+export function authorWorksFilter(authorId) {
+  const id = normalizeOpenAlexAuthorId(authorId)
+  return id ? `author.id:${id}` : ''
+}
+
+export function workBelongsToAuthor(work, author) {
+  const authorId = normalizeOpenAlexAuthorId(author && author.id)
+  const authorName = String((author && (author.display_name || author.nickName || author.name)) || '')
+    .trim()
+    .toLowerCase()
+  const authorOrcid = String((author && author.orcid) || '').trim().toLowerCase()
+  const authorships = Array.isArray(work && work.authorships) ? work.authorships : []
+
+  if (!authorships.length) return false
+  return authorships.some((authorship) => {
+    const id = authorIdOf(authorship)
+    if (authorId && id === authorId) return true
+
+    const orcid = authorOrcidOf(authorship)
+    if (authorOrcid && orcid && orcid === authorOrcid) return true
+
+    const name = authorNameOf(authorship).trim().toLowerCase()
+    return Boolean(authorName && name && name === authorName)
+  })
+}
+
+export function dedupeWorks(works = []) {
+  const seen = new Set()
+  const output = []
+
+  ;(works || []).forEach((work) => {
+    if (!work || typeof work !== 'object') return
+    const keys = []
+    const workId = workIdOf(work)
+    const doi = workDoiOf(work)
+    const title = normalizeTitleForMatch(work.title || work.display_name)
+
+    if (workId) keys.push(`id:${workId}`)
+    if (doi) keys.push(`doi:${doi}`)
+    if (title && title.length >= 12) keys.push(`title:${title}`)
+
+    if (keys.length && keys.some((key) => seen.has(key))) return
+    keys.forEach((key) => seen.add(key))
+    output.push(work)
+  })
+
+  return output
 }
 
 export function pickAuthorSearchResult(authorshipOrAuthor, results = []) {

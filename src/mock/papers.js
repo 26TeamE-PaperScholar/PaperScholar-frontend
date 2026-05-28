@@ -1,3 +1,5 @@
+import { authorIdOf, normalizeOpenAlexAuthorId } from '../utils/personal-page.mjs'
+
 /**
  * Mock paper dataset for PaperScholar demo.
  * Schema 与后端契约一致：id / title / abstract / authorships[{author,institutions}]
@@ -770,6 +772,13 @@ export const searchPapers = (params = {}) => {
   if (filter.includes('cited_by_count:>')) {
     const min = Number(filter.split('cited_by_count:>')[1].split(',')[0])
     list = list.filter((p) => p.cited_by_count > min)
+  }
+  if (filter.includes('author.id:')) {
+    const rawAuthorId = filter.split('author.id:')[1].split(',')[0]
+    const authorId = normalizeOpenAlexAuthorId(decodeURIComponent(rawAuthorId))
+    list = list.filter((p) =>
+      (p.authorships || []).some((authorship) => authorIdOf(authorship) === authorId)
+    )
   }
 
   const sort = params.sort || ''
