@@ -223,12 +223,12 @@
           <AppCard>
             <AppSectionHeader :title="$t('personal_recent_searches')" subtitle="" tag="h3" />
             <ul class="ps-me__history">
-              <li v-for="h in searchHistory" :key="h.id" @click="searchAgain(h)">
+              <li v-for="h in searchHistoryWithMeta" :key="h.id" @click="searchAgain(h)">
                 <AppIcon name="Search" :size="13" />
                 <span class="ps-me__history-keyword">{{ h.keyword }}</span>
                 <span class="ps-me__history-meta">{{ h.timestamp }}</span>
               </li>
-              <AppEmptyState v-if="!searchHistory.length" :title="$t('personal_no_search_history')" />
+              <AppEmptyState v-if="!searchHistoryWithMeta.length" :title="$t('personal_no_search_history')" />
             </ul>
           </AppCard>
           <AppCard>
@@ -346,6 +346,12 @@ export default {
         const viewed_at = v.timestamp || v.viewed_at || ''
         return { ...v, title, viewed_at }
       })
+    },
+    searchHistoryWithMeta() {
+      return this.searchHistory.map((h) => ({
+        ...h,
+        keyword: h.keyword || h.content || ''
+      }))
     }
   },
   created() {
