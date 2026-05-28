@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import {
   buildFavoriteCreatePayload,
+  buildFavoriteCollectPayload,
   buildFollowPayload,
   authorWorksFilter,
   dedupeWorks,
@@ -10,6 +11,9 @@ import {
   buildInterestSelectPayload,
   buildProfileUpdatePayload,
   extractCreatedFavorite,
+  extractFavoriteDetail,
+  favoritePaperCountOf,
+  normalizeFavoriteListResponse,
   normalizeConceptId,
   normalizeDoi,
   normalizeInterestId,
@@ -17,7 +21,11 @@ import {
   normalizeOpenAlexWorkId,
   normalizeFavoriteName,
   normalizeFavoriteChoices,
+  removeFavoriteFromList,
+  replaceFavoriteInList,
+  setFavoritePaperMembership,
   shouldFetchOnShowChange,
+  upsertFavoriteInList,
   workBelongsToAuthor
 } from '../src/utils/personal-page.mjs'
 
@@ -91,8 +99,8 @@ test('normalizeFavoriteChoices maps favorite list to modal options', () => {
       { id: 'F-2', name: '组会' }
     ]),
     [
-      { id: 'F-1', name: '综述' },
-      { id: 'F-2', name: '组会' }
+      { id: 'F-1', name: '综述', pending: false, paper_ids: [], paper_count: 0, showContextMenu: false },
+      { id: 'F-2', name: '组会', pending: false, paper_ids: [], paper_count: 0, showContextMenu: false }
     ]
   )
 })
@@ -107,9 +115,84 @@ test('shouldFetchOnShowChange only fetches when modal transitions to visible', (
 test('favorite creation helpers trim names and normalize response shapes', () => {
   assert.equal(normalizeFavoriteName('  组会论文  '), '组会论文')
   assert.deepEqual(buildFavoriteCreatePayload('  组会论文  '), { name: '组会论文' })
+  assert.deepEqual(buildFavoriteCollectPayload(' W1 '), { paper_id: 'W1' })
   assert.deepEqual(
     extractCreatedFavorite({ data: { favorite: { id: 'F-3', name: '综述', paper_ids: ['W1'] } } }, 'fallback'),
-    { id: 'F-3', name: '综述', paper_ids: ['W1'], showContextMenu: false }
+    { id: 'F-3', name: '综述', paper_ids: ['W1'], paper_count: 1, showContextMenu: false, pending: false }
+  )
+})
+
+test('favorite list helpers normalize wrapped API shapes and keep stable ids', () => {
+  assert.deepEqual(
+    normalizeFavoriteListResponse({
+      data: {
+        code: 0,
+        data: {
+          items: [
+            { pk: 7, title: '机器学习', papers: [{ id: 'W1' }, { paper_id: 'W1' }] },
+            { id: '7', name: 'duplicate from stale cache' },
+            { favorite_id: 'F-2', folder_name: '组会', paperIds: ['W2'] }
+          ]
+        }
+      }
+    }),
+    [
+      { pk: 7, title: '机器学习', papers: [{ id: 'W1' }, { paper_id: 'W1' }], id: '7', name: '机器学习', paper_ids: ['W1'], paper_count: 1, showContextMenu: false, pending: false },
+      { favorite_id: 'F-2', folder_name: '组会', paperIds: ['W2'], id: 'F-2', name: '组会', paper_ids: ['W2'], paper_count: 1, showContextMenu: false, pending: false }
+    ]
+  )
+  assert.equal(favoritePaperCountOf({ paper_count: 5, paper_ids: ['W1'] }), 5)
+})
+
+test('favorite list mutation helpers upsert replace remove and update paper membership by id', () => {
+  const list = [{ id: 'F-1', name: 'A', paper_ids: ['W1'] }]
+  assert.deepEqual(
+    upsertFavoriteInList(list, { id: 'F-2', name: 'B' }).map((item) => item.id),
+    ['F-2', 'F-1']
+  )
+  assert.deepEqual(
+    replaceFavoriteInList(list, 'F-1', { id: 'F-3', name: 'C' }).map((item) => item.id),
+    ['F-3']
+  )
+  assert.deepEqual(removeFavoriteFromList(list, 'F-1'), [])
+  assert.deepEqual(
+    setFavoritePaperMembership(list, 'F-1', 'W2', true)[0].paper_ids,
+    ['W1', 'W2']
+  )
+  assert.deepEqual(
+    setFavoritePaperMembership(list, 'F-1', 'W1', false)[0].paper_ids,
+    []
+  )
+})
+
+test('favorite detail helper extracts papers without confusing folder deletion fields', () => {
+  assert.deepEqual(
+    extractFavoriteDetail({
+      data: {
+        data: {
+          id: 'F-1',
+          name: '阅读清单',
+          papers: [{ paper_id: 'W1', title: 'Paper 1' }]
+        }
+      }
+    }),
+    {
+      favorite: { id: 'F-1', name: '阅读清单', paper_ids: ['W1'], paper_count: 1, showContextMenu: false, pending: false, papers: [{ paper_id: 'W1', title: 'Paper 1' }] },
+      papers: [{ paper_id: 'W1', title: 'Paper 1', id: 'W1', favorite_id: 'F-1' }]
+    }
+  )
+
+  assert.deepEqual(
+    extractFavoriteDetail({
+      data: {
+        favorite: { id: 'F-2', name: '待读' },
+        paper_ids: ['W2', 'W3']
+      }
+    }),
+    {
+      favorite: { id: 'F-2', name: '待读', paper_ids: ['W2', 'W3'], paper_count: 2, showContextMenu: false, pending: false },
+      papers: []
+    }
   )
 })
 

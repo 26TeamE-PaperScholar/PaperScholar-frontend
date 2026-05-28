@@ -191,12 +191,12 @@
         <div v-if="activeTab === 'favourites'" class="ps-me__panel">
           <div class="ps-me__panel-header">
             <p class="ps-me__panel-hint">{{ $t('personal_favorites_summary', { count: favouritesInfo.length, total: totalFavoriteCount }) }}</p>
-            <button class="basic-btn-outline ps-me__new-fav" @click="isCreating = true">
+            <button class="ps-me__new-fav" :disabled="isCreating || creatingFavorite" @click="isCreating = true">
               <AppIcon name="Add" :size="14" />
               {{ $t('create_favourites') }}
             </button>
           </div>
-          <AppCard class="ps-me__fav-wrap">
+          <div class="ps-me__fav-wrap">
             <FavouriteList
               :isCreating="isCreating"
               :favouritesInfo="favouritesInfo"
@@ -208,7 +208,7 @@
               :title="$t('personal_empty_favorites_title')"
               :description="$t('personal_empty_favorites_desc')"
             />
-          </AppCard>
+          </div>
         </div>
 
         <!-- Following: 使用原 FollowList 组件，保留 follow/unfollow 能力 -->
@@ -270,12 +270,15 @@ import { mockUser } from '../../mock/user'
 import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
 import {
-  buildFavoriteCreatePayload,
   buildInterestDeletePayload,
   buildProfileUpdatePayload,
-  extractCreatedFavorite,
   normalizeFavoriteName
 } from '../../utils/personal-page.mjs'
+import {
+  createFavoriteFolder,
+  refreshFavoriteFolders,
+  subscribeFavoriteFolders
+} from '../../utils/favorite-store.mjs'
 
 export default {
   name: 'PersonalHomepageView',
@@ -326,8 +329,11 @@ export default {
       interestOptions: [],
       savePersonalInfo: {},
       isCreating: false,
+      creatingFavorite: false,
       followingList: [],
       favouritesInfo: [],
+      unsubscribeFavorites: null,
+      subscribedFavoriteUserId: '',
       auditDetail: null,
       auditStatus: false,
       searchHistory: [],
@@ -369,6 +375,7 @@ export default {
   beforeUnmount() {
     this.$bus.off('sendFlushInterestRequest', this.flushInterets)
     this.$bus.off('sendFlushAuditStatusRequest', this.flushAuditStatus)
+    this.releaseFavoriteSubscription()
   },
   methods: {
     ensureLoggedIn() {
@@ -409,12 +416,22 @@ export default {
     },
     loadFavorites() {
       const userId = this.personalInfo.id || this.$cookies.get('user_id') || 0
-      User.getFavoriteList(userId).then(
-        (response) => {
-          this.favouritesInfo = (response && response.data) || []
-        },
-        () => {}
-      )
+      if (!userId) return
+      this.bindFavoriteSubscription(userId)
+      refreshFavoriteFolders(userId, { force: true }).then(() => {}, () => {})
+    },
+    bindFavoriteSubscription(userId) {
+      if (!userId || this.subscribedFavoriteUserId === String(userId)) return
+      this.releaseFavoriteSubscription()
+      this.subscribedFavoriteUserId = String(userId)
+      this.unsubscribeFavorites = subscribeFavoriteFolders(userId, (items) => {
+        this.favouritesInfo = items
+      })
+    },
+    releaseFavoriteSubscription() {
+      if (this.unsubscribeFavorites) this.unsubscribeFavorites()
+      this.unsubscribeFavorites = null
+      this.subscribedFavoriteUserId = ''
     },
     loadFollowing() {
       const userId = this.personalInfo.id || this.$cookies.get('user_id')
@@ -567,33 +584,26 @@ export default {
       this.isCreating = false
     },
     updateCreation(name) {
-      this.isCreating = false
       const normalizedName = normalizeFavoriteName(name)
       if (!normalizedName) {
         this.$bus.emit('message', { title: this.$t('favorite_name_required'), content: '', time: 1500 })
         return
       }
-      const optimisticId = 'F-pending-' + Date.now()
-      const optimisticFavorite = {
-        id: optimisticId,
-        name: normalizedName,
-        paper_ids: [],
-        showContextMenu: false,
-        pending: true
-      }
-      this.favouritesInfo.unshift(optimisticFavorite)
-      User.createFavorite(0, buildFavoriteCreatePayload(normalizedName)).then(
-        (res) => {
-          const index = this.favouritesInfo.findIndex((item) => item.id === optimisticId)
-          const created = extractCreatedFavorite(res, normalizedName, optimisticId)
-          if (index !== -1) this.favouritesInfo.splice(index, 1, created)
+      const userId = this.personalInfo.id || this.$cookies.get('user_id')
+      if (!userId || this.creatingFavorite) return
+      this.isCreating = false
+      this.creatingFavorite = true
+      this.bindFavoriteSubscription(userId)
+      createFavoriteFolder(userId, normalizedName).then(
+        (created) => {
           this.$bus.emit('message', { title: this.$t('favorite_created'), content: created.name, time: 1500 })
         },
         () => {
-          this.favouritesInfo = this.favouritesInfo.filter((item) => item.id !== optimisticId)
           this.$bus.emit('message', { title: this.$t('favorite_create_failed'), content: this.$t('common_retry_later'), time: 1500 })
         }
-      )
+      ).finally(() => {
+        this.creatingFavorite = false
+      })
     }
   }
 }
@@ -670,7 +680,9 @@ export default {
 
 .ps-me__file-input { display: none; }
 
-.ps-me__fav-wrap { padding: var(--ps-space-4) !important; }
+.ps-me__fav-wrap {
+  min-width: 0;
+}
 
 .ps-me__eyebrow {
   font-size: 11px;
@@ -935,9 +947,37 @@ export default {
 }
 
 .ps-me__new-fav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 36px;
+  padding: 0 var(--ps-space-4);
   gap: 6px;
+  border-radius: 8px;
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
   font-size: var(--ps-fs-sm);
+  font-weight: 700;
+  box-shadow: var(--ps-shadow-1);
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    transform var(--ps-motion-fast) var(--ps-ease-out),
+    box-shadow var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-me__new-fav:hover:not(:disabled) {
+  background: var(--ps-color-primary-strong);
+  box-shadow: var(--ps-shadow-violet);
+  transform: translateY(-1px);
+}
+
+.ps-me__new-fav:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--ps-shadow-1);
+}
+
+.ps-me__new-fav:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .ps-me__fav-grid {
@@ -1085,5 +1125,11 @@ export default {
     text-align: center;
   }
   .ps-me__follow-grid { grid-template-columns: 1fr; }
+  .ps-me__panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--ps-space-3);
+  }
+  .ps-me__new-fav { width: 100%; }
 }
 </style>

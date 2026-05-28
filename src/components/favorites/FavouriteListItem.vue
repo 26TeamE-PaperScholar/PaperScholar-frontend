@@ -1,41 +1,85 @@
 <template>
-    <div :class="[{'favorites-main-part': !isRenaming, 'favorites-main-part wider-card': isRenaming}]" 
-    @contextmenu.prevent="handleRightClick"
-    @click="handleClick">
-      <svg t="1701851520556" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1174" width="200" height="200"><path d="M296.96 943.9744a103.9872 103.9872 0 0 1-102.4-121.4976l28.0576-163.4816a42.3936 42.3936 0 0 0-12.1856-37.5296L91.8528 505.7024a103.8848 103.8848 0 0 1 57.5488-177.152l164.1472-23.8592A42.496 42.496 0 0 0 345.4976 281.6l73.3696-148.48a103.8336 103.8336 0 0 1 186.2656 0l73.4208 148.48a42.3936 42.3936 0 0 0 31.8976 23.1936l164.1472 23.8592a103.8848 103.8848 0 0 1 57.5488 177.152l-118.7328 115.7632a42.2912 42.2912 0 0 0-12.2368 37.5296l28.2624 163.3792A103.8336 103.8336 0 0 1 678.5536 931.84l-146.7904-76.8a42.3936 42.3936 0 0 0-39.4752 0l-146.8416 76.8a103.9872 103.9872 0 0 1-48.4864 12.1344z m215.04-807.68a41.6768 41.6768 0 0 0-38.0416 23.6544L400.5888 308.6848A104.0384 104.0384 0 0 1 322.56 365.5168L158.2592 389.12a42.3936 42.3936 0 0 0-23.5008 72.3456l118.7328 115.7632a104.0384 104.0384 0 0 1 29.9008 92.16l-28.0576 163.4304a42.3936 42.3936 0 0 0 61.44 44.7488l146.7904-77.2096a103.936 103.936 0 0 1 96.6656 0l146.7904 77.2096a42.4448 42.4448 0 0 0 61.44-44.7488l-28.0576-163.4304a104.0384 104.0384 0 0 1 29.9008-92.16l118.7328-115.7632A42.3936 42.3936 0 0 0 865.7408 389.12L701.44 365.5168a103.8848 103.8848 0 0 1-78.1824-56.832l-73.4208-148.48a41.6256 41.6256 0 0 0-37.8368-23.9104z" p-id="1175"></path><path d="M414.72 694.272h-3.5328a30.72 30.72 0 0 1-27.0336-34.048l7.0144-60.5184a33.8944 33.8944 0 0 0-10.24-28.1088l-42.5472-40.96A30.72 30.72 0 1 1 381.184 486.4l42.5984 40.96a95.6416 95.6416 0 0 1 28.6208 79.5136L445.44 667.0336a30.72 30.72 0 0 1-30.72 27.2384z" p-id="1176"></path></svg>
-      <div ref="name" class="favorites-main-part-name" v-if="!isRenaming">
-        {{ favourites.name }}
+    <article
+      class="favorites-main-part"
+      :class="{
+        'favorites-main-part--pending': favourites.pending,
+        'favorites-main-part--renaming': isRenaming
+      }"
+      role="button"
+      tabindex="0"
+      :aria-disabled="favourites.pending"
+      @contextmenu.prevent="handleRightClick"
+      @click="handleClick"
+      @keyup.enter.self="handleClick"
+    >
+      <div v-if="!isRenaming" class="favorites-main-part__actions">
+        <button
+          class="favorites-main-part__action-btn"
+          type="button"
+          :title="$t('rename')"
+          :aria-label="$t('rename')"
+          :disabled="favourites.pending"
+          @click.stop="triggerRename"
+        >
+          <AppIcon name="CreateOutline" :size="15" />
+        </button>
+        <button
+          class="favorites-main-part__action-btn favorites-main-part__action-btn--danger"
+          type="button"
+          :title="$t('delete')"
+          :aria-label="$t('delete')"
+          :disabled="favourites.pending"
+          @click.stop="triggerDelete"
+        >
+          <AppIcon name="TrashOutline" :size="15" />
+        </button>
       </div>
-      <div class="renaming-block" v-else> 
-        <input type="text" ref="nameInput" v-model="favourites.name" class="name-input" @click.stop>
-        <svg @click.stop="updateRenaming"
-        t="1702972632873" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4535" id="mx_n_1702972632874" width="200" height="200"><path d="M912 190h-69.9c-9.8 0-19.1 4.5-25.1 12.2L404.7 724.5 207 474c-6.1-7.7-15.3-12.2-25.1-12.2H112c-6.7 0-10.4 7.7-6.3 12.9l273.9 347c12.8 16.2 37.4 16.2 50.3 0l488.4-618.9c4.1-5.1 0.4-12.8-6.3-12.8z" p-id="4536"></path></svg>
-      </div>  
-    </div>
+      <span class="favorites-main-part__icon" aria-hidden="true">
+        <AppIcon name="BookmarksOutline" :size="38" />
+      </span>
+      <div class="favorites-main-part__body" v-if="!isRenaming">
+        <div ref="name" class="favorites-main-part-name">
+          {{ favourites.name }}
+        </div>
+        <span class="favorites-main-part__meta">{{ paperCountText }}</span>
+      </div>
+      <form class="renaming-block" v-else @submit.prevent="updateRenaming" @click.stop>
+        <input type="text" ref="nameInput" v-model="draftName" class="name-input" @keydown.esc="cancelRenaming">
+        <button class="renaming-confirm" type="submit" :aria-label="$t('personal_save')">
+          <AppIcon name="Checkmark" :size="18" />
+        </button>
+      </form>
+      <span v-if="favourites.pending" class="favorites-main-part__status">{{ $t('favorite_syncing') }}</span>
+    </article>
   
     <div 
         class="menu" 
         v-if="favourites.showContextMenu"
         :style="{ left: x + 'px', top: y + 'px'}"
       >
-        <button class="basic-btn block-btn" @click="triggerRename">{{ $t('rename') }}</button>
-        <button class="basic-btn block-btn" @click="triggerDelete">{{ $t('delete') }}</button>
+        <button class="basic-btn block-btn" @click.stop="triggerRename">{{ $t('rename') }}</button>
+        <button class="basic-btn block-btn" @click.stop="triggerDelete">{{ $t('delete') }}</button>
     </div>
 </template>
 
 <script>
-import { User } from '../../api/users.js'
+import { normalizeFavoriteName } from '../../utils/personal-page.mjs'
+import { AppIcon } from '../ui'
 
 export default {
   
   name: 'FavouriteListItem',
-  props: ['favourites'],
+  components: { AppIcon },
+  props: {
+    favourites: { type: Object, default: () => ({}) }
+  },
   emits: {
     deleteFavourites: null,
     cancelCreation: null,
     moveFavourites: null,
     IWantToShow: null,
-    showFavoriteDetail: null
+    showFavoriteDetail: null,
+    renameFavourites: null
   },
     data() {
       return {
@@ -44,6 +88,7 @@ export default {
         y: 0,
         moveVisible: false,
         isRenaming: false,
+        draftName: '',
       }
     },
     mounted() {
@@ -60,16 +105,16 @@ export default {
     },
     methods: {
       handleClick() {
+        if (this.isRenaming || this.favourites.pending) return
         this.$emit('showFavoriteDetail')
       },
       handleRightClick(event) {
+        if (this.favourites.pending) return
         // console.log("111")
         // this.showContextMenu = true
         this.$emit('IWantToShow')
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop
-        this.x = event.clientX + scrollX
-        this.y = event.clientY + scrollY
+        this.x = event.clientX
+        this.y = event.clientY
         // console.log(this.showContextMenu)
         // console.log(this.x)
         // console.log(this.y)
@@ -81,6 +126,8 @@ export default {
         this.$emit('deleteFavourites')
       },
       triggerRename() {
+        if (this.favourites.pending) return
+        this.draftName = this.favourites.name
         this.isRenaming = true
         this.$nextTick(() => {
           this.$refs.nameInput.focus()
@@ -88,25 +135,18 @@ export default {
       },
       updateRenaming() {
         this.isRenaming = false
-        let data = {
-          name: this.favourites.name
-        }
-        // console.log("222")
-        // console.log(this.favourites.id)
-        // console.log(data)
-        // 调用接口
-        User.renameFavorite(this.favourites.id, data).then(
-          (response) => {
-            console.log(response)
-          },
-          (error) => {
-            console.log(error)
-          }
-        )
+        const name = normalizeFavoriteName(this.draftName)
+        if (!name || name === this.favourites.name) return
+        this.$emit('renameFavourites', name)
+      },
+      cancelRenaming() {
+        this.isRenaming = false
       }
     },
     computed: {
-    
+      paperCountText() {
+        return this.$t('favorite_paper_count', { count: (this.favourites.paper_ids || []).length })
+      }
   }
 }
 
@@ -115,111 +155,184 @@ export default {
 <style scoped>
   .favorites-main-part,
   .favorites-main-part * {
-    transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: background var(--ps-motion-fast) var(--ps-ease-out),
+      color var(--ps-motion-fast) var(--ps-ease-out),
+      border-color var(--ps-motion-fast) var(--ps-ease-out),
+      transform var(--ps-motion-fast) var(--ps-ease-out),
+      box-shadow var(--ps-motion-fast) var(--ps-ease-out);
   }
     .favorites-main-part {
-        /* border: 2px solid blue; */
-        flex: 0 0 auto;
-        width: 190px;
-        height: 150px;
-        border-radius: 10px;
-        background-color: var(--theme-color-60);
-        font-size: 20px;
-        text-align: center;
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: var(--ps-space-3);
+        width: 100%;
+        min-height: var(--favorite-card-height, 168px);
+        padding: var(--ps-space-7) var(--ps-space-4) var(--ps-space-4);
+        border: 1px solid var(--ps-border-1);
+        border-radius: 8px;
+        background: var(--ps-bg-elevated);
+        color: var(--ps-text-1);
+        text-align: left;
         cursor: pointer;
-        margin-top: 10px;
-        margin-right: 20px;
+        box-shadow: var(--ps-shadow-1);
+        overflow: hidden;
     }
     .favorites-main-part:hover{
-      background: var(--theme-color);
+      border-color: var(--ps-color-primary);
+      background: var(--ps-color-primary-soft);
+      transform: translateY(-1px);
+      box-shadow: var(--ps-shadow-2);
     }
-    /* 卡片底为半透明品牌紫，全局 --theme-mode 在暗色下等于页面底色（近黑），不能用作前景色 */
-    .favorites-main-part > .icon {
-      width: 100px;
-      height: 100px;
-      margin-top: 10px;
-      fill: var(--ps-text-inverse) !important;
+
+    .favorites-main-part--pending {
+      cursor: wait;
+      opacity: 0.72;
     }
+
+    .favorites-main-part__actions {
+      position: absolute;
+      top: var(--ps-space-2);
+      right: var(--ps-space-2);
+      z-index: 2;
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .favorites-main-part__action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--ps-border-1);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--ps-bg-elevated) 92%, transparent);
+      color: var(--ps-text-2);
+      box-shadow: var(--ps-shadow-1);
+    }
+
+    .favorites-main-part__action-btn:hover:not(:disabled) {
+      border-color: var(--ps-color-primary);
+      background: var(--ps-bg-elevated);
+      color: var(--ps-color-primary);
+      transform: translateY(-1px);
+    }
+
+    .favorites-main-part__action-btn--danger:hover:not(:disabled) {
+      border-color: var(--ps-color-danger);
+      color: var(--ps-color-danger);
+    }
+
+    .favorites-main-part__action-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .favorites-main-part__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      color: var(--ps-color-primary);
+      background: var(--ps-color-primary-soft);
+    }
+
+    .favorites-main-part__body {
+      min-width: 0;
+    }
+
+    .favorites-main-part--renaming {
+      grid-template-columns: 1fr;
+      padding-top: var(--ps-space-4);
+    }
+
     .favorites-main-part .favorites-main-part-name {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      max-width: 160px;
-      min-height: 44px;
-      margin: 0 auto;
-      padding: 0 8px;
-      color: var(--ps-text-inverse);
-      font-size: 16px;
+      color: var(--ps-text-1);
+      font-size: var(--ps-fs-base);
+      font-weight: 700;
       line-height: 1.35;
       overflow: hidden;
       overflow-wrap: anywhere;
       text-overflow: ellipsis;
     }
-    .favorites-main-part:hover .favorites-main-part-name {
-      font-weight: bold;
-    }
-  .menu {
-  /* width: 80px; */
-  /* height: 90px; */
-  padding: 10px;
-  background: var(--theme-mode-like);
-  /* border: 2px solid rgba(199, 29, 35, 1); */
-  box-shadow: 1px 1px 10px grey;
-  border-radius: 5px;
-  position: absolute;
-}
 
-.menu button:first-child {
-  margin-bottom: 10px;
+    .favorites-main-part__meta,
+    .favorites-main-part__status {
+      display: inline-flex;
+      margin-top: 6px;
+      color: var(--ps-text-3);
+      font-size: var(--ps-fs-xs);
+      line-height: 1.3;
+    }
+
+  .menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ps-space-2);
+  min-width: 108px;
+  padding: var(--ps-space-2);
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-1);
+  box-shadow: var(--ps-shadow-3);
+  border-radius: 8px;
+  position: fixed;
+  z-index: 1200;
 }
 
 .block-btn {
-  display: block;
+  display: flex;
+  width: 100%;
+  height: 32px;
+  padding: 0 var(--ps-space-3);
+  border-radius: 6px;
+  font-size: var(--ps-fs-xs);
 }
 
 .renaming-block {
   display: flex;
-  width: 90%;
-  height: 30px;
-  margin: 0 auto;
-  justify-content: space-around;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  gap: var(--ps-space-2);
   align-items: center;
 }
 
 .renaming-block input {
-  width: 80%;
-  height: 30px;
+  flex: 1;
+  min-width: 0;
+  height: 36px;
   box-sizing: border-box;
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--ps-text-inverse) 42%, transparent);
-  color: var(--ps-text-inverse);
-  font-size: 16px;
-  padding: 0 5px;
-  border-radius: 5px;
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-border-2);
+  color: var(--ps-text-1);
+  font-size: var(--ps-fs-sm);
+  padding: 0 var(--ps-space-2);
+  border-radius: 6px;
 }
 
 .name-input:focus {
-  outline: 2px solid color-mix(in srgb, var(--ps-text-inverse) 65%, transparent);
+  outline: 0;
+  border-color: var(--ps-color-primary);
+  box-shadow: var(--ps-shadow-focus);
 }
 
-.renaming-block svg {
-  width: 30px;
-  height: 30px;
-  margin-bottom: 10px;
-  fill: var(--ps-text-inverse);
-}
-
-
-
-.button-row {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 10px;
-}
-
-.wider-card {
-  width: 300px;
-  background: var(--theme-color);
+.renaming-confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--ps-color-primary);
+  color: var(--ps-text-inverse);
 }
 
 </style>

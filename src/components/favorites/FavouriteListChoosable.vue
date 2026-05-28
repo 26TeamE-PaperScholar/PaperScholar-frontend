@@ -1,5 +1,5 @@
 <template>
-  <div class="favourite-list" ref="container">
+  <div class="favourite-list" :class="{ 'favourite-list--loading': loadingFavorites }" ref="container">
     <CreateFavourite
       v-if="isCreating"
       @cancelCreation="cancelCreation"
@@ -7,26 +7,51 @@
     >
     </CreateFavourite>
     <FavouriteListItemChoosable 
-      v-for="(info, index) in favouritesInfo" :key="index"
+      v-for="(info, index) in favouritesInfo" :key="info.id || index"
       :favourites="favouritesInfo[index]" 
+      :paperId="paperId"
+      :busy="choosingFavoriteId === String(info.id)"
       @IWantToShow="letItShow(index)"
       @deleteFavourites="handleDelete(index)"
+      @renameFavourites="handleRename(index, $event)"
       @choose="moveToList(index)"
     />
   </div>
+  <FavoriteDeleteConfirmModal
+    :show="deleteConfirmShouldShow"
+    :favoriteName="favoriteToDelete.name"
+    :paperCount="favoritePaperCount(favoriteToDelete)"
+    :deleting="deletingFavoriteId === String(favoriteToDelete.id || '')"
+    @close="cancelDeleteConfirm"
+    @confirm="confirmDeleteFavorite"
+  />
 </template>
 
 <script>
 import CreateFavourite from './CreateFavourite.vue'
 import FavouriteListItemChoosable from './FavouriteListItemChoosable.vue'
-import { User } from '../../api/users.js'
+import FavoriteDeleteConfirmModal from '../modals/FavoriteDeleteConfirmModal.vue'
+import { favoritePaperCountOf, normalizeFavoriteId, paperIdOf } from '../../utils/personal-page.mjs'
+import {
+  deleteFavoriteFolder,
+  movePaperToFavorite,
+  renameFavoriteFolder,
+  resolveFavoriteFolderPaperCount
+} from '../../utils/favorite-store.mjs'
 // import FavorateContentModal from '../modals/FavorateContentModal.vue'
 export default {
   name: 'FavoriteListChoosable',
-  props: ['isCreating', 'favouritesInfo', 'fid', 'paperId'],
+  props: {
+    isCreating: { type: Boolean, default: false },
+    favouritesInfo: { type: Array, default: () => [] },
+    fid: { type: [String, Number], default: '' },
+    paperId: { type: [String, Number], default: '' },
+    loadingFavorites: { type: Boolean, default: false }
+  },
   components: {
     FavouriteListItemChoosable,
     CreateFavourite,
+    FavoriteDeleteConfirmModal,
     // FavorateContentModal
   },
   emits: {
@@ -41,29 +66,83 @@ export default {
         name: '',
         id: '',
       },
-      favorateContentModalShouldShow: false
+      favorateContentModalShouldShow: false,
+      choosingFavoriteId: '',
+      favoriteToDelete: {},
+      deleteConfirmShouldShow: false,
+      deletingFavoriteId: '',
+      checkingFavoriteId: ''
     }
   },
   mounted() {
     window.addEventListener('click', this.closeAllContextMenu)
-    this.$refs.container.addEventListener('wheel', this.changeScrollOrient)
   },
   beforeUnmount() {
     window.removeEventListener('click', this.closeAllContextMenu)
-    this.$refs.container.removeEventListener('wheel', this.changeScrollOrient)
   },
   methods: {
     handleDelete(index) {
-      console.log("111")
-      User.deleteFavorite(this.favouritesInfo[index].id).then(
-          (response) => {
-            console.log(response)
-          },
-          (error) => {
-            console.log(error)
+      this.closeAllContextMenu()
+      const userId = this.$cookies.get('user_id')
+      const favorite = this.favouritesInfo[index]
+      const favoriteId = favorite && favorite.id
+      if (!userId || !favorite || favorite.pending || this.deletingFavoriteId || this.checkingFavoriteId) return
+      this.checkingFavoriteId = String(favoriteId)
+      resolveFavoriteFolderPaperCount(favorite).then((count) => {
+        if (this.checkingFavoriteId !== String(favoriteId)) return
+        if (count > 0) {
+          this.favoriteToDelete = { ...favorite, paper_count: count }
+          this.deleteConfirmShouldShow = true
+          return
+        }
+        this.deleteFavoriteNow(favorite, false)
+      }).finally(() => {
+        if (this.checkingFavoriteId === String(favoriteId)) this.checkingFavoriteId = ''
+      })
+    },
+    favoritePaperCount(favorite) {
+      return favoritePaperCountOf(favorite)
+    },
+    cancelDeleteConfirm() {
+      if (this.deletingFavoriteId) return
+      this.deleteConfirmShouldShow = false
+      this.favoriteToDelete = {}
+    },
+    confirmDeleteFavorite() {
+      if (!this.favoriteToDelete || !this.favoriteToDelete.id) return
+      this.deleteFavoriteNow(this.favoriteToDelete, true)
+    },
+    deleteFavoriteNow(favorite, force) {
+      const userId = this.$cookies.get('user_id')
+      if (!userId || !favorite || !favorite.id || this.deletingFavoriteId) return
+      this.deletingFavoriteId = String(favorite.id)
+      deleteFavoriteFolder(userId, favorite.id, { force }).then(
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_deleted'), content: favorite.name, time: 1500 })
+          if (this.favoriteToDelete && String(this.favoriteToDelete.id) === String(favorite.id)) {
+            this.deleteConfirmShouldShow = false
+            this.favoriteToDelete = {}
           }
-        )
-      this.favouritesInfo.splice(index, 1)
+        },
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_delete_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
+      ).finally(() => {
+        this.deletingFavoriteId = ''
+      })
+    },
+    handleRename(index, name) {
+      const userId = this.$cookies.get('user_id')
+      const favorite = this.favouritesInfo[index]
+      if (!userId || !favorite || favorite.pending) return
+      renameFavoriteFolder(userId, favorite.id, name).then(
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_renamed'), content: name, time: 1500 })
+        },
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_rename_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
+      )
     },
     letItShow(index) {
       this.favouritesInfo[index].showContextMenu = true
@@ -84,32 +163,35 @@ export default {
     updateCreation(name) {
       this.$emit('updateCreation', name)
     },
-    changeScrollOrient(e) {
-      if (e.deltaX === 0 && Math.abs(e.deltaY) > 80) {
-        e.preventDefault()
-        this.$refs.container.scrollLeft += e.deltaY * 2
-      }
-    },
     showFavoriteDetail(index) {
       this.favorateContentModalShouldShow = true
     },
+    favoriteContainsPaper(favorite) {
+      const paperId = paperIdOf(this.paperId)
+      return Boolean(paperId && favorite && (favorite.paper_ids || []).map(String).includes(String(paperId)))
+    },
     moveToList(index) {
-      // ===============================
-      // 【真正实现移动收藏内容的方法】
-      // 方法含义参见 alert 内容
-      // ===============================
-      User.collectFavorite(this.favouritesInfo[index].id, {
-        paper_id: this.paperId
-      }).then(
-        (response) => {
-          // User.deleteFavorite(this.fid)
-          // alert('将学术成果(id: ' + this.paperId + ')移动到' + 
-          // '收藏夹(id: ' + this.favouritesInfo[index].id + ')')
+      const userId = this.$cookies.get('user_id')
+      const favorite = this.favouritesInfo[index]
+      const targetId = normalizeFavoriteId(favorite && favorite.id)
+      const sourceId = normalizeFavoriteId(this.fid)
+      if (!userId || !favorite || favorite.pending || !this.paperId || !targetId || this.choosingFavoriteId) return
+      if (this.favoriteContainsPaper(favorite) && (!sourceId || sourceId === targetId)) {
+        this.$bus.emit('message', { title: this.$t('favorite_already_collected'), content: favorite.name, time: 1500 })
+        return
+      }
+      this.choosingFavoriteId = targetId
+      movePaperToFavorite(userId, favorite.id, this.paperId, this.fid).then(
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_collect_success'), content: favorite.name, time: 1500 })
+          this.$emit('chooseList', favorite)
         },
-        (error) => {
-          console.log(error)
+        () => {
+          this.$bus.emit('message', { title: this.$t('favorite_collect_failed'), content: this.$t('common_retry_later'), time: 1800 })
         }
-      )
+      ).finally(() => {
+        this.choosingFavoriteId = ''
+      })
     }
   }
 }
@@ -117,10 +199,28 @@ export default {
 
 <style scoped>
 .favourite-list {
-  display: flex;
-  overflow-x: auto;
+  --favorite-card-min: 148px;
+  --favorite-card-height: 156px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--favorite-card-min), 1fr));
+  gap: var(--ps-space-4);
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  max-height: min(54vh, 480px);
+  overflow-y: auto;
+  padding: 2px;
 }
-.favourite-list::-webkit-scrollbar {
-  display: none;
+
+.favourite-list--loading {
+  opacity: 0.72;
+}
+
+@media screen and (max-width: 520px) {
+  .favourite-list {
+    --favorite-card-min: 132px;
+    max-height: 52vh;
+    gap: var(--ps-space-3);
+  }
 }
 </style>

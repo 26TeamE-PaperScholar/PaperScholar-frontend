@@ -172,9 +172,13 @@ export function buildProfileUpdatePayload(personalInfo) {
 }
 
 export function normalizeFavoriteChoices(items) {
-  return (items || []).map((item) => ({
+  return normalizeFavoriteList(items).map((item) => ({
     id: item.id,
-    name: item.name
+    name: item.name,
+    pending: !!item.pending,
+    paper_ids: [...(item.paper_ids || [])],
+    paper_count: item.paper_count || 0,
+    showContextMenu: !!item.showContextMenu
   }))
 }
 
@@ -188,6 +192,200 @@ export function normalizeFavoriteName(name) {
 
 export function buildFavoriteCreatePayload(name) {
   return { name: normalizeFavoriteName(name) }
+}
+
+export function buildFavoriteCollectPayload(paperId) {
+  return { paper_id: String(paperId || '').trim() }
+}
+
+export function unwrapApiPayload(response) {
+  const raw = response && typeof response === 'object' && Object.prototype.hasOwnProperty.call(response, 'data')
+    ? response.data
+    : response
+  if (!raw || Array.isArray(raw) || typeof raw !== 'object') return raw
+  if (
+    Object.prototype.hasOwnProperty.call(raw, 'data') &&
+    (Object.prototype.hasOwnProperty.call(raw, 'code') ||
+      Object.prototype.hasOwnProperty.call(raw, 'message') ||
+      Array.isArray(raw.data) ||
+      (raw.data && typeof raw.data === 'object'))
+  ) {
+    return raw.data
+  }
+  return raw
+}
+
+export function normalizeFavoriteId(value) {
+  if (value == null) return ''
+  return String(value).trim()
+}
+
+export function favoriteIdOf(item) {
+  if (!item || typeof item !== 'object') return ''
+  return normalizeFavoriteId(
+    item.id ??
+      item.favorite_id ??
+      item.favoriteId ??
+      item.folder_id ??
+      item.folderId ??
+      item.pk ??
+      item.uuid ??
+      item.slug
+  )
+}
+
+export function paperIdOf(item) {
+  if (!item || typeof item !== 'object') return normalizeFavoriteId(item)
+  return normalizeFavoriteId(
+    item.id ??
+      item.paper_id ??
+      item.paperId ??
+      item.openalex_id ??
+      item.openalexId ??
+      item.work_id ??
+      item.workId ??
+      (item.ids && item.ids.openalex)
+  )
+}
+
+export function normalizePaperIds(item) {
+  const raw = item && typeof item === 'object'
+    ? (item.paper_ids || item.paperIds || item.paper_id_list || item.paperIdList || [])
+    : []
+  const ids = Array.isArray(raw) ? raw.map(paperIdOf) : []
+  if (item && Array.isArray(item.papers)) ids.push(...item.papers.map(paperIdOf))
+  const seen = new Set()
+  return ids.filter((id) => {
+    if (!id || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
+export function favoritePaperCountOf(item) {
+  if (!item || typeof item !== 'object') return 0
+  const ids = normalizePaperIds(item)
+  const rawCount = item.paper_count ??
+    item.paperCount ??
+    item.papers_count ??
+    item.papersCount ??
+    item.work_count ??
+    item.workCount ??
+    item.works_count ??
+    item.worksCount ??
+    item.total_papers ??
+    item.totalPapers
+  const count = Number(rawCount)
+  return Math.max(ids.length, Number.isFinite(count) && count > 0 ? count : 0)
+}
+
+function favoriteListFromPayload(payload) {
+  if (Array.isArray(payload)) return payload
+  if (!payload || typeof payload !== 'object') return []
+  const candidates = [
+    payload.items,
+    payload.results,
+    payload.favorites,
+    payload.favourites,
+    payload.favorite_list,
+    payload.favourite_list,
+    payload.list,
+    payload.data
+  ]
+  return candidates.find(Array.isArray) || []
+}
+
+export function normalizeFavoriteItem(item, fallback = {}) {
+  const source = item && typeof item === 'object' ? item : {}
+  const fallbackSource = fallback && typeof fallback === 'object' ? fallback : {}
+  const id = favoriteIdOf(source) || favoriteIdOf(fallbackSource)
+  const name = normalizeFavoriteName(
+    source.name ??
+      source.title ??
+      source.folder_name ??
+      source.folderName ??
+      fallbackSource.name ??
+      fallbackSource.title
+  )
+  return {
+    ...source,
+    id,
+    name,
+    paper_ids: normalizePaperIds(source).length ? normalizePaperIds(source) : normalizePaperIds(fallbackSource),
+    paper_count: Math.max(favoritePaperCountOf(source), favoritePaperCountOf(fallbackSource)),
+    showContextMenu: !!source.showContextMenu,
+    pending: !!source.pending
+  }
+}
+
+export function normalizeFavoriteList(items) {
+  const seenIds = new Set()
+  const seenAnonymous = new Set()
+  return favoriteListFromPayload(items)
+    .map((item) => normalizeFavoriteItem(item))
+    .filter((item) => item.id || item.name)
+    .filter((item) => {
+      if (item.id) {
+        if (seenIds.has(item.id)) return false
+        seenIds.add(item.id)
+        return true
+      }
+      const anonymousKey = item.name.toLowerCase()
+      if (seenAnonymous.has(anonymousKey)) return false
+      seenAnonymous.add(anonymousKey)
+      return true
+    })
+}
+
+export function normalizeFavoriteListResponse(response) {
+  return normalizeFavoriteList(unwrapApiPayload(response))
+}
+
+export function upsertFavoriteInList(list, favorite) {
+  const normalized = normalizeFavoriteItem(favorite)
+  if (!normalized.id && !normalized.name) return normalizeFavoriteList(list)
+  const items = normalizeFavoriteList(list)
+  const index = normalized.id
+    ? items.findIndex((item) => item.id === normalized.id)
+    : items.findIndex((item) => !item.id && item.name.toLowerCase() === normalized.name.toLowerCase())
+  if (index === -1) return [normalized, ...items]
+  const next = [...items]
+  next.splice(index, 1, {
+      ...items[index],
+      ...normalized,
+      paper_ids: normalized.paper_ids.length ? normalized.paper_ids : items[index].paper_ids,
+      paper_count: Math.max(normalized.paper_count || 0, items[index].paper_count || 0)
+    })
+  return normalizeFavoriteList(next)
+}
+
+export function replaceFavoriteInList(list, oldId, favorite) {
+  const normalized = normalizeFavoriteItem(favorite)
+  const targetId = normalizeFavoriteId(oldId)
+  const items = normalizeFavoriteList(list).filter((item) => !targetId || item.id !== targetId)
+  return upsertFavoriteInList(items, normalized)
+}
+
+export function removeFavoriteFromList(list, favoriteId) {
+  const targetId = normalizeFavoriteId(favoriteId)
+  return normalizeFavoriteList(list).filter((item) => item.id !== targetId)
+}
+
+export function setFavoritePaperMembership(list, favoriteId, paperId, shouldContain) {
+  const targetId = normalizeFavoriteId(favoriteId)
+  const normalizedPaperId = paperIdOf(paperId)
+  if (!targetId || !normalizedPaperId) return normalizeFavoriteList(list)
+  return normalizeFavoriteList(list).map((item) => {
+    if (item.id !== targetId) return item
+    const paperIds = new Set(item.paper_ids || [])
+    if (shouldContain) paperIds.add(normalizedPaperId)
+    else paperIds.delete(normalizedPaperId)
+    return {
+      ...item,
+      paper_ids: Array.from(paperIds),
+      paper_count: paperIds.size
+    }
+  })
 }
 
 export function normalizeInterestName(name) {
@@ -311,12 +509,33 @@ export function buildInterestDeletePayload(interest, interestList = []) {
 }
 
 export function extractCreatedFavorite(response, fallbackName, fallbackId = '') {
-  const data = (response && response.data) || {}
-  const item = data.favorite || data.item || data
+  const data = unwrapApiPayload(response) || {}
+  const item = data.favorite || data.favourite || data.item || data.folder || data
+  return normalizeFavoriteItem(item, {
+    id: fallbackId,
+    name: fallbackName,
+    paper_ids: []
+  })
+}
+
+export function extractFavoriteDetail(response, fallbackId = '') {
+  const data = unwrapApiPayload(response) || {}
+  const item = data.favorite || data.favourite || data.item || data.folder || data
+  const favorite = normalizeFavoriteItem(item, { id: fallbackId, paper_ids: normalizePaperIds(data) })
+  const papers = [
+    item.papers,
+    item.works,
+    item.items,
+    data.papers,
+    data.works,
+    data.items
+  ].find(Array.isArray) || []
   return {
-    id: item.id || fallbackId,
-    name: item.name || normalizeFavoriteName(fallbackName),
-    paper_ids: item.paper_ids || [],
-    showContextMenu: false
+    favorite,
+    papers: papers.map((paper) => ({
+      ...paper,
+      id: paperIdOf(paper),
+      favorite_id: favorite.id
+    })).filter((paper) => paper.id)
   }
 }

@@ -71,9 +71,19 @@
             <span class="ps-paper__stat-label">{{ $t('paper_related_work') }}</span>
           </div>
           <div class="ps-paper__action-row">
-            <button class="ps-paper__action ps-paper__action--gold" @click="collectPaper">
-              <AppIcon name="Bookmark" :size="16" />
-              {{ $t('paper_collect') }}
+            <button
+              class="ps-paper__action ps-paper__action--gold"
+              :class="{ 'ps-paper__action--collected': isPaperCollected }"
+              :disabled="favoriteStateLoading"
+              :title="isPaperCollected ? $t('paper_uncollect') : $t('paper_collect')"
+              :aria-label="isPaperCollected ? $t('paper_uncollect') : $t('paper_collect')"
+              @click="collectPaper"
+            >
+              <AppIcon :name="isPaperCollected ? 'Bookmark' : 'BookmarkOutline'" :size="16" />
+              <span class="ps-paper__action-copy">
+                <span class="ps-paper__action-label">{{ isPaperCollected ? $t('paper_collected') : $t('paper_collect') }}</span>
+                <span v-if="isPaperCollected" class="ps-paper__action-meta">{{ $t('favorite_in_folders', { count: collectedFolderCount }) }}</span>
+              </span>
             </button>
             <button class="ps-paper__action" @click="citePaper">
               <AppIcon name="Create" :size="16" />
@@ -87,7 +97,9 @@
               <AppIcon name="SparklesOutline" :size="16" />
               {{ $t('paper_use_ai') }}
             </button>
-            <AddToCompareButton :paper="paperForCompare" size="md" />
+            <span class="ps-paper__compare-action">
+              <AddToCompareButton :paper="paperForCompare" size="md" />
+            </span>
           </div>
         </aside>
       </div>
@@ -223,7 +235,8 @@ import ChooseFavoriteModal from '../../components/modals/ChooseFavoriteModal.vue
 import CiteModal from '../../components/modals/CiteModal.vue'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppBreadcrumb } from '../../components/ui'
 import AddToCompareButton from '../../components/compare/AddToCompareButton.vue'
-import { authorIdOf, authorNameOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
+import { authorIdOf, authorNameOf, paperIdOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
+import { refreshFavoriteFolders, removePaperFromFavorite, subscribeFavoriteFolders } from '../../utils/favorite-store.mjs'
 
 export default {
   name: 'PaperDetailView',
@@ -261,7 +274,11 @@ export default {
       cited_by_count: 0,
       isOpenAccess: false,
       notFound: false,
-      loadError: false
+      loadError: false,
+      favoriteFolders: [],
+      favoriteStateLoading: false,
+      unsubscribeFavorites: null,
+      subscribedFavoriteUserId: ''
     }
   },
   watch: {
@@ -300,7 +317,27 @@ export default {
         title: this.title,
         publication_year: this.date ? Number(String(this.date).slice(0, 4)) : null
       }
+    },
+    collectedFavoriteFolders() {
+      const paperId = paperIdOf(this.paperId)
+      if (!paperId) return []
+      return this.favoriteFolders.filter((folder) => {
+        if (!folder || !folder.id || folder.pending) return false
+        return (folder.paper_ids || []).map(String).includes(String(paperId))
+      })
+    },
+    collectedFolderCount() {
+      return this.collectedFavoriteFolders.length
+    },
+    isPaperCollected() {
+      return this.collectedFolderCount > 0
     }
+  },
+  mounted() {
+    this.loadFavoriteState()
+  },
+  beforeUnmount() {
+    this.releaseFavoriteSubscription()
   },
   methods: {
     getPaperDetail() {
@@ -312,6 +349,7 @@ export default {
         this.notFound = true
         return
       }
+      this.loadFavoriteState()
       Search.workRetrieve(id).then(
         (response) => {
           const data = (response && response.data) || {}
@@ -366,7 +404,66 @@ export default {
         () => {}
       )
     },
-    collectPaper() { this.collectModalShouldShow = true },
+    currentUserId() {
+      return this.$cookies.get('user_id')
+    },
+    bindFavoriteSubscription(userId) {
+      if (!userId || this.subscribedFavoriteUserId === String(userId)) return
+      this.releaseFavoriteSubscription()
+      this.subscribedFavoriteUserId = String(userId)
+      this.unsubscribeFavorites = subscribeFavoriteFolders(userId, (items) => {
+        this.favoriteFolders = items
+      })
+    },
+    releaseFavoriteSubscription() {
+      if (this.unsubscribeFavorites) this.unsubscribeFavorites()
+      this.unsubscribeFavorites = null
+      this.subscribedFavoriteUserId = ''
+      this.favoriteFolders = []
+    },
+    loadFavoriteState() {
+      const userId = this.currentUserId()
+      if (!userId) {
+        this.releaseFavoriteSubscription()
+        return
+      }
+      this.bindFavoriteSubscription(userId)
+      this.favoriteStateLoading = true
+      refreshFavoriteFolders(userId, { force: true }).then(
+        () => {},
+        () => {}
+      ).finally(() => {
+        this.favoriteStateLoading = false
+      })
+    },
+    async collectPaper() {
+      if (this.favoriteStateLoading) return
+      const userId = this.currentUserId()
+      if (!userId) {
+        this.$bus.emit('message', { title: this.$t('login_text'), content: this.$t('personal_login_required_content'), time: 1600 })
+        return
+      }
+      this.bindFavoriteSubscription(userId)
+      if (this.isPaperCollected) {
+        const paperId = paperIdOf(this.paperId)
+        const folders = this.collectedFavoriteFolders.slice()
+        if (!paperId || !folders.length) return
+        this.favoriteStateLoading = true
+        try {
+          await Promise.all(folders.map((folder) => removePaperFromFavorite(userId, folder.id, paperId)))
+          this.$bus.emit('message', { title: this.$t('paper_uncollected'), content: this.title || '', time: 1500 })
+          try {
+            await refreshFavoriteFolders(userId, { force: true })
+          } catch (e) {}
+        } catch (e) {
+          this.$bus.emit('message', { title: this.$t('favorite_remove_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        } finally {
+          this.favoriteStateLoading = false
+        }
+        return
+      }
+      this.collectModalShouldShow = true
+    },
     citePaper() { this.citeModalShouldShow = true },
     sharePaper() {
       try {
@@ -481,7 +578,7 @@ export default {
 
 .ps-paper__hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 280px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
   gap: var(--ps-space-7);
   align-items: flex-start;
 }
@@ -549,61 +646,167 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--ps-space-3);
+  min-width: 0;
 }
 
 .ps-paper__stat {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 6px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ps-space-3);
+  min-height: 42px;
+  padding: 0 0 var(--ps-space-3);
   border-bottom: 1px dashed var(--ps-hero-divider);
 }
 
-.ps-paper__stat:last-of-type { border: 0; }
+.ps-paper__stat:last-of-type {
+  border: 0;
+  padding-bottom: 0;
+}
 
 .ps-paper__stat-num {
-  font-family: var(--ps-font-display);
-  font-size: var(--ps-fs-xl);
-  font-weight: 700;
+  min-width: 0;
+  font-family: var(--ps-font-sans);
+  font-size: var(--ps-fs-lg);
+  font-weight: 750;
+  line-height: 1.2;
   color: var(--ps-hero-text-strong);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .ps-paper__stat-label {
-  font-size: 11px;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
+  font-size: var(--ps-fs-xs);
+  font-weight: 650;
+  line-height: 1.2;
   color: var(--ps-hero-eyebrow);
+  text-align: right;
+  white-space: nowrap;
 }
 
 .ps-paper__action-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-top: var(--ps-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ps-space-2);
+  margin-top: var(--ps-space-2);
 }
 
 .ps-paper__action {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 8px;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--ps-space-3);
   background: var(--ps-hero-action-bg);
   border: 1px solid var(--ps-hero-action-border);
-  border-radius: var(--ps-radius-md);
+  border-radius: var(--ps-radius-sm);
   color: var(--ps-hero-text-strong);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ps-fs-xs);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
   cursor: pointer;
-  transition: background var(--ps-motion-fast) var(--ps-ease-out);
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    border-color var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out);
 }
 
 .ps-paper__action:hover { background: var(--ps-hero-action-bg-hover); }
+
+.ps-paper__action:disabled {
+  cursor: wait;
+  opacity: 0.64;
+}
+
+.ps-paper__action-copy {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.ps-paper__action-label,
+.ps-paper__action-meta {
+  display: block;
+  max-width: 100%;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ps-paper__action-label {
+  font-size: var(--ps-fs-xs);
+  font-weight: 700;
+}
+
+.ps-paper__action-meta {
+  color: currentColor;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+.ps-paper__compare-action {
+  display: block;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.ps-paper__action-row :deep(.ps-compare-add) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--ps-space-3);
+  border-radius: var(--ps-radius-sm);
+  border-color: var(--ps-hero-action-border);
+  background: var(--ps-hero-action-bg);
+  color: var(--ps-hero-text-strong);
+  font-size: var(--ps-fs-xs);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+.ps-paper__action-row :deep(.ps-compare-add:hover:not(:disabled)) {
+  border-color: var(--ps-color-primary);
+  background: var(--ps-hero-action-bg-hover);
+  color: var(--ps-color-primary);
+}
+
+.ps-paper__action-row :deep(.ps-compare-add--active) {
+  background: var(--ps-color-warning-soft);
+  border-color: var(--ps-color-warning);
+  color: var(--ps-color-warning-strong);
+}
+
+.ps-paper__action-row :deep(.ps-compare-add--locked) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ps-paper__action-row :deep(.ps-compare-add__label) {
+  line-height: 1.2;
+}
 
 .ps-paper__action--gold {
   background: rgba(212, 175, 55, 0.18);
   border-color: rgba(212, 175, 55, 0.5);
   color: var(--ps-color-accent-strong);
+}
+
+.ps-paper__action--collected {
+  background: var(--ps-color-success-soft);
+  border-color: color-mix(in srgb, var(--ps-color-success) 45%, transparent);
+  color: var(--ps-color-success-strong);
 }
 
 .ps-paper__action--ai {
