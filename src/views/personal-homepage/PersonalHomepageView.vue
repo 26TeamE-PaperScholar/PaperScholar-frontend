@@ -342,7 +342,9 @@ export default {
     viewHistoryWithMeta() {
       return this.viewHistory.map((v) => {
         const p = findPaper(v.paper_id)
-        return { ...v, title: (p && p.title) || v.paper_id }
+        const title = v.paper_name || v.title || (p && p.title) || v.paper_id
+        const viewed_at = v.timestamp || v.viewed_at || ''
+        return { ...v, title, viewed_at }
       })
     }
   },
@@ -421,12 +423,18 @@ export default {
       )
     },
     loadHistory() {
+      const unwrap = (res) => {
+        const data = res && res.data
+        if (Array.isArray(data)) return data
+        if (data && Array.isArray(data.results)) return data.results
+        return []
+      }
       History.getSearchHistory().then(
-        (res) => { this.searchHistory = (res && res.data) || [] },
+        (res) => { this.searchHistory = unwrap(res) },
         () => {}
       )
       History.getViewHistory().then(
-        (res) => { this.viewHistory = (res && res.data) || [] },
+        (res) => { this.viewHistory = unwrap(res) },
         () => {}
       )
     },
