@@ -402,7 +402,7 @@ export default {
     viewMoreHot() {
       this.$router.push({
         path: '/search_result',
-        query: { search: '', sort: 'cited_by_count:desc', per_page: '10', page: '1', search_type: 1 }
+        query: { sort: 'cited_by_count:desc', per_page: '10', page: '1', search_type: 1 }
       })
     },
     debounceSuggest() {

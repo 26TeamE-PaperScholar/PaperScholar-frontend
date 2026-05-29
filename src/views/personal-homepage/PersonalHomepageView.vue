@@ -221,26 +221,68 @@
         <!-- History -->
         <div v-if="activeTab === 'history'" class="ps-me__panel">
           <AppCard>
-            <AppSectionHeader :title="$t('personal_recent_searches')" subtitle="" tag="h3" />
+            <AppSectionHeader :title="$t('personal_recent_searches')" :subtitle="$t('common_count_items', { count: searchHistoryWithMeta.length })" tag="h3">
+              <template #actions>
+                <button
+                  class="ps-me__history-clear"
+                  type="button"
+                  :disabled="isClearingSearchHistory || !searchHistoryWithMeta.length"
+                  @click="clearSearchHistory"
+                >
+                  <AppIcon name="TrashOutline" :size="14" />
+                  {{ $t('common_clear') }}
+                </button>
+              </template>
+            </AppSectionHeader>
             <ul class="ps-me__history">
-              <li v-for="h in searchHistoryWithMeta" :key="h.id" @click="searchAgain(h)">
+              <li v-for="h in paginatedSearchHistory" :key="h.id" @click="searchAgain(h)">
                 <AppIcon name="Search" :size="13" />
                 <span class="ps-me__history-keyword">{{ h.keyword }}</span>
                 <span class="ps-me__history-meta">{{ h.timestamp }}</span>
               </li>
               <AppEmptyState v-if="!searchHistoryWithMeta.length" :title="$t('personal_no_search_history')" />
             </ul>
+            <div v-if="searchHistoryWithMeta.length > historySearchPerPage" class="ps-me__history-pagination">
+              <PaginationBar
+                :items-per-page="historySearchPerPage"
+                :current-page="searchHistoryPageData.currentPage"
+                :total-pages="searchHistoryPageData.totalPages"
+                @page-change="changeSearchHistoryPage"
+                @item-per-page-change="changeSearchHistoryPerPage"
+              />
+            </div>
           </AppCard>
           <AppCard>
-            <AppSectionHeader :title="$t('personal_reading_history')" subtitle="" tag="h3" />
+            <AppSectionHeader :title="$t('personal_reading_history')" :subtitle="$t('common_count_items', { count: viewHistoryWithMeta.length })" tag="h3">
+              <template #actions>
+                <button
+                  class="ps-me__history-clear"
+                  type="button"
+                  :disabled="isClearingViewHistory || !viewHistoryWithMeta.length"
+                  @click="clearViewHistory"
+                >
+                  <AppIcon name="TrashOutline" :size="14" />
+                  {{ $t('common_clear') }}
+                </button>
+              </template>
+            </AppSectionHeader>
             <ul class="ps-me__history">
-              <li v-for="v in viewHistoryWithMeta" :key="v.id" @click="$router.push('/paper_detail/' + v.paper_id)">
+              <li v-for="v in paginatedViewHistory" :key="v.id" @click="$router.push('/paper_detail/' + v.paper_id)">
                 <AppIcon name="Eye" :size="13" />
                 <span class="ps-me__history-keyword">{{ v.title }}</span>
                 <span class="ps-me__history-meta">{{ v.viewed_at }}</span>
               </li>
               <AppEmptyState v-if="!viewHistoryWithMeta.length" :title="$t('personal_no_reading_history')" />
             </ul>
+            <div v-if="viewHistoryWithMeta.length > historyViewPerPage" class="ps-me__history-pagination">
+              <PaginationBar
+                :items-per-page="historyViewPerPage"
+                :current-page="viewHistoryPageData.currentPage"
+                :total-pages="viewHistoryPageData.totalPages"
+                @page-change="changeViewHistoryPage"
+                @item-per-page-change="changeViewHistoryPerPage"
+              />
+            </div>
           </AppCard>
         </div>
       </section>
@@ -266,9 +308,11 @@ import InterestTagSelectorModal from '../../components/modals/InterestTagSelecto
 import AuditDetailModal from '../../components/modals/AuditDetailModal.vue'
 import FavouriteList from '../../components/favorites/FavouriteList.vue'
 import FollowList from '../../components/follow-list/FollowList.vue'
+import PaginationBar from '../../components/pagination/PaginationBar.vue'
 import { mockUser } from '../../mock/user'
 import { findPaper } from '../../mock/papers'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
+import { normalizeSearchHistory, normalizeViewHistory, paginateList } from '../../utils/history.mjs'
 import {
   buildInterestDeletePayload,
   buildProfileUpdatePayload,
@@ -288,6 +332,7 @@ export default {
     AuditDetailModal,
     FavouriteList,
     FollowList,
+    PaginationBar,
     AppCard,
     AppIcon,
     AppTagChip,
@@ -337,7 +382,13 @@ export default {
       auditDetail: null,
       auditStatus: false,
       searchHistory: [],
-      viewHistory: []
+      viewHistory: [],
+      historySearchPage: 1,
+      historySearchPerPage: 10,
+      historyViewPage: 1,
+      historyViewPerPage: 5,
+      isClearingSearchHistory: false,
+      isClearingViewHistory: false
     }
   },
   computed: {
@@ -346,7 +397,7 @@ export default {
       return this.favouritesInfo.reduce((acc, f) => acc + ((f.paper_ids || []).length), 0)
     },
     viewHistoryWithMeta() {
-      return this.viewHistory.map((v) => {
+      return normalizeViewHistory(this.viewHistory).map((v) => {
         const p = findPaper(v.paper_id)
         const title = v.paper_name || v.title || (p && p.title) || v.paper_id
         const viewed_at = v.timestamp || v.viewed_at || ''
@@ -354,10 +405,22 @@ export default {
       })
     },
     searchHistoryWithMeta() {
-      return this.searchHistory.map((h) => ({
+      return normalizeSearchHistory(this.searchHistory).map((h) => ({
         ...h,
-        keyword: h.keyword || h.content || ''
+        keyword: h.keyword
       }))
+    },
+    searchHistoryPageData() {
+      return paginateList(this.searchHistoryWithMeta, this.historySearchPage, this.historySearchPerPage)
+    },
+    paginatedSearchHistory() {
+      return this.searchHistoryPageData.items
+    },
+    viewHistoryPageData() {
+      return paginateList(this.viewHistoryWithMeta, this.historyViewPage, this.historyViewPerPage)
+    },
+    paginatedViewHistory() {
+      return this.viewHistoryPageData.items
     }
   },
   created() {
@@ -461,6 +524,60 @@ export default {
         () => {}
       )
     },
+    changeSearchHistoryPage(page) {
+      this.historySearchPage = Number(page) || 1
+    },
+    changeSearchHistoryPerPage(n) {
+      this.historySearchPerPage = Number(n) || 10
+      this.historySearchPage = 1
+    },
+    changeViewHistoryPage(page) {
+      this.historyViewPage = Number(page) || 1
+    },
+    changeViewHistoryPerPage(n) {
+      this.historyViewPerPage = Number(n) || 5
+      this.historyViewPage = 1
+    },
+    clearSearchHistory() {
+      if (!this.searchHistoryWithMeta.length || this.isClearingSearchHistory) return
+      if (!window.confirm(this.$t('personal_clear_search_history_confirm'))) return
+
+      const previous = this.searchHistory
+      this.searchHistory = []
+      this.historySearchPage = 1
+      this.isClearingSearchHistory = true
+      History.clearSearchHistory().then(
+        () => {
+          this.$bus.emit('message', { title: this.$t('personal_history_cleared'), content: '', time: 1200 })
+        },
+        () => {
+          this.searchHistory = previous
+          this.$bus.emit('message', { title: this.$t('personal_history_clear_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
+      ).finally(() => {
+        this.isClearingSearchHistory = false
+      })
+    },
+    clearViewHistory() {
+      if (!this.viewHistoryWithMeta.length || this.isClearingViewHistory) return
+      if (!window.confirm(this.$t('personal_clear_reading_history_confirm'))) return
+
+      const previous = this.viewHistory
+      this.viewHistory = []
+      this.historyViewPage = 1
+      this.isClearingViewHistory = true
+      History.clearViewHistory().then(
+        () => {
+          this.$bus.emit('message', { title: this.$t('personal_history_cleared'), content: '', time: 1200 })
+        },
+        () => {
+          this.viewHistory = previous
+          this.$bus.emit('message', { title: this.$t('personal_history_clear_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
+      ).finally(() => {
+        this.isClearingViewHistory = false
+      })
+    },
     loadInterestOptions() {
       return Article.getInterestList().then(
         (res) => {
@@ -552,9 +669,11 @@ export default {
       this.urlAdding = ''
     },
     searchAgain(h) {
+      const keyword = String(h.keyword || '').trim()
+      if (!keyword) return
       this.$router.push({
         path: '/search_result',
-        query: { search: h.keyword, search_type: 1, per_page: '10', page: '1' }
+        query: { search: keyword, search_type: 1, per_page: '10', page: '1' }
       })
     },
 
@@ -1078,6 +1197,36 @@ export default {
   flex-direction: column;
 }
 
+.ps-me__history-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--ps-space-4);
+  border: 1px solid var(--ps-border-2);
+  border-radius: 8px;
+  background: var(--ps-bg-elevated);
+  color: var(--ps-text-2);
+  font-size: var(--ps-fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--ps-motion-fast) var(--ps-ease-out),
+    color var(--ps-motion-fast) var(--ps-ease-out),
+    border-color var(--ps-motion-fast) var(--ps-ease-out);
+}
+
+.ps-me__history-clear:hover:not(:disabled) {
+  border-color: var(--ps-color-primary);
+  background: var(--ps-color-primary-soft);
+  color: var(--ps-color-primary);
+}
+
+.ps-me__history-clear:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
 .ps-me__history li {
   display: flex;
   align-items: center;
@@ -1106,6 +1255,27 @@ export default {
   font-family: var(--ps-font-mono);
   font-size: 11px;
   color: var(--ps-text-3);
+}
+
+.ps-me__history-pagination {
+  margin-top: var(--ps-space-3);
+}
+
+.ps-me__history-pagination :deep(.pagination) {
+  justify-content: flex-end;
+  gap: 8px;
+  padding: var(--ps-space-3) 0 0;
+}
+
+.ps-me__history-pagination :deep(button),
+.ps-me__history-pagination :deep(select),
+.ps-me__history-pagination :deep(.jump_page_number) {
+  height: 34px;
+}
+
+.ps-me__history-pagination :deep(button) {
+  min-width: 34px;
+  padding: 0 10px;
 }
 
 @media screen and (max-width: 1024px) {

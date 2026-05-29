@@ -28,6 +28,13 @@ import {
   upsertFavoriteInList,
   workBelongsToAuthor
 } from '../src/utils/personal-page.mjs'
+import {
+  normalizeSearchHistory,
+  normalizeViewHistory,
+  paginateList,
+  searchHistoryKeywordOf,
+  viewHistoryPaperIdOf
+} from '../src/utils/history.mjs'
 
 test('buildFollowPayload uses openalex_id for follow APIs', () => {
   assert.deepEqual(buildFollowPayload('A-123'), { openalex_id: 'A-123' })
@@ -36,6 +43,73 @@ test('buildFollowPayload uses openalex_id for follow APIs', () => {
     { openalex_id: 'A5102001778' }
   )
   assert.equal(normalizeOpenAlexAuthorId('https://openalex.org/A5102001778'), 'A5102001778')
+})
+
+test('search history helpers filter empty keyword records', () => {
+  const items = [
+    { id: 'H-1', keyword: '  graph search  ' },
+    { id: 'H-2', keyword: '' },
+    { id: 'H-3', content: 'RAG' },
+    { id: 'H-4', search: '   ' },
+    { pk: 'H-5', query: 'citation' }
+  ]
+
+  assert.equal(searchHistoryKeywordOf(items[0]), 'graph search')
+  assert.deepEqual(
+    normalizeSearchHistory(items).map((item) => [item.id, item.keyword]),
+    [
+      ['H-1', 'graph search'],
+      ['H-3', 'RAG'],
+      ['H-5', 'citation']
+    ]
+  )
+})
+
+test('search history helpers keep latest record for duplicate keywords', () => {
+  const items = [
+    { id: 'H-1', keyword: 'RAG', timestamp: '2024-12-01 10:00' },
+    { id: 'H-2', keyword: 'graph search', timestamp: '2024-12-01 11:00' },
+    { id: 'H-3', keyword: 'RAG', timestamp: '2024-12-02 09:30' },
+    { id: 'H-4', keyword: 'graph search', timestamp: '2024-11-30 20:00' }
+  ]
+
+  assert.deepEqual(
+    normalizeSearchHistory(items).map((item) => [item.id, item.keyword, item.timestamp]),
+    [
+      ['H-3', 'RAG', '2024-12-02 09:30'],
+      ['H-2', 'graph search', '2024-12-01 11:00']
+    ]
+  )
+})
+
+test('view history helpers keep latest record for duplicate papers', () => {
+  const items = [
+    { id: 'V-1', paper_id: 'W1', viewed_at: '2024-12-01 10:00' },
+    { id: 'V-2', paper_id: 'W2', timestamp: '2024-12-01 11:00' },
+    { id: 'V-3', paper_id: 'W1', viewed_at: '2024-12-02 09:30' },
+    { id: 'V-4', paperId: 'W2', viewed_at: '2024-11-30 20:00' },
+    { id: 'V-5', paper_id: '' }
+  ]
+
+  assert.equal(viewHistoryPaperIdOf(items[3]), 'W2')
+  assert.deepEqual(
+    normalizeViewHistory(items).map((item) => [item.id, item.paper_id, item.viewed_at || item.timestamp]),
+    [
+      ['V-3', 'W1', '2024-12-02 09:30'],
+      ['V-2', 'W2', '2024-12-01 11:00']
+    ]
+  )
+})
+
+test('paginateList slices locally and clamps invalid pages', () => {
+  assert.deepEqual(
+    paginateList([1, 2, 3, 4, 5], 2, 2),
+    { items: [3, 4], currentPage: 2, perPage: 2, total: 5, totalPages: 3 }
+  )
+  assert.deepEqual(
+    paginateList([1, 2, 3], 99, 2),
+    { items: [3], currentPage: 2, perPage: 2, total: 3, totalPages: 2 }
+  )
 })
 
 test('author work helpers build exact OpenAlex filters and normalize ids', () => {

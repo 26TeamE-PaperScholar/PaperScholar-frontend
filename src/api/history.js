@@ -21,11 +21,27 @@ export class History {
     return service(url.searchHistory, { method: 'get' })
   }
 
+  static async clearSearchHistory() {
+    if (USE_MOCK) {
+      mockSearchHistory.splice(0, mockSearchHistory.length)
+      return mockResponse([])
+    }
+    return service(url.searchHistory, { method: 'delete' })
+  }
+
   static async getViewHistory() {
     if (USE_MOCK) {
       return mockResponse(mockViewHistory)
     }
     return service(url.viewHistory, { method: 'get' })
+  }
+
+  static async clearViewHistory() {
+    if (USE_MOCK) {
+      mockViewHistory.splice(0, mockViewHistory.length)
+      return mockResponse([])
+    }
+    return service(url.viewHistory, { method: 'delete' })
   }
 
   static async getRelationMap(_id) {

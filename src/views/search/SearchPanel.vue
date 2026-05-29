@@ -81,15 +81,16 @@ export default {
       this.show_property_search = !this.show_property_search;
     },
     search() {
+      const keyword = this.search_search.trim()
       const query = {
         filter: this.search_filter,
-        search: this.search_search,
         sort: this.search_sort,
         per_page: this.search_perpage,
         page: this.search_page,
         cursor: "",
         search_type: this.search_type,
       };
+      if (keyword) query.search = keyword
 
       // 在组件中的某个方法中
       if (this.$route.path === "/search") {

@@ -378,7 +378,6 @@ export default {
       }
       Search.searchWorks({
         filter,
-        search: '',
         per_page: this.paginationInfo.itemsPerPage,
         page: this.paginationInfo.currentPage,
         sort: 'cited_by_count:desc'

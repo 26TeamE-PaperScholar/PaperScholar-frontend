@@ -648,15 +648,16 @@ export default {
     },
     setQuery() {
       this.filter = this.buildFilter()
+      const keyword = this.search.trim()
       const query = {
         filter: this.filter,
-        search: this.search,
         sort: this.sort,
         per_page: String(this.itemsPerPage),
         page: String(this.currentPage),
         cursor: '',
         search_type: this.search_type
       }
+      if (keyword) query.search = keyword
       this.$router.push({ query })
     },
     changePages(page) {
@@ -672,15 +673,15 @@ export default {
       this.displayLoading = true
       const requestId = ++this.searchRequestSeq
       const started = Date.now()
-      const submittedSearch = this.search
+      const submittedSearch = this.search.trim()
       const params = {
         filter: this.filter,
-        search: submittedSearch,
         sort: this.sort,
         per_page: this.itemsPerPage,
         page: this.currentPage,
         cursor: this.cursor
       }
+      if (submittedSearch) params.search = submittedSearch
       const type = Number(this.search_type)
       let api = Search.searchWorks
       if (type === 2) api = Search.searchAuthor

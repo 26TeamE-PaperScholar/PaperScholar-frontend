@@ -178,7 +178,7 @@ export default {
     viewMore() {
       this.$router.push({
         path: '/search_result',
-        query: { search: '', sort: 'cited_by_count:desc', search_type: 1, per_page: '10', page: '1' }
+        query: { sort: 'cited_by_count:desc', search_type: 1, per_page: '10', page: '1' }
       })
     },
     goPaper(id) {

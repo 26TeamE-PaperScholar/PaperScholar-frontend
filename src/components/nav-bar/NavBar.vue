@@ -178,7 +178,7 @@ export default {
         return
       }
       if (item.path === '/search_result') {
-        this.$router.push({ path: item.path, query: { search: '', search_type: 1, per_page: '10', page: '1' } })
+        this.$router.push({ path: item.path, query: { search_type: 1, per_page: '10', page: '1' } })
         return
       }
       this.$router.push(item.path)
