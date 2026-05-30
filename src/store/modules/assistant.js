@@ -103,6 +103,13 @@ const mutations = {
       state.contextPapers = []
     }
   },
+  CLEAR_CONVERSATIONS(state) {
+    state.conversations = []
+    state.currentId = null
+    state.messages = []
+    state.contextPapers = []
+    state.conversationsLoaded = true
+  },
   PATCH_CONVERSATION(state, { id, patch }) {
     const c = state.conversations.find((x) => x.id === id)
     if (c) {
@@ -315,6 +322,29 @@ const actions = {
   async deleteConversation({ commit }, id) {
     await Chat.deleteConversation(id)
     commit('REMOVE_CONVERSATION', id)
+  },
+
+  async clearConversations({ state, commit, dispatch }) {
+    const loaded = state.conversations.length
+      ? state.conversations
+      : await dispatch('loadConversations', { force: true })
+    const targets = (loaded || []).map((c) => c && c.id).filter(Boolean)
+    let failed = 0
+    for (const id of targets) {
+      try {
+        await Chat.deleteConversation(id)
+        commit('REMOVE_CONVERSATION', id)
+      } catch (e) {
+        failed += 1
+        commit('SET_ERROR', e)
+      }
+    }
+    if (failed === 0) {
+      commit('CLEAR_CONVERSATIONS')
+    } else {
+      await dispatch('loadConversations', { force: true })
+    }
+    return { total: targets.length, deleted: targets.length - failed, failed }
   },
 
   startDraftConversation({ commit }, { context_papers = [] } = {}) {

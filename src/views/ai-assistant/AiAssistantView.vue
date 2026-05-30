@@ -34,10 +34,32 @@
             <AppIcon name="ChatbubblesOutline" :size="14" inline />
             {{ $t('assistant_history') }}
           </h3>
-          <button class="ps-ai__sidebar-new" type="button" @click="startNew()" :aria-label="$t('assistant_new_conversation')">
-            <AppIcon name="AddOutline" :size="14" />
-          </button>
+          <div class="ps-ai__sidebar-actions">
+            <button
+              class="ps-ai__sidebar-icon"
+              type="button"
+              @click="confirmClearHistory"
+              :disabled="!conversations.length || clearingHistory"
+              :aria-label="$t('assistant_clear_history')"
+              :title="$t('assistant_clear_history')"
+            >
+              <AppIcon name="TrashOutline" :size="14" />
+            </button>
+            <button class="ps-ai__sidebar-icon" type="button" @click="startNew()" :aria-label="$t('assistant_new_conversation')" :title="$t('assistant_new_conversation')">
+              <AppIcon name="AddOutline" :size="14" />
+            </button>
+          </div>
         </header>
+        <button
+          v-if="conversations.length"
+          class="ps-ai__clear-history"
+          type="button"
+          @click="confirmClearHistory"
+          :disabled="clearingHistory"
+        >
+          <AppIcon name="TrashOutline" :size="13" inline />
+          {{ clearingHistory ? $t('assistant_clearing_history') : $t('assistant_clear_history') }}
+        </button>
         <ul v-if="conversations.length" class="ps-ai__cv-list">
           <ConversationListItem
             v-for="cv in conversations"
@@ -166,7 +188,8 @@ export default {
       draft: '',
       openSidebar: true,
       paperTitles: {},
-      userInitial: ''
+      userInitial: '',
+      clearingHistory: false
     }
   },
   computed: {
@@ -230,6 +253,7 @@ export default {
       'openConversation',
       'sendMessage',
       'deleteConversation',
+      'clearConversations',
       'startDraftConversation',
       'setContextPapersLocal',
       'updateContextPapers'
@@ -262,6 +286,19 @@ export default {
       const label = target ? `「${target.title}」` : this.$t('assistant_delete_this_conversation')
       if (!window.confirm(this.$t('assistant_confirm_delete', { label }))) return
       await this.deleteConversation(id)
+    },
+    async confirmClearHistory() {
+      if (!this.conversations.length || this.clearingHistory) return
+      if (!window.confirm(this.$t('assistant_confirm_clear_history', { count: this.conversations.length }))) return
+      this.clearingHistory = true
+      try {
+        const result = await this.clearConversations()
+        if (result && result.failed) {
+          window.alert(this.$t('assistant_clear_history_failed', { count: result.failed }))
+        }
+      } finally {
+        this.clearingHistory = false
+      }
     },
     async onSend(text) {
       const message = String(text || '').trim()
@@ -438,7 +475,12 @@ export default {
   align-items: center;
   gap: 6px;
 }
-.ps-ai__sidebar-new {
+.ps-ai__sidebar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ps-ai__sidebar-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -450,7 +492,36 @@ export default {
   color: var(--ps-color-primary-strong);
   cursor: pointer;
 }
-.ps-ai__sidebar-new:hover { background: var(--ps-color-primary-hover); }
+.ps-ai__sidebar-icon:hover:not(:disabled) { background: var(--ps-color-primary-hover); }
+.ps-ai__sidebar-icon:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.ps-ai__clear-history {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 16px);
+  min-height: 30px;
+  margin: 0 8px 8px 8px;
+  border: 1px solid var(--ps-border-1);
+  border-radius: 8px;
+  background: var(--ps-bg-soft, #f8f7fb);
+  color: var(--ps-text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ps-ai__clear-history:hover:not(:disabled) {
+  color: var(--ps-color-danger, #d64545);
+  border-color: rgba(214, 69, 69, 0.35);
+  background: rgba(214, 69, 69, 0.08);
+}
+.ps-ai__clear-history:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
 .ps-ai__cv-list {
   flex: 1;
   list-style: none;
