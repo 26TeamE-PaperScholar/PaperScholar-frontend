@@ -523,8 +523,7 @@ export default {
     assistant_composer_placeholder: '向 AI 论文助手提问，例如：帮我对比这两篇方法的差异…',
 
     compare_title: '论文对比',
-    compare_eyebrow: '论文横向对比 · 用例 804',
-    compare_title_main: '方法 / 数据 / 指标 / 贡献 / 局限',
+    compare_title_main: '方法 · 数据 · 指标 · 贡献 · 局限',
     compare_title_accent: '五维结构化对比',
     compare_desc: '对比内容由 AI 抽取生成，并标注来源；遇到信息不全时进入受限模式。',
     compare_back_search: '返回检索',

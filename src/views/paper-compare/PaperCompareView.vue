@@ -4,7 +4,6 @@
       <AppBreadcrumb :items="breadcrumbs" class="ps-pc__crumbs" />
       <div class="ps-pc__hero-grid">
         <div class="ps-pc__hero-text">
-          <p class="ps-pc__eyebrow">{{ $t('compare_eyebrow') }}</p>
           <h1 class="ps-pc__title">
             {{ $t('compare_title_main') }}
             <span class="ps-pc__title-accent">{{ $t('compare_title_accent') }}</span>
@@ -272,13 +271,6 @@ export default {
   flex-wrap: wrap;
 }
 .ps-pc__hero-text { flex: 1 1 380px; min-width: 0; }
-.ps-pc__eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ps-hero-eyebrow);
-  margin: 0 0 8px;
-}
 .ps-pc__title {
   font-size: clamp(24px, 3.4vw, 36px);
   line-height: 1.18;

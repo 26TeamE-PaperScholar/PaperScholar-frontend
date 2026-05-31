@@ -519,8 +519,7 @@ export default {
     assistant_composer_placeholder: 'Ask the AI paper assistant, e.g. compare the methods of these two papers...',
 
     compare_title: 'Paper Comparison',
-    compare_eyebrow: 'Paper comparison · Case 804',
-    compare_title_main: 'Methods / Data / Metrics / Contributions / Limitations',
+    compare_title_main: 'Methods · Data · Metrics · Contributions · Limitations',
     compare_title_accent: 'Five-Dimension Structured Comparison',
     compare_desc: 'Comparison content is AI-extracted and source-labeled; restricted mode appears when information is incomplete.',
     compare_back_search: 'Back to search',
