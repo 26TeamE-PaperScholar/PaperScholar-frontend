@@ -28,12 +28,16 @@
       <div class="ps-result-item__actions" @click.stop>
         <AddToCompareButton :paper="infoItem" size="sm" />
         <AppIconButton
-          icon="Bookmark"
-          variant="soft"
-          :tooltip="$t('list_collect_tooltip')"
-          :aria-label="$t('list_collect_aria')"
-          @click="showCollectModal"
+          class="ps-result-item__collect-btn"
+          :class="{ 'ps-result-item__collect-btn--saved': isPaperCollected }"
+          :icon="isPaperCollected ? 'Bookmark' : 'BookmarkOutline'"
+          :variant="isPaperCollected ? 'gold' : 'soft'"
+          :tooltip="isPaperCollected ? $t('paper_uncollect') : $t('list_collect_tooltip')"
+          :aria-label="isPaperCollected ? $t('paper_uncollect') : $t('list_collect_aria')"
+          :disabled="favoriteActionLoading"
+          @click="handleFavoriteButton"
         />
+        <span v-if="isPaperCollected" class="ps-result-item__saved-label">{{ $t('paper_collected') }}</span>
         <AppIconButton
           icon="Share"
           variant="ghost"
@@ -100,7 +104,7 @@
       </a>
     </div>
   </AppCard>
-  <ChooseFavoriteModal :paperId="infoItem.id" :show="collectModalShouldShow" @close="collectModalShouldShow = false" />
+  <ChooseFavoriteModal :paperId="paperId" :paper="infoItem" :show="collectModalShouldShow" @close="collectModalShouldShow = false" />
 </template>
 
 <script>
@@ -108,7 +112,13 @@ import ChooseFavoriteModal from '../modals/ChooseFavoriteModal.vue'
 import AddToCompareButton from '../compare/AddToCompareButton.vue'
 import { AppCard, AppIcon, AppAvatar, AppTagChip, AppMetricBadge, AppIconButton } from '../ui'
 import { Search } from '../../api/search'
-import { authorIdOf, authorNameOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
+import { authorIdOf, authorNameOf, paperIdOf, pickAuthorSearchResult, scholarPortalPath } from '../../utils/personal-page.mjs'
+import {
+  removePaperFromFavorite,
+  refreshFavoriteFolderContents,
+  refreshFavoriteFolders,
+  subscribeFavoriteFolders
+} from '../../utils/favorite-store.mjs'
 
 export default {
   name: 'SearchResultListItem',
@@ -128,10 +138,34 @@ export default {
   },
   data() {
     return {
-      collectModalShouldShow: false
+      collectModalShouldShow: false,
+      favoriteFolders: [],
+      unsubscribeFavorites: null,
+      favoriteRefreshStarted: false,
+      favoriteActionLoading: false
     }
   },
+  mounted() {
+    this.bindFavoriteState()
+  },
+  beforeUnmount() {
+    if (this.unsubscribeFavorites) this.unsubscribeFavorites()
+    this.unsubscribeFavorites = null
+  },
   computed: {
+    paperId() {
+      return paperIdOf(this.infoItem)
+    },
+    collectedFavoriteFolders() {
+      const paperId = this.paperId
+      if (!paperId) return []
+      return this.favoriteFolders.filter((folder) =>
+        folder && !folder.pending && (folder.paper_ids || []).map(String).includes(String(paperId))
+      )
+    },
+    isPaperCollected() {
+      return this.collectedFavoriteFolders.length > 0
+    },
     displayedAuthors() {
       return (this.infoItem.authorships || []).slice(0, 3)
     },
@@ -156,6 +190,29 @@ export default {
     }
   },
   methods: {
+    currentUserId() {
+      return this.$cookies.get('user_id')
+    },
+    bindFavoriteState() {
+      const userId = this.currentUserId()
+      if (!userId || this.unsubscribeFavorites) return
+      this.unsubscribeFavorites = subscribeFavoriteFolders(userId, (items) => {
+        this.favoriteFolders = items || []
+        this.warmFavoriteContent(userId, items)
+      })
+      refreshFavoriteFolders(userId).then((items) => {
+        this.warmFavoriteContent(userId, items)
+      }, () => {})
+    },
+    warmFavoriteContent(userId, items) {
+      if (this.favoriteRefreshStarted || !this.paperId) return
+      const folders = (items || []).filter((folder) => folder && folder.id && !folder.pending)
+      if (!folders.length) return
+      this.favoriteRefreshStarted = true
+      refreshFavoriteFolderContents(userId, folders).finally(() => {
+        this.favoriteRefreshStarted = false
+      })
+    },
     highlightedText(matcher, str) {
       if (!matcher || !str) return str || ''
       try {
@@ -194,8 +251,32 @@ export default {
         if (fallbackPath) this.$router.push(fallbackPath)
       } catch (e) {}
     },
-    showCollectModal() {
+    async handleFavoriteButton() {
+      if (this.favoriteActionLoading) return
+      const userId = this.currentUserId()
+      if (!userId) {
+        this.$bus.emit('message', { title: this.$t('login_text'), content: this.$t('personal_login_required_content'), time: 1600 })
+        return
+      }
+      if (this.isPaperCollected) {
+        await this.uncollectPaper(userId)
+        return
+      }
+      refreshFavoriteFolderContents(userId, this.favoriteFolders).then(() => {}, () => {})
       this.collectModalShouldShow = true
+    },
+    async uncollectPaper(userId) {
+      const folders = this.collectedFavoriteFolders.slice()
+      if (!this.paperId || !folders.length) return
+      this.favoriteActionLoading = true
+      try {
+        await Promise.all(folders.map((folder) => removePaperFromFavorite(userId, folder.id, this.infoItem)))
+        this.$bus.emit('message', { title: this.$t('paper_uncollected'), content: this.infoItem.title || '', time: 1500 })
+      } catch (e) {
+        this.$bus.emit('message', { title: this.$t('favorite_remove_failed'), content: this.$t('common_retry_later'), time: 1500 })
+      } finally {
+        this.favoriteActionLoading = false
+      }
     },
     sharePaper() {
       const text = window.location.origin + '/paper_detail/' + this.infoItem.id
@@ -299,6 +380,17 @@ export default {
   align-items: center;
   gap: 4px;
   flex: none;
+}
+
+.ps-result-item__collect-btn--saved {
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.18);
+}
+
+.ps-result-item__saved-label {
+  color: var(--ps-color-accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .ps-result-item__excerpt {

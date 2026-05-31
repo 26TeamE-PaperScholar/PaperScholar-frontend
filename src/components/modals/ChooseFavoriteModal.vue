@@ -25,6 +25,7 @@
       <FavouriteListChoosable 
         :fid="fid"
         :paperId="paperId"
+        :paper="paper"
         :loadingFavorites="loadingFavorites"
         @cancelCreation="cancelCreation"
         @updateCreation="updateCreation"
@@ -53,6 +54,7 @@ import {
 import {
   createFavoriteFolder,
   refreshFavoriteFolders,
+  refreshFavoriteFolderContents,
   subscribeFavoriteFolders
 } from '../../utils/favorite-store.mjs'
 
@@ -75,6 +77,10 @@ export default {
     paperId: {
       type: String,
       default: ''
+    },
+    paper: {
+      type: Object,
+      default: () => ({})
     }
   },
   data() {
@@ -123,7 +129,9 @@ export default {
       this.bindFavoriteSubscription(userId)
       this.loadingFavorites = true
       refreshFavoriteFolders(userId, { force: true }).then(
-          () => {},
+          (folders) => {
+            refreshFavoriteFolderContents(userId, folders).then(() => {}, () => {})
+          },
           () => { this.favouritesInfo = [] }
         )
         .finally(() => {

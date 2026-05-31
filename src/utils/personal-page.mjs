@@ -237,14 +237,14 @@ export function favoriteIdOf(item) {
 export function paperIdOf(item) {
   if (!item || typeof item !== 'object') return normalizeFavoriteId(item)
   return normalizeFavoriteId(
-    item.id ??
-      item.paper_id ??
+    item.paper_id ??
       item.paperId ??
       item.openalex_id ??
       item.openalexId ??
       item.work_id ??
       item.workId ??
-      (item.ids && item.ids.openalex)
+      (item.ids && item.ids.openalex) ??
+      item.id
   )
 }
 
@@ -518,24 +518,63 @@ export function extractCreatedFavorite(response, fallbackName, fallbackId = '') 
   })
 }
 
-export function extractFavoriteDetail(response, fallbackId = '') {
-  const data = unwrapApiPayload(response) || {}
+export function extractFavoriteDetail(response, fallbackId = '', fallback = {}) {
+  const payload = unwrapApiPayload(response) || {}
+  const data = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {}
   const item = data.favorite || data.favourite || data.item || data.folder || data
-  const favorite = normalizeFavoriteItem(item, { id: fallbackId, paper_ids: normalizePaperIds(data) })
-  const papers = [
+  const fallbackFavorite = fallback && typeof fallback === 'object' ? fallback : {}
+  const dataPaperIds = normalizePaperIds(data)
+  const favorite = normalizeFavoriteItem(item, {
+    ...fallbackFavorite,
+    id: fallbackId || favoriteIdOf(fallbackFavorite),
+    paper_ids: dataPaperIds.length ? dataPaperIds : normalizePaperIds(fallbackFavorite)
+  })
+  const candidates = [
+    Array.isArray(payload) ? payload : null,
     item.papers,
     item.works,
     item.items,
+    item.results,
+    item.children,
+    item.contents,
     data.papers,
     data.works,
-    data.items
-  ].find(Array.isArray) || []
+    data.items,
+    data.results,
+    data.children,
+    data.contents,
+    data.favorite_papers,
+    data.favourite_papers
+  ].filter(Array.isArray)
+  const papers = (candidates.find((list) => list.some((paper) => {
+    if (!paper || typeof paper !== 'object') return Boolean(paperIdOf(paper))
+    if (paper.is_paper === false) return false
+    return Boolean(
+      paperIdOf(paper) &&
+        (paper.is_paper === true ||
+          paper.paper_id ||
+          paper.paperId ||
+          paper.openalex_id ||
+          paper.openalexId ||
+          paper.work_id ||
+          paper.workId ||
+          paper.favorite_id ||
+          paper.favoriteId ||
+          paper.title ||
+          paper.abstract ||
+          paper.doi)
+    )
+  })) || [])
   return {
     favorite,
-    papers: papers.map((paper) => ({
-      ...paper,
-      id: paperIdOf(paper),
-      favorite_id: favorite.id
-    })).filter((paper) => paper.id)
+    papers: papers.map((paper) => {
+      const source = paper && typeof paper === 'object' ? paper : { id: paper }
+      return {
+        ...source,
+        id: paperIdOf(source),
+        favorite_id: source.favorite_id || source.favoriteId || '',
+        folder_id: source.folder_id || source.folderId || favorite.id
+      }
+    }).filter((paper) => paper.id)
   }
 }

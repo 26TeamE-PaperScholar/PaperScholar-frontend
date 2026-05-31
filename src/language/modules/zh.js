@@ -621,6 +621,7 @@ export default {
     favorite_collect_failed: '收藏失败',
     favorite_already_collected: '已在该收藏夹',
     favorite_paper_count: '{count} 篇文献',
+    favorite_empty_papers: '该收藏夹暂无文献',
     favorite_in_folders: '{count} 个收藏夹',
     favorite_syncing: '同步中',
     favorite_removed: '已从收藏夹移除',

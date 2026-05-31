@@ -14,7 +14,8 @@
     <FavouriteListItem 
       v-for="(info, index) in favouritesInfo" :key="info.id || index"
       :favourites="favouritesInfo[index]" 
-      @showFavoriteDetail="showFavoriteDetail(info.id)"
+      @showFavoriteDetail="showFavoriteDetail(info)"
+      @prefetchFavoriteDetail="prefetchFavoriteDetail(info)"
       @IWantToShow="letItShow(index)"
       @deleteFavourites="handleDelete(index)"
       @renameFavourites="handleRename(index, $event)"
@@ -34,7 +35,7 @@
 
   <!-- </div>
   </PopoutModal> -->
-  <FavorateContentModal :favoriteId="favoriteId" :show="favorateContentModalShouldShow" @close="favorateContentModalShouldShow = false"/>
+  <FavorateContentModal :favoriteId="favoriteId" :favorite="selectedFavorite" :show="favorateContentModalShouldShow" @close="favorateContentModalShouldShow = false"/>
   <FavoriteDeleteConfirmModal
     :show="deleteConfirmShouldShow"
     :favoriteName="favoriteToDelete.name"
@@ -51,7 +52,7 @@ import FavouriteListItem from './FavouriteListItem.vue'
 import FavorateContentModal from '../modals/FavorateContentModal.vue'
 import FavoriteDeleteConfirmModal from '../modals/FavoriteDeleteConfirmModal.vue'
 import { favoritePaperCountOf } from '../../utils/personal-page.mjs'
-import { deleteFavoriteFolder, renameFavoriteFolder, resolveFavoriteFolderPaperCount } from '../../utils/favorite-store.mjs'
+import { deleteFavoriteFolder, getFavoriteFolderContent, renameFavoriteFolder, resolveFavoriteFolderPaperCount } from '../../utils/favorite-store.mjs'
 export default {
   name: 'FavouriteList',
   props: ['isCreating', 'favouritesInfo'],
@@ -73,11 +74,22 @@ export default {
         id: '',
       },
       favoriteId: '',
+      selectedFavorite: {},
       favorateContentModalShouldShow: false,
       favoriteToDelete: {},
       deleteConfirmShouldShow: false,
       deletingFavoriteId: '',
-      checkingFavoriteId: ''
+      checkingFavoriteId: '',
+      warmCacheTimer: null,
+      prefetchingFavoriteIds: new Set()
+    }
+  },
+  watch: {
+    favouritesInfo: {
+      immediate: true,
+      handler(items) {
+        this.scheduleWarmFavoriteCache(items)
+      }
     }
   },
   mounted() {
@@ -85,6 +97,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('click', this.closeAllContextMenu)
+    if (this.warmCacheTimer) window.clearTimeout(this.warmCacheTimer)
   },
   methods: {
     handleDelete(index) {
@@ -94,7 +107,7 @@ export default {
       const favoriteId = favorite && favorite.id
       if (!userId || !favorite || favorite.pending || this.deletingFavoriteId || this.checkingFavoriteId) return
       this.checkingFavoriteId = String(favoriteId)
-      resolveFavoriteFolderPaperCount(favorite).then((count) => {
+      resolveFavoriteFolderPaperCount(favorite, userId).then((count) => {
         if (this.checkingFavoriteId !== String(favoriteId)) return
         if (count > 0) {
           this.favoriteToDelete = { ...favorite, paper_count: count }
@@ -169,11 +182,30 @@ export default {
     updateCreation(name) {
       this.$emit('updateCreation', name)
     },
-    showFavoriteDetail(infoId) {
+    scheduleWarmFavoriteCache(items) {
+      if (this.warmCacheTimer) window.clearTimeout(this.warmCacheTimer)
+      const list = (items || []).filter((favorite) => favorite && favorite.id && !favorite.pending).slice(0, 4)
+      if (!list.length) return
+      const run = () => list.forEach((favorite) => this.prefetchFavoriteDetail(favorite))
+      this.warmCacheTimer = window.setTimeout(run, 300)
+    },
+    prefetchFavoriteDetail(favorite) {
+      const userId = this.$cookies.get('user_id') || 'current'
+      if (!favorite || !favorite.id) return
+      const id = String(favorite.id)
+      if (this.prefetchingFavoriteIds.has(id)) return
+      this.prefetchingFavoriteIds.add(id)
+      getFavoriteFolderContent(userId, favorite).then(() => {}, () => {})
+        .finally(() => {
+          this.prefetchingFavoriteIds.delete(id)
+        })
+    },
+    showFavoriteDetail(favorite) {
       // this.popoutInfo = this.favouritesInfo[index]
       // this.isPopout = true
+      this.selectedFavorite = favorite || {}
+      this.favoriteId = favorite && favorite.id
       this.favorateContentModalShouldShow = true
-      this.favoriteId = infoId
     },
   }
 }

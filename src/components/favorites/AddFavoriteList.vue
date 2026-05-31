@@ -63,7 +63,7 @@
         const favoriteId = favorite && favorite.id
         if (!userId || !favorite || favorite.pending || this.deletingFavoriteId || this.checkingFavoriteId) return
         this.checkingFavoriteId = String(favoriteId)
-        resolveFavoriteFolderPaperCount(favorite).then((count) => {
+        resolveFavoriteFolderPaperCount(favorite, userId).then((count) => {
           if (this.checkingFavoriteId !== String(favoriteId)) return
           if (count > 0) {
             this.favoriteToDelete = { ...favorite, paper_count: count }

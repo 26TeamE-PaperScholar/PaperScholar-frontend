@@ -9,6 +9,8 @@
       tabindex="0"
       :aria-disabled="favourites.pending"
       @contextmenu.prevent="handleRightClick"
+      @mouseenter="handlePrefetch"
+      @focus="handlePrefetch"
       @click="handleClick"
       @keyup.enter.self="handleClick"
     >
@@ -79,6 +81,7 @@ export default {
     moveFavourites: null,
     IWantToShow: null,
     showFavoriteDetail: null,
+    prefetchFavoriteDetail: null,
     renameFavourites: null
   },
     data() {
@@ -107,6 +110,10 @@ export default {
       handleClick() {
         if (this.isRenaming || this.favourites.pending) return
         this.$emit('showFavoriteDetail')
+      },
+      handlePrefetch() {
+        if (this.isRenaming || this.favourites.pending) return
+        this.$emit('prefetchFavoriteDetail')
       },
       handleRightClick(event) {
         if (this.favourites.pending) return

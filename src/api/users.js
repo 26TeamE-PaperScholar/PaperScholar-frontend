@@ -158,6 +158,21 @@ export class User {
 
   static async getFavoriteList(_id, options = {}) {
     if (USE_MOCK) {
+      const fav = mockFavoritesState.find((f) => String(f.id) === String(_id))
+      if (fav) {
+        const papers = (fav.paper_ids || []).map((pid) => {
+          const paper = findPaper(pid) || { id: pid, title: pid }
+          return {
+            ...paper,
+            id: pid,
+            paper_id: pid,
+            favorite_id: `${fav.id}:${pid}`,
+            folder_id: fav.id,
+            is_paper: true
+          }
+        })
+        return mockResponse(papers)
+      }
       return mockResponse(clone(mockFavoritesState))
     }
     return service(url.users + 'favorite/list/' + _id + '/', {
@@ -221,7 +236,19 @@ export class User {
 
   static async deleteFavorite(_id, _data = {}) {
     if (USE_MOCK) {
-      mockFavoritesState = mockFavoritesState.filter((item) => String(item.id) !== String(_id))
+      const paperId = _data && (_data.paper_id || _data.paperId || _data.id)
+      const folderId = _data && (_data.folder_id || _data.folderId || _data.favorite_folder_id || _data.favoriteFolderId)
+      if (paperId) {
+        const favorite = mockFavoritesState.find((item) =>
+          String(item.id) === String(folderId) ||
+            String(_id).startsWith(String(item.id) + ':')
+        )
+        if (favorite) {
+          favorite.paper_ids = (favorite.paper_ids || []).filter((id) => String(id) !== String(paperId))
+        }
+      } else {
+        mockFavoritesState = mockFavoritesState.filter((item) => String(item.id) !== String(_id))
+      }
       writeMockFavoritesState()
       return mockResponse({ ok: true })
     }

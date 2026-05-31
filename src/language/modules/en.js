@@ -617,6 +617,7 @@ export default {
     favorite_collect_failed: 'Failed to save',
     favorite_already_collected: 'Already in this folder',
     favorite_paper_count: '{count} papers',
+    favorite_empty_papers: 'No papers in this folder yet',
     favorite_in_folders: '{count} folders',
     favorite_syncing: 'Syncing',
     favorite_removed: 'Removed from favorite folder',

@@ -77,6 +77,7 @@ export default {
   props: {
     favourites: { type: Object, default: () => ({}) },
     paperId: { type: [String, Number], default: '' },
+    paper: { type: Object, default: () => ({}) },
     busy: { type: Boolean, default: false }
   },
   emits: {
@@ -139,7 +140,7 @@ export default {
     },
     computed: {
       containsPaper() {
-        const paperId = paperIdOf(this.paperId)
+        const paperId = paperIdOf(this.paper) || paperIdOf(this.paperId)
         return Boolean(paperId && (this.favourites.paper_ids || []).map(String).includes(String(paperId)))
       },
       paperCountText() {

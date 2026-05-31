@@ -10,6 +10,7 @@
       v-for="(info, index) in favouritesInfo" :key="info.id || index"
       :favourites="favouritesInfo[index]" 
       :paperId="paperId"
+      :paper="paper"
       :busy="choosingFavoriteId === String(info.id)"
       @IWantToShow="letItShow(index)"
       @deleteFavourites="handleDelete(index)"
@@ -35,6 +36,7 @@ import { favoritePaperCountOf, normalizeFavoriteId, paperIdOf } from '../../util
 import {
   deleteFavoriteFolder,
   movePaperToFavorite,
+  isFavoriteAlreadyCollectedError,
   renameFavoriteFolder,
   resolveFavoriteFolderPaperCount
 } from '../../utils/favorite-store.mjs'
@@ -46,6 +48,7 @@ export default {
     favouritesInfo: { type: Array, default: () => [] },
     fid: { type: [String, Number], default: '' },
     paperId: { type: [String, Number], default: '' },
+    paper: { type: Object, default: () => ({}) },
     loadingFavorites: { type: Boolean, default: false }
   },
   components: {
@@ -88,7 +91,7 @@ export default {
       const favoriteId = favorite && favorite.id
       if (!userId || !favorite || favorite.pending || this.deletingFavoriteId || this.checkingFavoriteId) return
       this.checkingFavoriteId = String(favoriteId)
-      resolveFavoriteFolderPaperCount(favorite).then((count) => {
+      resolveFavoriteFolderPaperCount(favorite, userId).then((count) => {
         if (this.checkingFavoriteId !== String(favoriteId)) return
         if (count > 0) {
           this.favoriteToDelete = { ...favorite, paper_count: count }
@@ -181,12 +184,17 @@ export default {
         return
       }
       this.choosingFavoriteId = targetId
-      movePaperToFavorite(userId, favorite.id, this.paperId, this.fid).then(
+      const paper = this.paper && Object.keys(this.paper).length ? this.paper : this.paperId
+      movePaperToFavorite(userId, favorite.id, paper, this.fid).then(
         () => {
           this.$bus.emit('message', { title: this.$t('favorite_collect_success'), content: favorite.name, time: 1500 })
           this.$emit('chooseList', favorite)
         },
-        () => {
+        (error) => {
+          if (isFavoriteAlreadyCollectedError(error)) {
+            this.$bus.emit('message', { title: this.$t('favorite_already_collected'), content: favorite.name, time: 1500 })
+            return
+          }
           this.$bus.emit('message', { title: this.$t('favorite_collect_failed'), content: this.$t('common_retry_later'), time: 1800 })
         }
       ).finally(() => {
