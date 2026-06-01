@@ -428,6 +428,7 @@ export default {
     search_option_conference: 'Conference',
     search_category_sample: 'Category 1',
     search_subcategory_sample: 'Subcategory 1',
+    sort_relevance: 'Relevance',
     sort_citations_desc: 'Citations high to low',
     sort_citations_asc: 'Citations low to high',
     sort_date_desc: 'Newest first',
