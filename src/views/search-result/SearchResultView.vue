@@ -288,7 +288,10 @@ const JOURNAL_TYPES = [
   { value: 3, labelKey: 'search_option_conference' }
 ]
 
+const RELEVANCE_SORT = 'relevance_score:desc,cited_by_count:desc'
+
 const SORT_OPTIONS = [
+  { value: RELEVANCE_SORT, labelKey: 'sort_relevance', icon: 'ArrowDown' },
   { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
   { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
   { value: 'publication_date:desc', labelKey: 'sort_date_desc', icon: 'ArrowDown' },
@@ -297,6 +300,7 @@ const SORT_OPTIONS = [
 ]
 
 const ENTITY_SORT_OPTIONS = [
+  { value: RELEVANCE_SORT, labelKey: 'sort_relevance', icon: 'ArrowDown' },
   { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
   { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
   { value: 'works_count:desc', labelKey: 'sort_works_desc', icon: 'ArrowDown' },
@@ -312,7 +316,7 @@ const LEGACY_SORT_MAP = {
 }
 
 function normalizeSortValue(sort) {
-  if (!sort) return 'cited_by_count:desc'
+  if (!sort) return RELEVANCE_SORT
   return LEGACY_SORT_MAP[sort] || sort
 }
 
@@ -324,7 +328,7 @@ function sortOptionsForType(type) {
 function normalizeSortForType(sort, type) {
   const normalized = normalizeSortValue(sort)
   const allowed = sortOptionsForType(type).some((opt) => opt.value === normalized)
-  return allowed ? normalized : 'cited_by_count:desc'
+  return allowed ? normalized : RELEVANCE_SORT
 }
 
 function toPositiveInteger(value, fallback = 1) {
@@ -382,6 +386,8 @@ function sortValueOf(item, field) {
 }
 
 function sortItemsForCurrentPage(items, sort) {
+  // 相关性排序由后端决定顺序，前端不做二次排序，避免打乱相关性结果
+  if (!sort || sort === RELEVANCE_SORT) return [...items]
   const [field, direction = 'asc'] = normalizeSortValue(sort).split(':')
   const factor = direction === 'desc' ? -1 : 1
   return [...items].sort((a, b) => {
@@ -427,8 +433,8 @@ export default {
       advancedFilterParts: [],
 
       filte_count_value: 10,
-      activeSort: 'cited_by_count:desc',
-      quickSort: 'cited_by_count:desc',
+      activeSort: RELEVANCE_SORT,
+      quickSort: RELEVANCE_SORT,
 
       totalPages: 1,
       currentPage: 1,
@@ -443,7 +449,7 @@ export default {
       filter: '',
       search: '',
       submittedSearch: '',
-      sort: 'cited_by_count:desc',
+      sort: RELEVANCE_SORT,
       per_page: '10',
       page: '1',
       cursor: '',
@@ -487,7 +493,7 @@ export default {
       handler(newQuery) {
         const q = newQuery || {}
         const nextType = Number(q.search_type) || 1
-        const nextSort = normalizeSortForType(q.sort || 'cited_by_count:desc', nextType)
+        const nextSort = normalizeSortForType(q.sort || RELEVANCE_SORT, nextType)
         this.search = q.search || ''
         this.submittedSearch = this.search
         this.search_type = nextType

@@ -432,6 +432,7 @@ export default {
     search_option_conference: '会议',
     search_category_sample: '类别 1',
     search_subcategory_sample: '子类别 1',
+    sort_relevance: '相关性',
     sort_citations_desc: '引用 高 → 低',
     sort_citations_asc: '引用 低 → 高',
     sort_date_desc: '日期 新 → 旧',
