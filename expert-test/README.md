@@ -13,12 +13,12 @@
 所有系统都需要：
 
 - Git
-- Node.js 18 或 20 LTS，安装 Node.js 会自带 npm
+- Node.js 16 或更新版本（推荐 18/20 LTS），安装 Node.js 通常会自带 npm
 
 Windows：
 
 1. 安装 Git for Windows。
-2. 安装 Node.js 18/20 LTS。
+2. 安装 Node.js 16 或更新版本，推荐 18/20 LTS。
 3. 打开 PowerShell 或命令提示符，确认：
 
 ```bash
@@ -30,7 +30,7 @@ npm --version
 macOS：
 
 1. 如果没有 Git，先安装 Xcode Command Line Tools，或安装 Git。
-2. 安装 Node.js 18/20 LTS，可使用官方安装包或 Homebrew。
+2. 安装 Node.js 16 或更新版本，推荐 18/20 LTS，可使用官方安装包或 Homebrew。
 3. 打开 Terminal，确认：
 
 ```bash
@@ -42,7 +42,7 @@ npm --version
 Linux：
 
 1. 使用系统包管理器安装 Git。
-2. 安装 Node.js 18/20 LTS，建议使用 NodeSource、nvm 或发行版官方源。
+2. 安装 Node.js 16 或更新版本，推荐 18/20 LTS，建议使用 NodeSource、nvm 或发行版官方源。
 3. 确认：
 
 ```bash
@@ -86,7 +86,7 @@ sh ./expert-test/start-expert-test.sh
 2. 写入 `.env.local`，设置 `VITE_USE_MOCK=false`。
 3. 执行 `npm ci` 安装依赖。
 4. 启动 Vite 本地服务。
-5. 提示访问 `http://localhost:5173/`。
+5. 优先提示访问 `http://localhost:5173/`；如果端口被占用，请以终端实际打印的 `Local` 地址为准。
 
 ## 可选参数
 
@@ -131,7 +131,7 @@ http://localhost:5173/api/...
 Node 版本过低：
 
 - 现象：脚本提示 Node.js 版本不满足要求。
-- 处理：安装 Node.js 18 或 20 LTS 后重新打开终端。
+- 处理：安装 Node.js 16 或更新版本后重新打开终端，推荐使用 18/20 LTS。
 
 Windows 提示找不到 node：
 

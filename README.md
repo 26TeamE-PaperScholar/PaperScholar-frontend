@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-真实后端联调请确保项目根目录 `.env.local` 中有 `VITE_USE_MOCK=false`。同行专家本地一键测试入口见 [expert-test/README.md](expert-test/README.md)，也可直接运行 `npm run expert:test`。
+本地运行需要 Node.js 16 或更新版本，推荐 18/20 LTS。真实后端联调请确保项目根目录 `.env.local` 中有 `VITE_USE_MOCK=false`。同行专家本地一键测试入口见 [expert-test/README.md](expert-test/README.md)，也可直接运行 `npm run expert:test`。
 
 ### 1 插件
 

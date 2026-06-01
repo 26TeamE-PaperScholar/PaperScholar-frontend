@@ -15,6 +15,7 @@ const gitBin = isWindows ? 'git.cmd' : 'git'
 const useMock = args.has('--mock') ? 'true' : 'false'
 const shouldPull = args.has('--pull')
 const skipInstall = args.has('--skip-install')
+const minNodeMajor = 16
 const host = '127.0.0.1'
 const port = '5173'
 
@@ -50,14 +51,14 @@ function commandExists(command) {
 
 function ensureNodeVersion() {
   const major = Number(process.versions.node.split('.')[0])
-  if (!Number.isFinite(major) || major < 18) {
-    fail(`当前 Node.js 版本是 ${process.version}，请安装 Node.js 18 或 20 LTS 后再运行。`)
+  if (!Number.isFinite(major) || major < minNodeMajor) {
+    fail(`当前 Node.js 版本是 ${process.version}，请安装 Node.js 16 或更新版本后再运行；推荐 Node.js 18/20 LTS。`)
   }
 }
 
 function ensureNpm() {
   if (!commandExists(npmBin)) {
-    fail('未检测到 npm。请安装 Node.js 18 或 20 LTS，安装包会自带 npm。')
+    fail('未检测到 npm。请安装 Node.js 16 或更新版本；官方安装包通常会自带 npm。')
   }
 }
 
@@ -103,12 +104,13 @@ function installDependencies() {
     log('已跳过依赖安装。')
     return
   }
-  runSync(npmBin, ['ci'], '安装依赖 npm ci')
+  runSync(npmBin, ['ci', '--no-audit', '--no-fund'], '安装依赖 npm ci')
 }
 
 function startDevServer() {
   const url = `http://localhost:${port}/`
-  log(`即将启动本地测试服务：${url}`)
+  log(`即将启动本地测试服务，优先使用：${url}`)
+  log('如端口被占用，请以 Vite 输出的 Local 地址为准。')
   log('保持这个终端窗口打开；结束测试时按 Ctrl+C。')
 
   const child = spawn(

@@ -2,6 +2,9 @@
   "name": "ipaper-frontend",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
     "dev": "vite",
     "expert:test": "node ./expert-test/start-expert-test.mjs",
@@ -17,7 +20,7 @@
     "highlight.js": "^11.9.0",
     "katex": "^0.13.24",
     "markdown-it": "^14.0.0",
-    "marked": "^11.1.0",
+    "marked": "^9.1.6",
     "mathjax": "^3.2.2",
     "mitt": "^3.0.1",
     "relation-graph": "^2.1.23",
