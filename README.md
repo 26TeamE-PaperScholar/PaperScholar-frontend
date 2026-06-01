@@ -2,6 +2,15 @@
 
 ## 说明
 
+### 0 快速启动
+
+```bash
+npm ci
+npm run dev
+```
+
+真实后端联调请确保项目根目录 `.env.local` 中有 `VITE_USE_MOCK=false`。同行专家本地一键测试入口见 [expert-test/README.md](expert-test/README.md)，也可直接运行 `npm run expert:test`。
+
 ### 1 插件
 
 - 路由 router，配置在`/src/router/index.js`中
@@ -175,20 +184,21 @@
 
 - **图标命名**：直接使用 `@vicons/ionicons5` 的 ES 导出名（PascalCase）。例如 `<AppIcon name="FlameOutline" :size="14" />`。
 
-### 7 Mock 数据模式
+### 7 后端与 Mock 数据模式
 
-后端尚未部署，前端默认运行在 **mock 模式**。原理：
+当前联调与专家测试以 **真实后端** 为主。前端请求统一通过 `src/http/index.js` 的 `baseURL: '/api'` 发起，本地开发时由 [vite.config.js](vite.config.js) 中的代理转发到后端联调地址。
 
+- 真实后端：项目根目录 `.env.local` 中设置 `VITE_USE_MOCK=false`，或运行 `npm run expert:test` 自动写入该配置。
+- Mock 备用：后端暂时不可用、或只想离线演示前端页面时，将 `.env.local` 改为 `VITE_USE_MOCK=true`，也可运行 `npm run expert:test -- --mock`。
 - `src/mock/index.js` 集中导出 18 篇真实风格论文、15 位学者、10 所机构、10 种期刊、6 个主题、5 条系统消息、4 条审核记录等。
-- `src/api/*.js` 中每个方法都改成 `if (USE_MOCK) return mockResponse(...)` 模式，**方法签名与后端契约保持一致**，未来接入真后端只需切换开关，无需改业务代码。
-- 切换开关：项目根目录新建 `.env.local`，加入 `VITE_USE_MOCK=false` 即可让所有请求走真后端。
-- 模拟延时：`src/mock/delay.js` 默认 220–520ms 随机延时，骨架屏因此能正常展示（体验加分项）。
+- `src/api/*.js` 中保留 `if (USE_MOCK) return mockResponse(...)` 分支，**方法签名与后端契约保持一致**，便于真实后端与离线演示模式切换。
+- 模拟延时：`src/mock/delay.js` 默认 220–520ms 随机延时，骨架屏因此能正常展示。
 - 想要扩充演示数据，往 `src/mock/papers.js` / `authors.js` / `institutions.js` 中追加即可，schema 注释见各文件顶部。
 
 ### 8 演示 / PK 检查清单
 
 - 路由覆盖：`/`（首页）、`/search_result?search=&search_type=1`（论文检索）、`/paper_detail/W2024-001`（详情页）、`/scholar_portal/A001`（学者主页）、`/institution_detail/I001`（机构页）、`/tag_detail/C1`（学科）、`/personal_homepage`、`/message`、`/auth`、`/admin`
-- 演示用账号：mock 模式下任意邮箱密码登录即可，自动写 cookie，可直接体验关注/收藏/消息中心。
+- 演示用账号：真实后端模式请使用后端已创建账号；mock 模式下任意邮箱密码登录即可，自动写 cookie，可直接体验关注/收藏/消息中心。
 - 暗色模式：点 NavBar 月亮图标，所有页面同步切换。
 - 多语言：点 NavBar 地球图标，中英切换 + 全屏淡入淡出过渡。
 - ⌘K 快捷键：任何页面按 `Cmd+K` / `Ctrl+K` 自动聚焦顶栏检索框。

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "expert:test": "node ./expert-test/start-expert-test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
