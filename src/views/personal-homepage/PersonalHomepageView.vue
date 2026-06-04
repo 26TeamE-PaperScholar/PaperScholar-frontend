@@ -468,6 +468,11 @@ export default {
           this.personalInfo.institution = data.institution || ''
           this.personalInfo.email = data.email || ''
           this.personalInfo.bio = data.bio || ''
+          const avatarUrl = data.avatar || data.avatar_url || ''
+          if (avatarUrl) {
+            this.personalInfo.avatarUrl = avatarUrl
+            this.avatarLoaded = true
+          }
           this.personalInfo.urls = (data.websites || data.urls || []).map((u) => {
             if (!u.startsWith('http')) return 'https://' + u
             return u
@@ -687,14 +692,30 @@ export default {
       if (!file) return
       this.avatarFile = file
       this.avatarChanged = true
-      this.personalInfo.avatarUrl = URL.createObjectURL(file)
+      // 乐观预览：临时 blob URL 仅用于上传过程中即时显示
+      const previewUrl = URL.createObjectURL(file)
+      this.personalInfo.avatarUrl = previewUrl
       this.avatarLoaded = true
       const userId = this.personalInfo.id
       const formData = new FormData()
       formData.append('avatar', file)
       User.changePersonalInfo(userId, formData).then(
-        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_updated'), content: '', time: 1500 }) },
-        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_failed'), content: this.$t('common_retry_later'), time: 1500 }) }
+        (res) => {
+          // 上传成功后用持久化地址替换临时 blob URL，确保刷新后仍能回显
+          const persistedUrl = (res && res.data && (res.data.avatar || res.data.avatar_url)) || ''
+          if (persistedUrl) {
+            this.personalInfo.avatarUrl = persistedUrl
+          } else {
+            // 真后端未回传地址时，重新拉取用户信息获取头像
+            this.getUserInfo(userId)
+          }
+          URL.revokeObjectURL(previewUrl)
+          this.$bus.emit('message', { title: this.$t('personal_avatar_updated'), content: '', time: 1500 })
+        },
+        () => {
+          URL.revokeObjectURL(previewUrl)
+          this.$bus.emit('message', { title: this.$t('personal_avatar_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
       )
     },
 

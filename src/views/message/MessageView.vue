@@ -8,7 +8,7 @@
           <p class="ps-msg__lede">{{ $t('message_center_desc') }}</p>
         </div>
         <div class="ps-msg__hero-actions">
-          <button class="basic-btn-outline" @click="markAllRead">
+          <button class="basic-btn-outline" :disabled="unreadCount === 0" @click="markAllRead">
             <AppIcon name="Notifications" :size="14" />
             {{ $t('message_mark_all_read') }}
           </button>
@@ -179,6 +179,9 @@ export default {
     selected() {
       return this.messages.find((m) => m.id === this.selectedId) || null
     },
+    unreadCount() {
+      return this.messages.filter((m) => !m.is_read).length
+    },
     activeCategoryLabel() {
       const cat = CATEGORIES.find((c) => c.id === this.activeCategory)
       return cat ? this.$t(cat.labelKey) : this.$t('message_center')
@@ -188,6 +191,10 @@ export default {
     this.load()
   },
   methods: {
+    // 把当前未读数同步到 store，作为角标/今日动态的单一计数源
+    syncUnreadToStore() {
+      this.$store.dispatch('messages/syncUnread', this.unreadCount)
+    },
     load() {
       Messages.getAllReceivedMessages().then(
         (res) => {
@@ -195,6 +202,7 @@ export default {
           if (this.messages.length && !this.selectedId) {
             this.selectedId = this.messages[0].id
           }
+          this.syncUnreadToStore()
         },
         () => {}
       )
@@ -204,6 +212,7 @@ export default {
       if (!m.is_read) {
         m.is_read = true
         Messages.setMessageReadById(m.id, { is_read: true })
+        this.syncUnreadToStore()
       }
     },
     countByCategory(id) {
@@ -211,14 +220,21 @@ export default {
       return this.messages.filter((m) => m.category === id && !m.is_read).length
     },
     markAllRead() {
+      // 无未读消息时不调用接口、不弹成功提示，避免误导性反馈（评审 P7）
+      if (this.unreadCount === 0) {
+        this.$bus.emit('message', { title: this.$t('message_no_unread'), content: '', time: 1200 })
+        return
+      }
       Messages.setAllMessageRead().then(() => {
         this.messages.forEach((m) => (m.is_read = true))
+        this.syncUnreadToStore()
         this.$bus.emit('message', { title: this.$t('message_marked_all_read'), content: '', time: 1200 })
       })
     },
     clearAllRead() {
       Messages.deleteAllReadMessages().then(() => {
         this.messages = this.messages.filter((m) => !m.is_read)
+        this.syncUnreadToStore()
         this.$bus.emit('message', { title: this.$t('message_cleared_read'), content: '', time: 1200 })
       })
     },
@@ -228,6 +244,7 @@ export default {
       Messages.deleteMessageById(id).then(() => {
         this.messages = this.messages.filter((m) => m.id !== id)
         this.selectedId = this.messages[0] ? this.messages[0].id : ''
+        this.syncUnreadToStore()
         this.$bus.emit('message', { title: this.$t('message_deleted'), content: '', time: 1200 })
       })
     },

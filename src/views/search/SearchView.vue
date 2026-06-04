@@ -33,7 +33,7 @@
         <aside class="ps-dash__hero-stats">
           <p class="ps-dash__stats-label">{{ $t('dashboard_today') }}</p>
           <ul>
-            <li><span>{{ stats.unreadMessages }}</span> {{ $t('dashboard_unread_messages', { count: '' }).trim() }}</li>
+            <li><span>{{ unreadMessages }}</span> {{ $t('dashboard_unread_messages', { count: '' }).trim() }}</li>
             <li><span>{{ stats.newFromFollowing }}</span> {{ $t('dashboard_follow_updates', { count: '' }).trim() }}</li>
             <li><span>{{ stats.recommended }}</span> {{ $t('dashboard_recommended_reads', { count: '' }).trim() }}</li>
           </ul>
@@ -138,10 +138,14 @@ export default {
         { id: 'C14', name: 'Quantum Computing' },
         { id: 'C2', name: 'Multimodal LLM' }
       ],
-      stats: { unreadMessages: 2, newFromFollowing: 5, recommended: 12 }
+      stats: { newFromFollowing: 5, recommended: 12 }
     }
   },
   computed: {
+    // 未读消息数取自 messages store，与 NavBar 角标、消息页保持一致
+    unreadMessages() {
+      return this.$store.getters['messages/unreadCount']
+    },
     greeting() {
       const h = new Date().getHours()
       if (h < 6) return this.$t('greeting_early')
@@ -159,6 +163,7 @@ export default {
   mounted() {
     Article.getInterestRecommend().then((res) => { this.interestList = ((res && res.data) || []).slice(0, 6) })
     Article.getHotspotRecommend().then((res) => { this.hotPapers = ((res && res.data) || []).slice(0, 5) })
+    this.$store.dispatch('messages/refreshUnread')
   },
   methods: {
     basicSearch() {

@@ -18,6 +18,43 @@ const cloneUser = () => JSON.parse(JSON.stringify(mockUser))
 let mockFollowingState = JSON.parse(JSON.stringify(mockFollowing))
 let mockFavoriteCounter = 1
 const MOCK_FAVORITES_STORAGE_KEY = 'ps-mock-favorites-state'
+const MOCK_AVATAR_STORAGE_KEY = 'ps-mock-avatar'
+
+// mock 模式下头像持久化：存 dataURL 到 localStorage，刷新后仍可回显
+function readMockAvatar() {
+  if (typeof window === 'undefined' || !window.localStorage) return ''
+  try {
+    return window.localStorage.getItem(MOCK_AVATAR_STORAGE_KEY) || ''
+  } catch (e) {
+    return ''
+  }
+}
+
+function writeMockAvatar(dataUrl) {
+  if (typeof window === 'undefined' || !window.localStorage) return
+  try {
+    if (dataUrl) window.localStorage.setItem(MOCK_AVATAR_STORAGE_KEY, dataUrl)
+  } catch (e) {}
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve) => {
+    if (!file || typeof FileReader === 'undefined') return resolve('')
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result || '')
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
+
+// 从 FormData 或普通对象中取出 avatar 字段
+function extractAvatar(_data) {
+  if (!_data) return null
+  if (typeof FormData !== 'undefined' && _data instanceof FormData) {
+    return _data.get('avatar')
+  }
+  return _data.avatar || null
+}
 
 function clone(data) {
   return JSON.parse(JSON.stringify(data))
@@ -53,7 +90,10 @@ export class User {
 
   static async getUser(_id) {
     if (USE_MOCK) {
-      return mockResponse(cloneUser())
+      const user = cloneUser()
+      const avatar = readMockAvatar()
+      if (avatar) user.avatar = avatar
+      return mockResponse(user)
     }
     return service(url.users + _id + '/', { method: 'get' })
   }
@@ -67,6 +107,15 @@ export class User {
 
   static async changePersonalInfo(_id, _data) {
     if (USE_MOCK) {
+      const avatar = extractAvatar(_data)
+      if (avatar instanceof Blob) {
+        const dataUrl = await fileToDataUrl(avatar)
+        writeMockAvatar(dataUrl)
+        return mockResponse({ ok: true, avatar: dataUrl })
+      }
+      if (typeof avatar === 'string' && avatar) {
+        writeMockAvatar(avatar)
+      }
       return mockResponse({ ok: true })
     }
     return service(url.users + _id + '/', { method: 'patch', data: _data })

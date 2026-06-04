@@ -109,7 +109,6 @@ export default {
   },
   data() {
     return {
-      hasUnreadMessage: true,
       changePasswordModalShow: false,
       currentUsername: '',
       currentUserId: '',
@@ -123,7 +122,11 @@ export default {
     }
   },
   computed: {
-    ...mapState(['isLoggedIn'])
+    ...mapState(['isLoggedIn']),
+    // 角标未读状态统一取自 messages store（单一计数源），不再写死
+    hasUnreadMessage() {
+      return this.$store.getters['messages/hasUnread']
+    }
   },
   watch: {
     isLoggedIn(newValue) {
@@ -147,6 +150,7 @@ export default {
       if (userId) {
         this.setIsLoggedIn(true)
         this.currentUserId = userId
+        this.$store.dispatch('messages/refreshUnread')
         User.getUser(userId).then(
           (response) => {
             const data = response && response.data
@@ -156,8 +160,9 @@ export default {
         )
       }
     },
-    handleJudgeHasUnreadMsg(payload) {
-      this.hasUnreadMessage = !!(payload && payload.hasUnread)
+    handleJudgeHasUnreadMsg() {
+      // 兼容旧事件：收到通知时从接口重新统计未读数
+      this.$store.dispatch('messages/refreshUnread')
     },
     toggleLocale() {
       document.documentElement.classList.add('document-fade-out')

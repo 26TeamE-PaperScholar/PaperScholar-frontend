@@ -321,6 +321,16 @@ export default {
   mounted() {
     this.loadHotPapers()
     document.addEventListener('pointerdown', this.handleAssistantPointerDown)
+    if (this.$route.query.reason === 'admin-required') {
+      this.$bus.emit('message', {
+        title: this.$t('admin_required_notice'),
+        content: '',
+        time: 2000
+      })
+      const query = { ...this.$route.query }
+      delete query.reason
+      this.$router.replace({ path: '/', query })
+    }
   },
   beforeUnmount() {
     document.removeEventListener('pointerdown', this.handleAssistantPointerDown)

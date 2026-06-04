@@ -12,15 +12,37 @@ const url = {
   register: '/accounts/register/'
 }
 
+// 从用户/登录数据中判定是否为管理员（兼容多种后端字段命名）
+function resolveIsAdmin(data) {
+  if (!data) return false
+  return !!(
+    data.is_admin ||
+    data.is_staff ||
+    data.is_superuser ||
+    data.role === 'admin' ||
+    data.user_type === 'admin'
+  )
+}
+
 export class Account {
   static async login(data) {
     if (USE_MOCK) {
+      // mock 模式忽略账密：邮箱含 admin 视为管理员，便于演示后台；其余为普通用户
+      const isAdmin = /admin/i.test((data && data.email) || '')
       VueCookies.set('user_id', mockUser.id, '7d')
-      return mockResponse({ user_id: mockUser.id, username: mockUser.username, token: 'mock-token' })
+      VueCookies.set('ps_role', isAdmin ? 'admin' : 'user', '7d')
+      return mockResponse({
+        user_id: mockUser.id,
+        username: mockUser.username,
+        token: 'mock-token',
+        is_admin: isAdmin
+      })
     }
     return service(url.login, { method: 'post', data }).then((response) => {
-      const userId = response && response.data && response.data.user_id
+      const payload = (response && response.data) || {}
+      const userId = payload.user_id
       if (userId) VueCookies.set('user_id', userId, '7d')
+      VueCookies.set('ps_role', resolveIsAdmin(payload) ? 'admin' : 'user', '7d')
       return response
     })
   }
@@ -28,10 +50,12 @@ export class Account {
   static async logout() {
     if (USE_MOCK) {
       VueCookies.remove('user_id')
+      VueCookies.remove('ps_role')
       return mockResponse({ ok: true })
     }
     return service(url.logout, { method: 'get' }).then((response) => {
       VueCookies.remove('user_id')
+      VueCookies.remove('ps_role')
       return response
     })
   }

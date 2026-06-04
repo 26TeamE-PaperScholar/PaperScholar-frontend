@@ -41,7 +41,7 @@
             <AppIcon name="FilterOutline" :size="14" />
             {{ $t('search_results_filter') }}
           </h3>
-          <details class="ps-results__filter" open>
+          <details v-if="search_type == 1" class="ps-results__filter" open>
             <summary>{{ $t('search_results_publication_time') }}</summary>
             <div class="ps-results__filter-options">
               <button
@@ -122,6 +122,32 @@
               >{{ $t(opt.labelKey) }}</button>
             </div>
           </details>
+
+          <details v-if="search_type == 4" class="ps-results__filter" open>
+            <summary>{{ $t('inst_type_filter') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in instTypeOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': instTypeFilter === opt.value }"
+                @click="setInstType(opt.value)"
+              >{{ $t(opt.labelKey) }}</button>
+            </div>
+          </details>
+
+          <details v-if="search_type == 4" class="ps-results__filter" open>
+            <summary>{{ $t('inst_country_filter') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in countryOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': countryFilter === opt.value }"
+                @click="setCountry(opt.value)"
+              >{{ $t(opt.labelKey) }}</button>
+            </div>
+          </details>
         </div>
 
         <div class="ps-results__sidebar-section">
@@ -153,30 +179,47 @@
             <AppIcon :name="showAdvancedSearch ? 'ChevronDown' : 'ChevronForward'" :size="14" />
           </button>
           <div v-show="showAdvancedSearch" class="ps-results__advanced">
-            <label>
-              <span>{{ $t('author_search') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
-            </label>
-            <label>
-              <span>{{ $t('search_results_source_journal') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
-            </label>
-            <label>
-              <span>{{ $t('search_results_year_range') }}</span>
-              <div class="ps-results__advanced-range">
-                <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
-                <span>~</span>
-                <input class="basic-input" type="text" v-model="advancedSearchForm.end_time" placeholder="2024" />
-              </div>
-            </label>
-            <label>
-              <span>{{ $t('advanced_search_publish_keyword') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
-            </label>
-            <label class="ps-results__advanced-check">
-              <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
-              <span>{{ $t('search_results_title_only') }}</span>
-            </label>
+            <!-- 机构高级检索字段（评审 P5）：使用机构维度，不复用论文字段 -->
+            <template v-if="search_type == 4">
+              <label>
+                <span>{{ $t('inst_adv_name') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.inst_name" placeholder="Tsinghua" />
+              </label>
+              <label>
+                <span>{{ $t('inst_adv_region') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.inst_region" placeholder="中国 / China" />
+              </label>
+              <label>
+                <span>{{ $t('inst_adv_concept') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.inst_concept" placeholder="Computer Science" />
+              </label>
+            </template>
+            <template v-else>
+              <label>
+                <span>{{ $t('author_search') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_source_journal') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_year_range') }}</span>
+                <div class="ps-results__advanced-range">
+                  <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
+                  <span>~</span>
+                  <input class="basic-input" type="text" v-model="advancedSearchForm.end_time" placeholder="2024" />
+                </div>
+              </label>
+              <label>
+                <span>{{ $t('advanced_search_publish_keyword') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
+              </label>
+              <label class="ps-results__advanced-check">
+                <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
+                <span>{{ $t('search_results_title_only') }}</span>
+              </label>
+            </template>
             <button class="basic-btn ps-results__advanced-submit" @click="submitAdvancedSearch">
               {{ $t('search_results_apply_advanced') }}
             </button>
@@ -192,7 +235,8 @@
               <span v-html="$t('search_results_total', { count: '<strong>' + totalCount + '</strong>' })"></span>
               <span v-if="submittedSearch" class="ps-results__count-keyword">{{ $t('search_results_about', { keyword: submittedSearch }) }}</span>
             </p>
-            <p class="ps-results__took">{{ $t('search_results_took', { ms: tookMs, page: currentPage, total: totalPages }) }}</p>
+            <p v-if="exploreRecommend" class="ps-results__count-keyword">{{ $t('search_results_explore_hint') }}</p>
+            <p v-else class="ps-results__took">{{ $t('search_results_took', { ms: tookMs, page: currentPage, total: totalPages }) }}</p>
           </div>
           <div class="ps-results__sort-quick">
             <span>{{ $t('sort') }}</span>
@@ -247,6 +291,7 @@ import InstitutionListItem from '../../components/list-item/InstitutionListItem.
 import JournalListItem from '../../components/list-item/JournalListItem.vue'
 import ScholarListItem from '../../components/list-item/ScholarListItem.vue'
 import { Search } from '../../api/search.js'
+import { Article } from '../../api/article.js'
 import { AppCard, AppIcon, AppSkeletonCard, AppEmptyState } from '../../components/ui'
 
 const TYPE_TABS = [
@@ -286,6 +331,20 @@ const JOURNAL_TYPES = [
   { value: 1, labelKey: 'search_option_journal' },
   { value: 2, labelKey: 'search_option_preprint' },
   { value: 3, labelKey: 'search_option_conference' }
+]
+
+// 机构检索专属筛选项（评审 P4）：机构类型 + 所属地区
+const INSTITUTION_TYPE_OPTIONS = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'education', labelKey: 'inst_type_education' },
+  { value: 'company', labelKey: 'inst_type_company' }
+]
+
+const COUNTRY_OPTIONS = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'CN', labelKey: 'country_cn' },
+  { value: 'US', labelKey: 'country_us' },
+  { value: 'GB', labelKey: 'country_gb' }
 ]
 
 const RELEVANCE_SORT = 'relevance_score:desc,cited_by_count:desc'
@@ -368,8 +427,15 @@ function parseTimeFilter(part) {
   }
 }
 
-function buildAdvancedFilterParts(data) {
+function buildAdvancedFilterParts(data, type) {
   const parts = []
+  // 机构高级检索使用机构维度字段（评审 P5），不复用论文字段
+  if (Number(type) === 4) {
+    if (data.inst_name) parts.push(`display_name.search:${encodeURIComponent(data.inst_name)}`)
+    if (data.inst_region) parts.push(`country.search:${encodeURIComponent(data.inst_region)}`)
+    if (data.inst_concept) parts.push(`concepts.search:${encodeURIComponent(data.inst_concept)}`)
+    return parts
+  }
   if (data.author) parts.push(`author.search:${encodeURIComponent(data.author)}`)
   if (data.publication) parts.push(`source.search:${encodeURIComponent(data.publication)}`)
   if (data.keyword) {
@@ -423,14 +489,20 @@ export default {
         start_time: '',
         end_time: '',
         keyword: '',
-        is_key_title: true
+        is_key_title: true,
+        inst_name: '',
+        inst_region: '',
+        inst_concept: ''
       },
 
       timeFilter: 'all',
       citeFilter: 0,
       langFilter: 'all',
       journalFilter: 0,
+      instTypeFilter: 'all',
+      countryFilter: 'all',
       advancedFilterParts: [],
+      exploreRecommend: false,
 
       filte_count_value: 10,
       activeSort: RELEVANCE_SORT,
@@ -475,6 +547,12 @@ export default {
     journalTypes() {
       return JOURNAL_TYPES
     },
+    instTypeOptions() {
+      return INSTITUTION_TYPE_OPTIONS
+    },
+    countryOptions() {
+      return COUNTRY_OPTIONS
+    },
     sortOptionsForCurrentType() {
       return sortOptionsForType(this.search_type)
     },
@@ -518,11 +596,14 @@ export default {
         citeFilter: 0,
         langFilter: 'all',
         journalFilter: 0,
+        instTypeFilter: 'all',
+        countryFilter: 'all',
         search_start_time: RECENT_2_START_YEAR,
         search_end_time: CURRENT_YEAR,
         filte_count_value: this.filte_count_value,
         advancedFilterParts: []
       }
+      const advForm = { inst_name: '', inst_region: '', inst_concept: '' }
 
       filterParts(filter).forEach((part) => {
         if (part.startsWith('publication_year:')) {
@@ -538,6 +619,19 @@ export default {
           state.journalFilter = 2
         } else if (part === 'type:conference') {
           state.journalFilter = 3
+        } else if (part === 'type:education' || part === 'type:company') {
+          state.instTypeFilter = part.slice('type:'.length)
+        } else if (part.startsWith('country_code:')) {
+          state.countryFilter = (part.slice('country_code:'.length) || 'all').toUpperCase()
+        } else if (part.startsWith('display_name.search:')) {
+          advForm.inst_name = decodeURIComponent(part.slice('display_name.search:'.length))
+          state.advancedFilterParts.push(part)
+        } else if (part.startsWith('country.search:')) {
+          advForm.inst_region = decodeURIComponent(part.slice('country.search:'.length))
+          state.advancedFilterParts.push(part)
+        } else if (part.startsWith('concepts.search:')) {
+          advForm.inst_concept = decodeURIComponent(part.slice('concepts.search:'.length))
+          state.advancedFilterParts.push(part)
         } else {
           state.advancedFilterParts.push(part)
         }
@@ -547,16 +641,24 @@ export default {
       this.citeFilter = state.citeFilter
       this.langFilter = state.langFilter
       this.journalFilter = state.journalFilter
+      this.instTypeFilter = state.instTypeFilter
+      this.countryFilter = state.countryFilter
       this.search_start_time = state.search_start_time
       this.search_end_time = state.search_end_time
       this.filte_count_value = state.filte_count_value
       this.advancedFilterParts = state.advancedFilterParts
+      this.advancedSearchForm.inst_name = advForm.inst_name
+      this.advancedSearchForm.inst_region = advForm.inst_region
+      this.advancedSearchForm.inst_concept = advForm.inst_concept
     },
     buildFilter() {
       const type = Number(this.search_type)
       const parts = []
-      const timeFilter = buildTimeFilter(this.timeFilter, this.search_start_time, this.search_end_time)
-      if (timeFilter) parts.push(timeFilter)
+      // 发表时间（publication_year）仅适用于论文检索，避免机构/学者类型出现空结果（评审 P4）
+      if (type === 1) {
+        const timeFilter = buildTimeFilter(this.timeFilter, this.search_start_time, this.search_end_time)
+        if (timeFilter) parts.push(timeFilter)
+      }
       if (this.citeFilter === 1) {
         const citeValue = toPositiveInteger(this.filte_count_value, 0)
         if (citeValue > 0) parts.push(`cited_by_count:>${citeValue}`)
@@ -569,6 +671,11 @@ export default {
         else if (this.journalFilter === 2) parts.push('type:repository')
         else if (this.journalFilter === 3) parts.push('type:conference')
       }
+      // 机构专属筛选：机构类型 + 所属地区（评审 P4）
+      if (type === 4) {
+        if (this.instTypeFilter !== 'all') parts.push(`type:${this.instTypeFilter}`)
+        if (this.countryFilter !== 'all') parts.push(`country_code:${this.countryFilter}`)
+      }
       parts.push(...this.advancedFilterParts)
       return parts.join(',')
     },
@@ -578,9 +685,43 @@ export default {
     },
     setSearchTypeFromTab(type) {
       this.search_type = Number(type)
+      // 切换搜索对象时清空与上一类型相关的筛选，避免论文筛选条件带入机构/学者检索（评审 P4/P5）
+      this.resetFilterState()
       this.sort = normalizeSortForType(this.sort, this.search_type)
       this.quickSort = this.sort
       this.activeSort = this.sort
+      this.currentPage = 1
+      this.setQuery()
+    },
+    resetFilterState() {
+      this.timeFilter = 'all'
+      this.citeFilter = 0
+      this.langFilter = 'all'
+      this.journalFilter = 0
+      this.instTypeFilter = 'all'
+      this.countryFilter = 'all'
+      this.advancedFilterParts = []
+      this.advancedSearchForm = {
+        author: '',
+        publication: '',
+        start_time: '',
+        end_time: '',
+        keyword: '',
+        is_key_title: true,
+        inst_name: '',
+        inst_region: '',
+        inst_concept: ''
+      }
+      this.search_start_time = RECENT_2_START_YEAR
+      this.search_end_time = CURRENT_YEAR
+    },
+    setInstType(value) {
+      this.instTypeFilter = value
+      this.currentPage = 1
+      this.setQuery()
+    },
+    setCountry(value) {
+      this.countryFilter = value
       this.currentPage = 1
       this.setQuery()
     },
@@ -628,27 +769,13 @@ export default {
         this.search_start_time = data.start_time
         this.search_end_time = data.end_time
       }
-      this.advancedFilterParts = buildAdvancedFilterParts(data)
+      this.advancedFilterParts = buildAdvancedFilterParts(data, this.search_type)
       this.currentPage = 1
       this.setQuery()
     },
     clearAll() {
       this.filter = ''
-      this.timeFilter = 'all'
-      this.citeFilter = 0
-      this.langFilter = 'all'
-      this.journalFilter = 0
-      this.advancedFilterParts = []
-      this.advancedSearchForm = {
-        author: '',
-        publication: '',
-        start_time: '',
-        end_time: '',
-        keyword: '',
-        is_key_title: true
-      }
-      this.search_start_time = RECENT_2_START_YEAR
-      this.search_end_time = CURRENT_YEAR
+      this.resetFilterState()
       this.currentPage = 1
       this.setQuery()
     },
@@ -675,11 +802,46 @@ export default {
       this.currentPage = 1
       this.setQuery()
     },
-    searchmethod() {
+    loadExploreRecommend() {
+      this.exploreRecommend = true
       this.displayLoading = true
       const requestId = ++this.searchRequestSeq
       const started = Date.now()
+      Article.getHotspotRecommend().then(
+        (res) => {
+          if (requestId !== this.searchRequestSeq) return
+          const list = (res && res.data) || []
+          this.infoItems = list.map((r) => ({ ...r, keyword: '' }))
+          this.submittedSearch = ''
+          this.totalCount = this.infoItems.length
+          this.totalPages = 1
+          this.currentPage = 1
+          this.tookMs = Date.now() - started
+          this.displayLoading = false
+        },
+        () => {
+          if (requestId !== this.searchRequestSeq) return
+          this.infoItems = []
+          this.totalCount = 0
+          this.totalPages = 1
+          this.tookMs = Date.now() - started
+          this.displayLoading = false
+        }
+      )
+    },
+    searchmethod() {
+      const type = Number(this.search_type)
       const submittedSearch = this.search.trim()
+      const hasFilters = !!(this.filter && this.filter.length)
+      // 探索入口（论文类型、无关键词、无筛选）展示热门推荐而非空结果（评审 P3）
+      if (type === 1 && !submittedSearch && !hasFilters) {
+        this.loadExploreRecommend()
+        return
+      }
+      this.exploreRecommend = false
+      this.displayLoading = true
+      const requestId = ++this.searchRequestSeq
+      const started = Date.now()
       const params = {
         filter: this.filter,
         sort: this.sort,
@@ -688,7 +850,6 @@ export default {
         cursor: this.cursor
       }
       if (submittedSearch) params.search = submittedSearch
-      const type = Number(this.search_type)
       let api = Search.searchWorks
       if (type === 2) api = Search.searchAuthor
       else if (type === 3) api = Search.searchSources

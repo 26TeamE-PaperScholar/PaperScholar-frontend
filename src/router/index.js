@@ -25,6 +25,11 @@ const AUTH_REQUIRED_PATHS = new Set([
   '/ai_assistant'
 ])
 
+// 仅管理员可访问的路径（普通用户即使已登录也会被拦截）
+const ADMIN_REQUIRED_PATHS = new Set([
+  '/admin'
+])
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to, from, savedPosition) {
@@ -61,6 +66,14 @@ function resolveLoginState() {
   return isLoggedIn
 }
 
+function resolveAdminState() {
+  const isAdmin = VueCookies.get('ps_role') === 'admin'
+  if (store.state.isAdmin !== isAdmin) {
+    store.commit('setIsAdmin', isAdmin)
+  }
+  return isAdmin
+}
+
 router.beforeEach((to, from, next) => {
   const isLoggedIn = resolveLoginState()
   if (!isLoggedIn && AUTH_REQUIRED_PATHS.has(to.path)) {
@@ -72,9 +85,14 @@ router.beforeEach((to, from, next) => {
         reason: 'login-required'
       }
     })
-  } else {
-    next()
+    return
   }
+  if (ADMIN_REQUIRED_PATHS.has(to.path) && !resolveAdminState()) {
+    // 普通用户访问后台：重定向首页并标记原因，避免越权进入管理页
+    next({ path: '/', query: { reason: 'admin-required' } })
+    return
+  }
+  next()
 })
 
 export default router

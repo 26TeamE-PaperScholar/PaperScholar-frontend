@@ -156,6 +156,31 @@ export const searchInstitutions = (params = {}) => {
       [i.display_name, i.display_name_alt, i.country].filter(Boolean).join(' ').toLowerCase().includes(q)
     )
   }
+
+  // 机构维度筛选（评审 P4/P5）：机构类型 / 所属地区 / 引用量 / 高级检索字段
+  const parts = String(params.filter || '').split(',').map((p) => p.trim()).filter(Boolean)
+  parts.forEach((part) => {
+    if (part === 'type:education' || part === 'type:company') {
+      const t = part.slice('type:'.length)
+      list = list.filter((i) => i.type === t)
+    } else if (part.startsWith('country_code:')) {
+      const code = part.slice('country_code:'.length).toUpperCase()
+      list = list.filter((i) => (i.country_code || '').toUpperCase() === code)
+    } else if (part.startsWith('cited_by_count:>')) {
+      const min = Number(part.slice('cited_by_count:>'.length)) || 0
+      list = list.filter((i) => (i.cited_by_count || 0) > min)
+    } else if (part.startsWith('display_name.search:')) {
+      const v = decodeURIComponent(part.slice('display_name.search:'.length)).toLowerCase()
+      list = list.filter((i) => [i.display_name, i.display_name_alt].filter(Boolean).join(' ').toLowerCase().includes(v))
+    } else if (part.startsWith('country.search:')) {
+      const v = decodeURIComponent(part.slice('country.search:'.length)).toLowerCase()
+      list = list.filter((i) => [i.country, i.country_code].filter(Boolean).join(' ').toLowerCase().includes(v))
+    } else if (part.startsWith('concepts.search:')) {
+      const v = decodeURIComponent(part.slice('concepts.search:'.length)).toLowerCase()
+      list = list.filter((i) => (i.top_concepts || []).join(' ').toLowerCase().includes(v))
+    }
+  })
+
   const sort = params.sort || ''
   if (sort.startsWith('cited_by_count')) {
     list.sort((a, b) =>
