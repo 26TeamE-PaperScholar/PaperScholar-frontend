@@ -648,6 +648,8 @@ export default {
     message_meta_audit: 'Review',
     message_meta_private: 'Private',
     message_marked_all_read: 'All messages marked as read',
+    message_no_unread: 'No unread messages',
+    message_no_read: 'No read messages',
     message_cleared_read: 'Read messages cleared',
     message_deleted: 'Message deleted',
 

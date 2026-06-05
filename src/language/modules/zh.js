@@ -652,6 +652,8 @@ export default {
     message_meta_audit: '审核',
     message_meta_private: '私信',
     message_marked_all_read: '已全部标记为已读',
+    message_no_unread: '暂无未读消息',
+    message_no_read: '暂无已读消息',
     message_cleared_read: '已清除已读消息',
     message_deleted: '已删除消息',
 

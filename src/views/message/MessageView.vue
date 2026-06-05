@@ -8,11 +8,23 @@
           <p class="ps-msg__lede">{{ $t('message_center_desc') }}</p>
         </div>
         <div class="ps-msg__hero-actions">
-          <button class="basic-btn-outline" @click="markAllRead">
+          <button
+            class="basic-btn-outline"
+            type="button"
+            :disabled="!unreadCount"
+            :title="!unreadCount ? $t('message_no_unread') : ''"
+            @click="markAllRead"
+          >
             <AppIcon name="Notifications" :size="14" />
             {{ $t('message_mark_all_read') }}
           </button>
-          <button class="basic-btn-outline" @click="clearAllRead">
+          <button
+            class="basic-btn-outline"
+            type="button"
+            :disabled="!readCount"
+            :title="!readCount ? $t('message_no_read') : ''"
+            @click="clearAllRead"
+          >
             <AppIcon name="Close" :size="14" />
             {{ $t('message_clear_read') }}
           </button>
@@ -134,7 +146,7 @@
 </template>
 
 <script>
-import { Messages } from '../../api/messages.js'
+import { Messages, receivedMessagesFromResponse } from '../../api/messages.js'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppAvatar, AppEmptyState } from '../../components/ui'
 
 const CATEGORIES = [
@@ -179,6 +191,12 @@ export default {
     selected() {
       return this.messages.find((m) => m.id === this.selectedId) || null
     },
+    unreadCount() {
+      return this.messages.filter((m) => !m.is_read).length
+    },
+    readCount() {
+      return this.messages.filter((m) => m.is_read).length
+    },
     activeCategoryLabel() {
       const cat = CATEGORIES.find((c) => c.id === this.activeCategory)
       return cat ? this.$t(cat.labelKey) : this.$t('message_center')
@@ -191,10 +209,13 @@ export default {
     load() {
       Messages.getAllReceivedMessages().then(
         (res) => {
-          this.messages = (res && res.data) || []
-          if (this.messages.length && !this.selectedId) {
+          this.messages = receivedMessagesFromResponse(res)
+          if (!this.messages.length) {
+            this.selectedId = ''
+          } else if (!this.selected || !this.selectedId) {
             this.selectedId = this.messages[0].id
           }
+          this.notifyUnreadState()
         },
         () => {}
       )
@@ -203,22 +224,40 @@ export default {
       this.selectedId = m.id
       if (!m.is_read) {
         m.is_read = true
-        Messages.setMessageReadById(m.id, { is_read: true })
+        this.notifyUnreadState()
+        Messages.setMessageReadById(m.id, { is_read: true }).then(
+          () => {},
+          () => {
+            m.is_read = false
+            this.notifyUnreadState()
+          }
+        )
       }
     },
     countByCategory(id) {
-      if (id === 'all') return this.messages.filter((m) => !m.is_read).length
+      if (id === 'all') return this.unreadCount
       return this.messages.filter((m) => m.category === id && !m.is_read).length
     },
     markAllRead() {
+      if (!this.unreadCount) {
+        this.$bus.emit('message', { title: this.$t('message_no_unread'), content: '', time: 1200 })
+        return
+      }
       Messages.setAllMessageRead().then(() => {
         this.messages.forEach((m) => (m.is_read = true))
+        this.notifyUnreadState()
         this.$bus.emit('message', { title: this.$t('message_marked_all_read'), content: '', time: 1200 })
       })
     },
     clearAllRead() {
+      if (!this.readCount) {
+        this.$bus.emit('message', { title: this.$t('message_no_read'), content: '', time: 1200 })
+        return
+      }
       Messages.deleteAllReadMessages().then(() => {
         this.messages = this.messages.filter((m) => !m.is_read)
+        if (!this.selected) this.selectedId = this.messages[0] ? this.messages[0].id : ''
+        this.notifyUnreadState()
         this.$bus.emit('message', { title: this.$t('message_cleared_read'), content: '', time: 1200 })
       })
     },
@@ -228,8 +267,13 @@ export default {
       Messages.deleteMessageById(id).then(() => {
         this.messages = this.messages.filter((m) => m.id !== id)
         this.selectedId = this.messages[0] ? this.messages[0].id : ''
+        this.notifyUnreadState()
         this.$bus.emit('message', { title: this.$t('message_deleted'), content: '', time: 1200 })
       })
+    },
+    notifyUnreadState() {
+      const unreadCount = this.unreadCount
+      this.$bus.emit('messageUnreadChanged', { unreadCount, hasUnread: unreadCount > 0 })
     },
     truncate(text, n) {
       if (!text) return ''
@@ -301,6 +345,12 @@ export default {
 .ps-msg__hero-actions :deep(.basic-btn-outline) {
   height: 38px;
   gap: 6px;
+}
+
+.ps-msg__hero-actions :deep(.basic-btn-outline:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ── Layout ──────────────────────────────────────── */

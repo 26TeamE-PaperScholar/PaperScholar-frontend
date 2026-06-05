@@ -92,6 +92,7 @@ import { mapState, mapMutations } from 'vuex'
 import ChangePasswordModal from '../modals/ChangePasswordModal.vue'
 import ColorSetter from '../color/ColorSetter.vue'
 import { Account } from '../../api/accounts.js'
+import { Messages } from '../../api/messages.js'
 import { User } from '../../api/users.js'
 import { toggleAppLocale } from '../../language'
 import AppIcon from '../ui/Icon.vue'
@@ -109,7 +110,7 @@ export default {
   },
   data() {
     return {
-      hasUnreadMessage: true,
+      hasUnreadMessage: false,
       changePasswordModalShow: false,
       currentUsername: '',
       currentUserId: '',
@@ -129,15 +130,20 @@ export default {
     isLoggedIn(newValue) {
       if (newValue === true) {
         this.getUserIdAndSayHello()
+      } else {
+        this.hasUnreadMessage = false
       }
     }
   },
   mounted() {
     this.$bus.on('judgeHasUnreadMsg', this.handleJudgeHasUnreadMsg)
+    this.$bus.on('messageUnreadChanged', this.handleUnreadMessageChanged)
     this.getUserIdAndSayHello()
     window.addEventListener('keydown', this.handleHotkey)
   },
   beforeUnmount() {
+    this.$bus.off('judgeHasUnreadMsg', this.handleJudgeHasUnreadMsg)
+    this.$bus.off('messageUnreadChanged', this.handleUnreadMessageChanged)
     window.removeEventListener('keydown', this.handleHotkey)
   },
   methods: {
@@ -147,6 +153,7 @@ export default {
       if (userId) {
         this.setIsLoggedIn(true)
         this.currentUserId = userId
+        this.loadUnreadMessageState()
         User.getUser(userId).then(
           (response) => {
             const data = response && response.data
@@ -154,10 +161,29 @@ export default {
           },
           () => {}
         )
+      } else {
+        this.hasUnreadMessage = false
       }
     },
     handleJudgeHasUnreadMsg(payload) {
+      this.handleUnreadMessageChanged(payload)
+    },
+    handleUnreadMessageChanged(payload) {
+      if (payload && Object.prototype.hasOwnProperty.call(payload, 'unreadCount')) {
+        this.hasUnreadMessage = Math.max(0, Number(payload.unreadCount) || 0) > 0
+        return
+      }
       this.hasUnreadMessage = !!(payload && payload.hasUnread)
+    },
+    loadUnreadMessageState() {
+      Messages.getUnreadReceivedCount().then(
+        (count) => {
+          this.handleUnreadMessageChanged({ unreadCount: count, hasUnread: count > 0 })
+        },
+        () => {
+          this.handleUnreadMessageChanged({ unreadCount: 0, hasUnread: false })
+        }
+      )
     },
     toggleLocale() {
       document.documentElement.classList.add('document-fade-out')
@@ -216,6 +242,7 @@ export default {
         () => {
           this.setIsLoggedIn(false)
           this.currentUsername = ''
+          this.hasUnreadMessage = false
           this.$router.push('/')
         },
         () => {}

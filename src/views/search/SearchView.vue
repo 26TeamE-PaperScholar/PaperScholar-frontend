@@ -111,6 +111,7 @@
 
 <script>
 import { Article } from '../../api/article.js'
+import { Messages } from '../../api/messages.js'
 import { Search } from '../../api/search.js'
 import { AppCard, AppIcon, AppTagChip, AppSectionHeader, AppGradientHero, AppMetricBadge, AppEmptyState, AppKbdHint } from '../../components/ui'
 
@@ -138,7 +139,7 @@ export default {
         { id: 'C14', name: 'Quantum Computing' },
         { id: 'C2', name: 'Multimodal LLM' }
       ],
-      stats: { unreadMessages: 2, newFromFollowing: 5, recommended: 12 }
+      stats: { unreadMessages: 0, newFromFollowing: 5, recommended: 12 }
     }
   },
   computed: {
@@ -157,10 +158,35 @@ export default {
     }
   },
   mounted() {
+    this.$bus.on('messageUnreadChanged', this.handleUnreadMessagesChanged)
+    this.loadUnreadMessages()
     Article.getInterestRecommend().then((res) => { this.interestList = ((res && res.data) || []).slice(0, 6) })
     Article.getHotspotRecommend().then((res) => { this.hotPapers = ((res && res.data) || []).slice(0, 5) })
   },
+  beforeUnmount() {
+    this.$bus.off('messageUnreadChanged', this.handleUnreadMessagesChanged)
+  },
   methods: {
+    applyUnreadMessageCount(count, shouldBroadcast = true) {
+      const unreadCount = Math.max(0, Number(count) || 0)
+      this.stats.unreadMessages = unreadCount
+      if (shouldBroadcast) {
+        this.$bus.emit('messageUnreadChanged', { unreadCount, hasUnread: unreadCount > 0 })
+      }
+    },
+    handleUnreadMessagesChanged(payload) {
+      if (payload && Object.prototype.hasOwnProperty.call(payload, 'unreadCount')) {
+        this.applyUnreadMessageCount(payload.unreadCount, false)
+        return
+      }
+      this.loadUnreadMessages()
+    },
+    loadUnreadMessages() {
+      Messages.getUnreadReceivedCount().then(
+        (count) => { this.applyUnreadMessageCount(count) },
+        () => {}
+      )
+    },
     basicSearch() {
       const k = this.searchKeyword.trim()
       if (!k) return

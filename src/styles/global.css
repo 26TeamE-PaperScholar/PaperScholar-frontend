@@ -163,13 +163,13 @@ a:focus-visible,
     box-shadow var(--ps-motion-base) var(--ps-ease-out);
 }
 
-.basic-btn:hover {
+.basic-btn:hover:not(:disabled) {
   background: var(--ps-color-primary-strong);
   box-shadow: var(--ps-shadow-violet);
   transform: translateY(-1px);
 }
 
-.basic-btn:active {
+.basic-btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: var(--ps-shadow-1);
 }
@@ -193,10 +193,18 @@ a:focus-visible,
     transform var(--ps-motion-base) var(--ps-ease-out);
 }
 
-.basic-btn-outline:hover {
+.basic-btn-outline:hover:not(:disabled) {
   background: var(--ps-color-primary-soft);
   color: var(--ps-color-primary-strong);
   transform: translateY(-1px);
+}
+
+.basic-btn:disabled,
+.basic-btn-outline:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* ── Inputs ────────────────────────────────────────────── */
