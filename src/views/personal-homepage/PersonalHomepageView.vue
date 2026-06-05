@@ -316,7 +316,8 @@ import { normalizeSearchHistory, normalizeViewHistory, paginateList } from '../.
 import {
   buildInterestDeletePayload,
   buildProfileUpdatePayload,
-  normalizeFavoriteName
+  normalizeFavoriteName,
+  resolveUserAvatarUrl
 } from '../../utils/personal-page.mjs'
 import {
   createFavoriteFolder,
@@ -370,6 +371,7 @@ export default {
       avatarLoaded: false,
       avatarChanged: false,
       avatarFile: null,
+      avatarPreviewUrl: '',
       interests: [],
       interestOptions: [],
       savePersonalInfo: {},
@@ -439,8 +441,33 @@ export default {
     this.$bus.off('sendFlushInterestRequest', this.flushInterets)
     this.$bus.off('sendFlushAuditStatusRequest', this.flushAuditStatus)
     this.releaseFavoriteSubscription()
+    this.revokeAvatarPreview()
   },
   methods: {
+    shouldUseAvatarEndpointFallback() {
+      return import.meta.env.VITE_USE_MOCK === 'false'
+    },
+    resolveAvatarUrl(payload, userId, options = {}) {
+      return resolveUserAvatarUrl(payload, userId, {
+        fallbackToEndpoint: this.shouldUseAvatarEndpointFallback(),
+        ...options
+      })
+    },
+    resolveStoredAvatarUrl(payload, userId, cacheBust = '') {
+      return this.resolveAvatarUrl(payload, userId, { fallbackToEndpoint: false }) ||
+        this.resolveAvatarUrl(payload, userId, { cacheBust })
+    },
+    applyAvatarUrl(avatarUrl) {
+      this.personalInfo.avatarUrl = avatarUrl
+      this.avatarLoaded = !!avatarUrl
+    },
+    revokeAvatarPreview(url = this.avatarPreviewUrl) {
+      if (!url) return
+      if (typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function' && String(url).startsWith('blob:')) {
+        URL.revokeObjectURL(url)
+      }
+      if (this.avatarPreviewUrl === url) this.avatarPreviewUrl = ''
+    },
     ensureLoggedIn() {
       const userId = this.$cookies.get('user_id')
       if (userId) return userId
@@ -472,6 +499,7 @@ export default {
             if (!u.startsWith('http')) return 'https://' + u
             return u
           })
+          this.applyAvatarUrl(this.resolveStoredAvatarUrl(data, this.personalInfo.id || userId, Date.now()))
           this.interests = data.interests || []
         },
         () => {}
@@ -685,17 +713,42 @@ export default {
     handleAvatarFile(e) {
       const file = e.target.files && e.target.files[0]
       if (!file) return
+      const userId = this.personalInfo.id || this.$cookies.get('user_id')
+      if (!userId) return
+
+      const previousAvatarUrl = this.personalInfo.avatarUrl
+      const previousAvatarLoaded = this.avatarLoaded
+      const previousPreviewUrl = this.avatarPreviewUrl
+      const previewUrl = URL.createObjectURL(file)
+
       this.avatarFile = file
       this.avatarChanged = true
-      this.personalInfo.avatarUrl = URL.createObjectURL(file)
-      this.avatarLoaded = true
-      const userId = this.personalInfo.id
+      this.avatarPreviewUrl = previewUrl
+      this.applyAvatarUrl(previewUrl)
+
       const formData = new FormData()
       formData.append('avatar', file)
       User.changePersonalInfo(userId, formData).then(
-        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_updated'), content: '', time: 1500 }) },
-        () => { this.$bus.emit('message', { title: this.$t('personal_avatar_failed'), content: this.$t('common_retry_later'), time: 1500 }) }
-      )
+        (response) => {
+          const confirmedAvatarUrl = this.resolveAvatarUrl(response && response.data, userId, { cacheBust: Date.now() })
+          if (confirmedAvatarUrl) {
+            this.applyAvatarUrl(confirmedAvatarUrl)
+            this.revokeAvatarPreview(previewUrl)
+          }
+          this.revokeAvatarPreview(previousPreviewUrl)
+          this.avatarChanged = false
+          this.$bus.emit('message', { title: this.$t('personal_avatar_updated'), content: '', time: 1500 })
+        },
+        () => {
+          this.revokeAvatarPreview(previewUrl)
+          this.avatarPreviewUrl = previousPreviewUrl
+          this.personalInfo.avatarUrl = previousAvatarUrl
+          this.avatarLoaded = previousAvatarLoaded
+          this.$bus.emit('message', { title: this.$t('personal_avatar_failed'), content: this.$t('common_retry_later'), time: 1500 })
+        }
+      ).finally(() => {
+        if (e.target) e.target.value = ''
+      })
     },
 
     /* ── 收藏夹 CRUD：来自原 FavouriteList 的两个事件回调 ────── */

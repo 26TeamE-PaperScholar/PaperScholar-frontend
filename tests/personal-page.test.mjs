@@ -2,6 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  appendCacheBust,
+  avatarEndpointForUser,
   buildFavoriteCreatePayload,
   buildFavoriteCollectPayload,
   buildFollowPayload,
@@ -17,12 +19,14 @@ import {
   normalizeConceptId,
   normalizeDoi,
   normalizeInterestId,
+  normalizeAvatarUrl,
   normalizeOpenAlexAuthorId,
   normalizeOpenAlexWorkId,
   normalizeFavoriteName,
   normalizeFavoriteChoices,
   removeFavoriteFromList,
   replaceFavoriteInList,
+  resolveUserAvatarUrl,
   setFavoritePaperMembership,
   shouldFetchOnShowChange,
   upsertFavoriteInList,
@@ -164,6 +168,21 @@ test('buildProfileUpdatePayload keeps editable profile fields including email', 
     email: 'alice@example.edu',
     websites: ['https://example.edu']
   })
+})
+
+test('avatar helpers normalize profile fields and fallback endpoint urls', () => {
+  assert.equal(normalizeAvatarUrl({ avatar_url: 'https://cdn.example.edu/a.png' }), 'https://cdn.example.edu/a.png')
+  assert.equal(normalizeAvatarUrl({ avatarUrl: '/media/avatars/u1.png' }), '/media/avatars/u1.png')
+  assert.equal(normalizeAvatarUrl({ avatar: { url: 'users/U-1/avatar/' } }), '/api/users/U-1/avatar/')
+  assert.equal(
+    resolveUserAvatarUrl({ data: { user: { profile_image: 'api/users/U-2/avatar/' } } }, 'U-2'),
+    '/api/users/U-2/avatar/'
+  )
+  assert.equal(resolveUserAvatarUrl({ username: 'Alice' }, 'U 3'), '/api/users/U%203/avatar/')
+  assert.equal(resolveUserAvatarUrl({ username: 'Alice' }, 'U 3', { fallbackToEndpoint: false }), '')
+  assert.equal(avatarEndpointForUser('U 4', 123), '/api/users/U%204/avatar/?_t=123')
+  assert.equal(appendCacheBust('/api/users/U-5/avatar?size=large', 'now'), '/api/users/U-5/avatar?size=large&_t=now')
+  assert.equal(appendCacheBust('blob:http://localhost/avatar-preview', 'now'), 'blob:http://localhost/avatar-preview')
 })
 
 test('normalizeFavoriteChoices maps favorite list to modal options', () => {

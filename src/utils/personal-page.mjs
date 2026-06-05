@@ -160,6 +160,112 @@ export function scholarPortalPath(author) {
   return id ? `/scholar_portal/${encodeURIComponent(id)}` : ''
 }
 
+const DIRECT_AVATAR_KEYS = [
+  'avatar_url',
+  'avatarUrl',
+  'avatar_path',
+  'avatarPath',
+  'profile_image',
+  'profileImage',
+  'image_url',
+  'imageUrl',
+  'photo_url',
+  'photoUrl',
+  'picture',
+  'picture_url',
+  'pictureUrl'
+]
+
+const AVATAR_OBJECT_KEYS = [
+  ...DIRECT_AVATAR_KEYS,
+  'url',
+  'path',
+  'src'
+]
+
+const AVATAR_CONTAINER_KEYS = [
+  'data',
+  'user',
+  'profile',
+  'result',
+  'payload'
+]
+
+function avatarCandidateFrom(value, keys, seen = new Set()) {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value !== 'object') return ''
+  if (seen.has(value)) return ''
+  seen.add(value)
+
+  for (const key of keys) {
+    const candidate = avatarCandidateFrom(value[key], AVATAR_OBJECT_KEYS, seen)
+    if (candidate) return candidate
+  }
+
+  return ''
+}
+
+function avatarUrlCandidateOf(value, seen = new Set()) {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value !== 'object') return ''
+  if (seen.has(value)) return ''
+  seen.add(value)
+
+  for (const key of DIRECT_AVATAR_KEYS) {
+    const direct = avatarCandidateFrom(value[key], AVATAR_OBJECT_KEYS, seen)
+    if (direct) return direct
+  }
+
+  const avatar = avatarCandidateFrom(value.avatar, AVATAR_OBJECT_KEYS, seen)
+  if (avatar) return avatar
+
+  for (const key of AVATAR_CONTAINER_KEYS) {
+    const candidate = avatarUrlCandidateOf(value[key], seen)
+    if (candidate) return candidate
+  }
+
+  return ''
+}
+
+export function appendCacheBust(url, cacheBust) {
+  const normalizedUrl = String(url || '').trim()
+  if (!normalizedUrl || !cacheBust) return normalizedUrl
+  if (/^(blob:|data:)/i.test(normalizedUrl)) return normalizedUrl
+  const separator = normalizedUrl.includes('?') ? '&' : '?'
+  return `${normalizedUrl}${separator}_t=${encodeURIComponent(cacheBust)}`
+}
+
+export function normalizeAvatarUrl(value) {
+  const raw = String(avatarUrlCandidateOf(value) || '').trim()
+  if (!raw || raw === 'null' || raw === 'undefined') return ''
+  if (/^(blob:|data:image\/|https?:\/\/|\/\/)/i.test(raw)) return raw
+  if (raw.startsWith('/')) return raw
+  if (/^api\//i.test(raw)) return `/${raw}`
+  return `/api/${raw.replace(/^\/+/, '')}`
+}
+
+export function avatarEndpointForUser(userId, cacheBust = '') {
+  const id = String(userId || '').trim()
+  if (!id) return ''
+  return appendCacheBust(`/api/users/${encodeURIComponent(id)}/avatar/`, cacheBust)
+}
+
+export function resolveUserAvatarUrl(user, userId = '', options = {}) {
+  const avatarUrl = normalizeAvatarUrl(user)
+  if (avatarUrl) return appendCacheBust(avatarUrl, options.cacheBust)
+  if (options.fallbackToEndpoint === false) return ''
+
+  const resolvedId = userId || (user && typeof user === 'object' && (
+    user.id ||
+    user.user_id ||
+    user.userId ||
+    user.pk
+  ))
+  return avatarEndpointForUser(resolvedId, options.cacheBust)
+}
+
 export function buildProfileUpdatePayload(personalInfo) {
   return {
     username: personalInfo.nickName,
@@ -569,11 +675,12 @@ export function extractFavoriteDetail(response, fallbackId = '', fallback = {}) 
     favorite,
     papers: papers.map((paper) => {
       const source = paper && typeof paper === 'object' ? paper : { id: paper }
+      const folderId = source.folder_id || source.folderId
       return {
         ...source,
         id: paperIdOf(source),
-        favorite_id: source.favorite_id || source.favoriteId || '',
-        folder_id: source.folder_id || source.folderId || favorite.id
+        favorite_id: source.favorite_id || source.favoriteId || favorite.id,
+        ...(folderId ? { folder_id: folderId } : {})
       }
     }).filter((paper) => paper.id)
   }
