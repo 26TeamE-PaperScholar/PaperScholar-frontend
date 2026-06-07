@@ -86,70 +86,6 @@
 
     <section class="ps-intro__section">
       <AppSectionHeader
-        eyebrow="Curated now"
-        :title="$t('intro_frontier_title')"
-        :subtitle="$t('intro_frontier_subtitle')"
-      >
-        <template #actions>
-          <button class="basic-btn-outline" @click="viewMoreHot">
-            {{ $t('common_view_all') }}
-            <AppIcon name="ChevronForward" :size="14" />
-          </button>
-        </template>
-      </AppSectionHeader>
-
-      <div class="ps-intro__hot-grid">
-        <template v-if="loadingHot">
-          <AppSkeletonCard v-for="i in 3" :key="'sk-' + i" />
-        </template>
-        <template v-else>
-          <AppCard
-            v-for="paper in hotPapersList"
-            :key="paper.id"
-            hover
-            interactive
-            @click="goToPaper(paper.id)"
-          >
-            <template #header>
-              <div class="ps-intro__hot-header">
-                <AppMetricBadge :value="paper.cited_by_count" tone="violet" icon="FlameOutline" />
-                <span class="ps-intro__hot-date">{{ paper.publication_date }}</span>
-              </div>
-            </template>
-            <h3 class="ps-intro__hot-title">{{ paper.title }}</h3>
-            <p class="ps-intro__hot-abstract">{{ paper.abstract }}</p>
-            <div class="ps-intro__hot-meta">
-              <div class="ps-intro__hot-authors">
-                <AppAvatar
-                  v-for="(a, idx) in paper.authorships.slice(0, 3)"
-                  :key="idx"
-                  :name="a.author.display_name"
-                  :id="a.author.id"
-                  size="xs"
-                />
-                <span>
-                  {{ paper.authorships.slice(0, 2).map((a) => a.author.display_name).join(' · ') }}
-                  <span v-if="paper.authorships.length > 2"> · {{ $t('common_authors_etc', { count: paper.authorships.length }) }}</span>
-                </span>
-              </div>
-              <div class="ps-intro__hot-tags-row">
-                <AppTagChip
-                  v-for="c in paper.concepts && paper.concepts.slice(0, 2)"
-                  :key="c.id"
-                  size="sm"
-                  variant="subtle"
-                >
-                  {{ c.display_name }}
-                </AppTagChip>
-              </div>
-            </div>
-          </AppCard>
-        </template>
-      </div>
-    </section>
-
-    <section class="ps-intro__section">
-      <AppSectionHeader
         eyebrow="Workflow"
         :title="$t('intro_workflow_title')"
         :subtitle="$t('intro_workflow_subtitle')"
@@ -212,9 +148,8 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { AppCard, AppIcon, AppTagChip, AppMetricBadge, AppAvatar, AppGradientHero, AppSectionHeader, AppSkeletonCard, AppKbdHint } from '../../components/ui'
+import { AppCard, AppIcon, AppTagChip, AppGradientHero, AppSectionHeader, AppKbdHint } from '../../components/ui'
 import ChatComposer from '../../components/assistant/ChatComposer.vue'
-import { Article } from '../../api/article.js'
 import { AutoComplete } from '../../api/autocomplete.js'
 
 const SEARCH_TYPES = [
@@ -245,11 +180,8 @@ export default {
     AppCard,
     AppIcon,
     AppTagChip,
-    AppMetricBadge,
-    AppAvatar,
     AppGradientHero,
     AppSectionHeader,
-    AppSkeletonCard,
     AppKbdHint,
     ChatComposer
   },
@@ -294,8 +226,6 @@ export default {
           descKey: 'intro_feature_ai_desc'
         }
       ],
-      loadingHot: true,
-      hotPapersList: [],
       suggestOpen: false,
       suggestions: []
     }
@@ -319,7 +249,6 @@ export default {
     }
   },
   mounted() {
-    this.loadHotPapers()
     document.addEventListener('pointerdown', this.handleAssistantPointerDown)
   },
   beforeUnmount() {
@@ -329,38 +258,15 @@ export default {
     ...mapActions('assistant', {
       assistantSendMessage: 'sendMessage'
     }),
-    loadHotPapers() {
-      this.loadingHot = true
-      Article.getHotspotRecommend().then(
-        (res) => {
-          this.hotPapersList = this.normalizeFrontierPapers((res && res.data) || [])
-          this.loadingHot = false
-        },
-        () => { this.loadingHot = false }
-      )
-    },
-    normalizeFrontierPapers(papers) {
-      return [...(papers || [])]
-        .filter((paper) => paper && paper.publication_date)
-        .sort((a, b) => {
-          const dateDiff = new Date(b.publication_date).getTime() - new Date(a.publication_date).getTime()
-          if (dateDiff) return dateDiff
-          return (b.cited_by_count || 0) - (a.cited_by_count || 0)
-        })
-        .slice(0, 6)
-    },
     basicSearch() {
       const k = this.searchKeyword.trim()
       if (!k) return
       this.$router.push({
         path: '/search_result',
         query: {
-          filter: '',
           search: k,
-          sort: '',
           per_page: '10',
           page: '1',
-          cursor: '',
           search_type: this.searchType
         }
       })
@@ -369,9 +275,6 @@ export default {
       this.searchKeyword = tag.name
       this.searchType = 1
       this.basicSearch()
-    },
-    goToPaper(id) {
-      this.$router.push('/paper_detail/' + id)
     },
     toggleAssistant() {
       this.assistantOpen = !this.assistantOpen
@@ -398,12 +301,6 @@ export default {
       } else {
         this.$router.push('/ai_assistant')
       }
-    },
-    viewMoreHot() {
-      this.$router.push({
-        path: '/search_result',
-        query: { sort: 'cited_by_count:desc', per_page: '10', page: '1', search_type: 1 }
-      })
     },
     debounceSuggest() {
       clearTimeout(this._sugT)
@@ -823,78 +720,6 @@ export default {
 /* ── Section common ─────────────────────────────────────── */
 .ps-intro__section {
   margin-top: var(--ps-space-10);
-}
-
-.ps-intro__hot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--ps-space-4);
-}
-
-.ps-intro__hot-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.ps-intro__hot-date {
-  font-size: 11px;
-  color: var(--ps-text-3);
-  font-family: var(--ps-font-mono);
-}
-
-.ps-intro__hot-title {
-  font-family: var(--ps-font-sans);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--ps-text-1);
-  margin-bottom: var(--ps-space-3);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.ps-intro__hot-abstract {
-  font-size: var(--ps-fs-sm);
-  color: var(--ps-text-2);
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-}
-
-.ps-intro__hot-meta {
-  margin-top: var(--ps-space-4);
-  padding-top: var(--ps-space-4);
-  border-top: 1px solid var(--ps-border-1);
-  display: flex;
-  flex-direction: column;
-  gap: var(--ps-space-3);
-}
-
-.ps-intro__hot-authors {
-  display: flex;
-  align-items: center;
-  gap: var(--ps-space-2);
-  font-size: 12px;
-  color: var(--ps-text-2);
-}
-
-.ps-intro__hot-authors :deep(.ps-avatar) {
-  margin-right: -8px;
-  box-shadow: 0 0 0 2px var(--ps-bg-elevated);
-}
-
-.ps-intro__hot-authors :deep(.ps-avatar:last-child) { margin-right: 8px; }
-
-.ps-intro__hot-tags-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 /* ── Feature grid ──────────────────────────────────────── */

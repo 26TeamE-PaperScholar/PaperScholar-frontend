@@ -756,6 +756,28 @@ export const searchPapers = (params = {}) => {
   }
 
   const filter = params.filter || ''
+  if (filter.includes('author.search:')) {
+    const term = decodeURIComponent(filter.split('author.search:')[1].split(',')[0]).trim().toLowerCase()
+    list = list.filter((p) =>
+      (p.authorships || []).some((a) =>
+        String(a.author && a.author.display_name || '').toLowerCase().includes(term)
+      )
+    )
+  }
+  if (filter.includes('source.search:')) {
+    const term = decodeURIComponent(filter.split('source.search:')[1].split(',')[0]).trim().toLowerCase()
+    list = list.filter((p) =>
+      String(p.primary_location && p.primary_location.source && p.primary_location.source.display_name || '').toLowerCase().includes(term)
+    )
+  }
+  if (filter.includes('title.search:')) {
+    const term = decodeURIComponent(filter.split('title.search:')[1].split(',')[0]).trim().toLowerCase()
+    list = list.filter((p) => String(p.title || '').toLowerCase().includes(term))
+  }
+  if (filter.includes('abstract.search:')) {
+    const term = decodeURIComponent(filter.split('abstract.search:')[1].split(',')[0]).trim().toLowerCase()
+    list = list.filter((p) => String(p.abstract || '').toLowerCase().includes(term))
+  }
   if (filter.includes('publication_year:')) {
     const range = filter.split('publication_year:')[1].split(',')[0]
     const [from, to] = range.split('-').map((n) => Number(n))

@@ -1,65 +1,31 @@
-# 搜索排序 Bug 修复说明
+# 搜索排序行为说明
 
-## 问题现象
+## 当前规则
 
-搜索关键词（如 `attention is all`）时，结果列表里出现大量不相关的论文。
-但**直接调用后端接口是正确的**，说明问题出在前端构造请求的方式上。
+- 没有已提交关键词时，结果页是浏览态，默认使用 `cited_by_count:desc`，即「引用 高 -> 低」。
+- 只有用户通过搜索按钮或回车提交关键词后，才进入关键词检索态。
+- 关键词检索态默认使用 `relevance_score:desc,cited_by_count:desc`，即「相关性」优先、引用量兜底。
+- 用户只是在输入框里打字，不会被视为关键词检索；排序、筛选、分页仍沿用已经提交的关键词。
 
-## 根因
+## 前端实现要点
 
-后端约定：
-- `sort` 参数**不传 / 为空** → 按**相关性**排序（relevance）
-- `sort` 支持多个字段用逗号分隔，例如 `relevance_score:desc,cited_by_count:desc` 表示**先按相关性、再按引用量**排序
+**`src/views/search-result/SearchResultView.vue`**
 
-而前端把默认排序**硬编码成了引用量降序** `cited_by_count:desc`，并且在多个地方做了"兜底"——只要 sort 为空就强制改成 `cited_by_count:desc`，导致：
+- `DEFAULT_BROWSE_SORT = 'cited_by_count:desc'` 表示无关键词浏览默认排序。
+- `RELEVANCE_SORT = 'relevance_score:desc,cited_by_count:desc'` 表示关键词检索默认排序。
+- 排序选项由已提交关键词动态决定：无关键词时隐藏「相关性」，有关键词时显示「相关性」。
+- `setQuery()` 默认使用 `submittedSearch`，只有 `submitMainSearch()` 会读取输入框草稿。
+- 删除了结果页内原有的 explore landing 分支，无关键词访问结果页时直接展示引用降序结果。
 
-1. 每次新搜索都默认按引用量排，而不是相关性；
-2. 前端根本无法表达"相关性"这个状态（排序下拉里压根没有相关性选项）；
-3. 即使后端按相关性返回，前端还会用 `sortItemsForCurrentPage()` 把当前页**再按引用量本地重排一遍**，进一步打乱相关性顺序。
+**`src/components/nav-bar/NavBar.vue`**
 
-### 接口验证对比（`search=attention is all`）
-
-| 排序方式 | 第 1 条结果 |
-|---|---|
-| 相关性（`relevance_score:desc,cited_by_count:desc`） | ✅ Attention Is All You Need |
-| 引用量（`cited_by_count:desc`） | ❌ From ultrasoft pseudopotentials...（完全不相关的高引论文） |
-
-## 修复方案
-
-默认排序改为后端建议的 **`relevance_score:desc,cited_by_count:desc`**（先相关性、再引用量），
-并在排序选项里新增「相关性」选项放在最上面，作为默认选中项。
-
-### 改动文件
-
-**1. `src/views/search-result/SearchResultView.vue`（核心）**
-
-- 新增常量 `RELEVANCE_SORT = 'relevance_score:desc,cited_by_count:desc'`。
-- `SORT_OPTIONS` / `ENTITY_SORT_OPTIONS`：在最前面加入「相关性」选项（`value: RELEVANCE_SORT`, `labelKey: 'sort_relevance'`）。
-- `normalizeSortValue()`：空值兜底从 `cited_by_count:desc` 改为 `RELEVANCE_SORT`。
-- `normalizeSortForType()`：非法 sort 的兜底从 `cited_by_count:desc` 改为 `RELEVANCE_SORT`。
-- `sortItemsForCurrentPage()`：当排序为相关性时**直接返回原顺序，不做前端二次排序**，保留后端的相关性排名。
-- `data()` 初始值：`sort` / `activeSort` / `quickSort` 从 `cited_by_count:desc` 改为 `RELEVANCE_SORT`。
-- 路由 `$route.query` watcher：`q.sort` 缺省值从 `cited_by_count:desc` 改为 `RELEVANCE_SORT`。
-
-**2. `src/language/modules/zh.js` / `src/language/modules/en.js`**
-
-- 新增文案 `sort_relevance`：中文「相关性」/ 英文「Relevance」。
-
-### 未改动的地方（刻意保留）
-
-- `src/views/search/SearchView.vue` 的 `viewMore()` 仍用 `cited_by_count:desc`。
-  该入口是首页「推荐 / 热门」列表的"查看更多"，**不带搜索关键词**，纯浏览场景下相关性没有意义，按引用量排是合理的浏览默认。
+- 导航中的「探索」入口进入 `/search_result?search_type=1&per_page=10&page=1`，走空关键词浏览态。
+- 顶部搜索提交时不再传空 `sort` / `filter` / `cursor` 参数。
 
 ## 验证方式
 
-1. `npm run dev`（已配置真实后端，`.env.local` 中 `VITE_USE_MOCK=false`）。
-2. 在搜索框输入 `attention is all` 并搜索。
-3. 预期：第一条结果为 **Attention Is All You Need**，排序下拉默认选中「相关性」。
-4. 切换到「引用 高 → 低」等其它排序仍正常工作。
-
-接口层验证（通过前端代理）：
-
-```bash
-curl "http://localhost:5173/api/search/works/?search=attention%20is%20all&sort=relevance_score:desc,cited_by_count:desc&per_page=3&page=1"
-# 第 1 条应为 Attention Is All You Need
-```
+1. 打开 `/search_result?search_type=1&per_page=10&page=1`。
+2. 预期排序里没有「相关性」，默认选中「引用 高 -> 低」。
+3. 在结果页输入关键词并点击「搜索」。
+4. 预期排序里出现「相关性」，并默认选中「相关性」。
+5. 只输入关键词但不提交，再点击排序或筛选，预期不会按输入框内容检索。

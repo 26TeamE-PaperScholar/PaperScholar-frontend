@@ -41,7 +41,7 @@
             <AppIcon name="FilterOutline" :size="14" />
             {{ $t('search_results_filter') }}
           </h3>
-          <details class="ps-results__filter" open>
+          <details v-if="showPublicationTimeFilter" class="ps-results__filter" open>
             <summary>{{ $t('search_results_publication_time') }}</summary>
             <div class="ps-results__filter-options">
               <button
@@ -73,7 +73,7 @@
             </div>
           </details>
 
-          <details class="ps-results__filter" open>
+          <details v-if="showCitationFilter" class="ps-results__filter" open>
             <summary>{{ $t('search_results_citations') }}</summary>
             <div class="ps-results__filter-options">
               <button
@@ -94,6 +94,58 @@
                 class="ps-results__filter-input"
               />
               </button>
+            </div>
+          </details>
+
+          <details v-if="isInstitutionSearch" class="ps-results__filter" open>
+            <summary>{{ $t('search_results_institution_type') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in institutionTypeOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': institutionTypeFilter === opt.value }"
+                @click="setInstitutionType(opt.value)"
+              >{{ $t(opt.labelKey) }}</button>
+            </div>
+          </details>
+
+          <details v-if="isInstitutionSearch" class="ps-results__filter" open>
+            <summary>{{ $t('search_results_institution_region') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in institutionRegionOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': institutionRegionFilter === opt.value }"
+                @click="setInstitutionRegion(opt.value)"
+              >{{ $t(opt.labelKey) }}</button>
+            </div>
+          </details>
+
+          <details v-if="isInstitutionSearch" class="ps-results__filter" open>
+            <summary>{{ $t('search_results_institution_works') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in institutionWorksOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': institutionWorksFilter === opt.value }"
+                @click="setInstitutionWorks(opt.value)"
+              >{{ $t(opt.labelKey) }}</button>
+            </div>
+          </details>
+
+          <details v-if="isInstitutionSearch" class="ps-results__filter">
+            <summary>{{ $t('search_results_research_area') }}</summary>
+            <div class="ps-results__filter-options">
+              <button
+                v-for="opt in institutionConceptOptions"
+                :key="opt.value"
+                class="ps-results__filter-chip"
+                :class="{ 'ps-results__filter-chip--active': institutionConceptFilter === opt.value }"
+                @click="setInstitutionConcept(opt.value)"
+              >{{ opt.labelKey ? $t(opt.labelKey) : opt.label }}</button>
             </div>
           </details>
 
@@ -153,30 +205,62 @@
             <AppIcon :name="showAdvancedSearch ? 'ChevronDown' : 'ChevronForward'" :size="14" />
           </button>
           <div v-show="showAdvancedSearch" class="ps-results__advanced">
-            <label>
-              <span>{{ $t('author_search') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
-            </label>
-            <label>
-              <span>{{ $t('search_results_source_journal') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
-            </label>
-            <label>
-              <span>{{ $t('search_results_year_range') }}</span>
-              <div class="ps-results__advanced-range">
-                <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
-                <span>~</span>
-                <input class="basic-input" type="text" v-model="advancedSearchForm.end_time" placeholder="2024" />
-              </div>
-            </label>
-            <label>
-              <span>{{ $t('advanced_search_publish_keyword') }}</span>
-              <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
-            </label>
-            <label class="ps-results__advanced-check">
-              <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
-              <span>{{ $t('search_results_title_only') }}</span>
-            </label>
+            <template v-if="isInstitutionSearch">
+              <label>
+                <span>{{ $t('search_results_institution_name') }}</span>
+                <input class="basic-input" type="text" v-model="institutionAdvancedForm.name" placeholder="Tsinghua University" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_institution_region') }}</span>
+                <input class="basic-input" type="text" v-model="institutionAdvancedForm.region" :placeholder="$t('search_results_institution_region_placeholder')" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_institution_type') }}</span>
+                <select class="basic-input" v-model="institutionAdvancedForm.type">
+                  <option v-for="opt in institutionTypeOptions" :key="opt.value" :value="opt.value">
+                    {{ $t(opt.labelKey) }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                <span>{{ $t('search_results_research_area') }}</span>
+                <input class="basic-input" type="text" v-model="institutionAdvancedForm.concept" placeholder="Computer Science" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_cooperation_institution') }}</span>
+                <input class="basic-input" type="text" v-model="institutionAdvancedForm.partner" placeholder="Stanford University" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_min_works') }}</span>
+                <input class="basic-input" type="text" v-model="institutionAdvancedForm.minWorks" placeholder="10000" />
+              </label>
+            </template>
+            <template v-else>
+              <label>
+                <span>{{ $t('author_search') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.author" placeholder="Einstein" />
+              </label>
+              <label>
+                <span>{{ $t('search_results_source_journal') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.publication" placeholder="Nature" />
+              </label>
+              <label v-if="showPublicationTimeFilter">
+                <span>{{ $t('search_results_year_range') }}</span>
+                <div class="ps-results__advanced-range">
+                  <input class="basic-input" type="text" v-model="advancedSearchForm.start_time" placeholder="2018" />
+                  <span>~</span>
+                  <input class="basic-input" type="text" v-model="advancedSearchForm.end_time" placeholder="2024" />
+                </div>
+              </label>
+              <label>
+                <span>{{ $t('advanced_search_publish_keyword') }}</span>
+                <input class="basic-input" type="text" v-model="advancedSearchForm.keyword" />
+              </label>
+              <label class="ps-results__advanced-check">
+                <input type="checkbox" v-model="advancedSearchForm.is_key_title" />
+                <span>{{ $t('search_results_title_only') }}</span>
+              </label>
+            </template>
             <button class="basic-btn ps-results__advanced-submit" @click="submitAdvancedSearch">
               {{ $t('search_results_apply_advanced') }}
             </button>
@@ -247,7 +331,7 @@ import InstitutionListItem from '../../components/list-item/InstitutionListItem.
 import JournalListItem from '../../components/list-item/JournalListItem.vue'
 import ScholarListItem from '../../components/list-item/ScholarListItem.vue'
 import { Search } from '../../api/search.js'
-import { AppCard, AppIcon, AppSkeletonCard, AppEmptyState } from '../../components/ui'
+import { AppIcon, AppSkeletonCard, AppEmptyState } from '../../components/ui'
 
 const TYPE_TABS = [
   { value: 1, labelKey: 'search_type_paper', icon: 'Document' },
@@ -288,10 +372,44 @@ const JOURNAL_TYPES = [
   { value: 3, labelKey: 'search_option_conference' }
 ]
 
+const INSTITUTION_TYPES = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'education', labelKey: 'institution_type_education' },
+  { value: 'company', labelKey: 'institution_type_company' },
+  { value: 'facility', labelKey: 'institution_type_facility' },
+  { value: 'government', labelKey: 'institution_type_government' },
+  { value: 'nonprofit', labelKey: 'institution_type_nonprofit' }
+]
+
+const INSTITUTION_REGIONS = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'country_code:CN', labelKey: 'search_results_region_china' },
+  { value: 'country_code:US', labelKey: 'search_results_region_us' },
+  { value: 'region:EU', labelKey: 'search_results_region_europe' },
+  { value: 'region:APAC', labelKey: 'search_results_region_apac' }
+]
+
+const INSTITUTION_WORKS = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'works_count:>1000', labelKey: 'search_results_works_1k' },
+  { value: 'works_count:>10000', labelKey: 'search_results_works_10k' },
+  { value: 'works_count:>30000', labelKey: 'search_results_works_30k' }
+]
+
+const INSTITUTION_CONCEPTS = [
+  { value: 'all', labelKey: 'search_option_all' },
+  { value: 'Computer Science', label: 'Computer Science' },
+  { value: 'Engineering', label: 'Engineering' },
+  { value: 'Medicine', label: 'Medicine' },
+  { value: 'Artificial Intelligence', label: 'Artificial Intelligence' },
+  { value: 'Quantum Computing', label: 'Quantum Computing' }
+]
+
 const RELEVANCE_SORT = 'relevance_score:desc,cited_by_count:desc'
+const DEFAULT_BROWSE_SORT = 'cited_by_count:desc'
+const RELEVANCE_SORT_OPTION = { value: RELEVANCE_SORT, labelKey: 'sort_relevance', icon: 'ArrowDown' }
 
 const SORT_OPTIONS = [
-  { value: RELEVANCE_SORT, labelKey: 'sort_relevance', icon: 'ArrowDown' },
   { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
   { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
   { value: 'publication_date:desc', labelKey: 'sort_date_desc', icon: 'ArrowDown' },
@@ -300,7 +418,6 @@ const SORT_OPTIONS = [
 ]
 
 const ENTITY_SORT_OPTIONS = [
-  { value: RELEVANCE_SORT, labelKey: 'sort_relevance', icon: 'ArrowDown' },
   { value: 'cited_by_count:desc', labelKey: 'sort_citations_desc', icon: 'ArrowDown' },
   { value: 'cited_by_count:asc', labelKey: 'sort_citations_asc', icon: 'ArrowUp' },
   { value: 'works_count:desc', labelKey: 'sort_works_desc', icon: 'ArrowDown' },
@@ -316,19 +433,24 @@ const LEGACY_SORT_MAP = {
 }
 
 function normalizeSortValue(sort) {
-  if (!sort) return RELEVANCE_SORT
+  if (!sort) return ''
   return LEGACY_SORT_MAP[sort] || sort
 }
 
-function sortOptionsForType(type) {
-  if (Number(type) === 1) return SORT_OPTIONS
-  return ENTITY_SORT_OPTIONS
+function defaultSortForSearchState(hasSubmittedSearch) {
+  return hasSubmittedSearch ? RELEVANCE_SORT : DEFAULT_BROWSE_SORT
 }
 
-function normalizeSortForType(sort, type) {
-  const normalized = normalizeSortValue(sort)
-  const allowed = sortOptionsForType(type).some((opt) => opt.value === normalized)
-  return allowed ? normalized : RELEVANCE_SORT
+function sortOptionsForType(type, hasSubmittedSearch = false) {
+  const baseOptions = Number(type) === 1 ? SORT_OPTIONS : ENTITY_SORT_OPTIONS
+  return hasSubmittedSearch ? [RELEVANCE_SORT_OPTION, ...baseOptions] : baseOptions
+}
+
+function normalizeSortForType(sort, type, hasSubmittedSearch = false) {
+  const fallback = defaultSortForSearchState(hasSubmittedSearch)
+  const normalized = normalizeSortValue(sort) || fallback
+  const allowed = sortOptionsForType(type, hasSubmittedSearch).some((opt) => opt.value === normalized)
+  return allowed ? normalized : fallback
 }
 
 function toPositiveInteger(value, fallback = 1) {
@@ -339,6 +461,36 @@ function toPositiveInteger(value, fallback = 1) {
 
 function filterParts(filter) {
   return String(filter || '').split(',').map((p) => p.trim()).filter(Boolean)
+}
+
+function isPaperFilterPart(part) {
+  return part.startsWith('publication_year:') ||
+    part.startsWith('language:') ||
+    part.startsWith('author.search:') ||
+    part.startsWith('source.search:') ||
+    part.startsWith('title.search:') ||
+    part.startsWith('abstract.search:')
+}
+
+function isInstitutionFilterPart(part) {
+  return part.startsWith('display_name.search:') ||
+    part.startsWith('country.search:') ||
+    part.startsWith('country_code:') ||
+    part.startsWith('region:') ||
+    part.startsWith('type:') ||
+    part.startsWith('works_count:>') ||
+    part.startsWith('concepts.search:') ||
+    part.startsWith('collaboration.search:')
+}
+
+function sanitizeFilterForType(filter, type) {
+  const nType = Number(type)
+  return filterParts(filter).filter((part) => {
+    if (nType === 4) return isInstitutionFilterPart(part)
+    if (nType === 1) return !isInstitutionFilterPart(part) || part.startsWith('cited_by_count:>')
+    if (nType === 3) return part.startsWith('type:') || part.startsWith('cited_by_count:>') || part.startsWith('works_count:>')
+    return !isPaperFilterPart(part) && !isInstitutionFilterPart(part) ? true : part.startsWith('cited_by_count:>') || part.startsWith('works_count:>')
+  }).join(',')
 }
 
 function buildTimeFilter(timeFilter, start, end) {
@@ -379,6 +531,17 @@ function buildAdvancedFilterParts(data) {
   return parts
 }
 
+function buildInstitutionAdvancedFilterParts(data) {
+  const parts = []
+  if (data.name) parts.push(`display_name.search:${encodeURIComponent(data.name)}`)
+  if (data.region) parts.push(`country.search:${encodeURIComponent(data.region)}`)
+  if (data.concept) parts.push(`concepts.search:${encodeURIComponent(data.concept)}`)
+  if (data.partner) parts.push(`collaboration.search:${encodeURIComponent(data.partner)}`)
+  const minWorks = toPositiveInteger(data.minWorks, 0)
+  if (minWorks > 0) parts.push(`works_count:>${minWorks}`)
+  return parts
+}
+
 function sortValueOf(item, field) {
   if (field === 'display_name') return item.display_name || item.title || ''
   if (field === 'publication_date') return new Date(item.publication_date || 0).getTime()
@@ -408,14 +571,12 @@ export default {
     InstitutionListItem,
     JournalListItem,
     ScholarListItem,
-    AppCard,
     AppIcon,
     AppSkeletonCard,
     AppEmptyState
   },
   data() {
     return {
-      SORT_OPTIONS,
       showAdvancedSearch: false,
       advancedSearchForm: {
         author: '',
@@ -425,16 +586,28 @@ export default {
         keyword: '',
         is_key_title: true
       },
+      institutionAdvancedForm: {
+        name: '',
+        region: '',
+        type: 'all',
+        concept: '',
+        partner: '',
+        minWorks: ''
+      },
 
       timeFilter: 'all',
       citeFilter: 0,
       langFilter: 'all',
       journalFilter: 0,
+      institutionTypeFilter: 'all',
+      institutionRegionFilter: 'all',
+      institutionWorksFilter: 'all',
+      institutionConceptFilter: 'all',
       advancedFilterParts: [],
 
       filte_count_value: 10,
-      activeSort: RELEVANCE_SORT,
-      quickSort: RELEVANCE_SORT,
+      activeSort: DEFAULT_BROWSE_SORT,
+      quickSort: DEFAULT_BROWSE_SORT,
 
       totalPages: 1,
       currentPage: 1,
@@ -449,7 +622,8 @@ export default {
       filter: '',
       search: '',
       submittedSearch: '',
-      sort: RELEVANCE_SORT,
+      lastRouteSearch: null,
+      sort: DEFAULT_BROWSE_SORT,
       per_page: '10',
       page: '1',
       cursor: '',
@@ -475,8 +649,32 @@ export default {
     journalTypes() {
       return JOURNAL_TYPES
     },
+    institutionTypeOptions() {
+      return INSTITUTION_TYPES
+    },
+    institutionRegionOptions() {
+      return INSTITUTION_REGIONS
+    },
+    institutionWorksOptions() {
+      return INSTITUTION_WORKS
+    },
+    institutionConceptOptions() {
+      return INSTITUTION_CONCEPTS
+    },
+    hasSubmittedSearch() {
+      return !!this.submittedSearch.trim()
+    },
     sortOptionsForCurrentType() {
-      return sortOptionsForType(this.search_type)
+      return sortOptionsForType(this.search_type, this.hasSubmittedSearch)
+    },
+    isInstitutionSearch() {
+      return Number(this.search_type) === 4
+    },
+    showPublicationTimeFilter() {
+      return Number(this.search_type) === 1
+    },
+    showCitationFilter() {
+      return Number(this.search_type) !== 4
     },
     resultComponent() {
       switch (Number(this.search_type)) {
@@ -493,9 +691,17 @@ export default {
       handler(newQuery) {
         const q = newQuery || {}
         const nextType = Number(q.search_type) || 1
-        const nextSort = normalizeSortForType(q.sort || RELEVANCE_SORT, nextType)
-        this.search = q.search || ''
-        this.submittedSearch = this.search
+        const nextSubmittedSearch = String(q.search || '').trim()
+        const hasSubmittedSearch = !!nextSubmittedSearch
+        const nextSort = normalizeSortForType(q.sort, nextType, hasSubmittedSearch)
+        const rawFilter = (q.filter || '').replace(/,$/, '')
+        const nextFilter = sanitizeFilterForType(rawFilter, nextType)
+        const routeSearch = q.search || ''
+        if (routeSearch !== this.lastRouteSearch) {
+          this.search = routeSearch
+          this.lastRouteSearch = routeSearch
+        }
+        this.submittedSearch = nextSubmittedSearch
         this.search_type = nextType
         this.sort = nextSort
         this.quickSort = this.sort
@@ -505,25 +711,54 @@ export default {
         this.currentPage = toPositiveInteger(q.page, 1)
         this.page = String(this.currentPage)
         this.cursor = q.cursor || ''
-        this.filter = (q.filter || '').replace(/,$/, '')
-        this.applyFilterStateFromFilter(this.filter)
+        this.filter = nextFilter
+
+        const cleanQuery = { ...q }
+        let shouldReplaceQuery = false
+        if (rawFilter !== this.filter) {
+          if (this.filter) cleanQuery.filter = this.filter
+          else delete cleanQuery.filter
+        }
+        const defaultSort = defaultSortForSearchState(hasSubmittedSearch)
+        const hasSortInQuery = Object.prototype.hasOwnProperty.call(q, 'sort')
+        if (nextSort === defaultSort) {
+          if (hasSortInQuery) {
+            delete cleanQuery.sort
+            shouldReplaceQuery = true
+          }
+        } else if (normalizeSortValue(q.sort) !== nextSort || q.sort !== nextSort) {
+          cleanQuery.sort = nextSort
+          shouldReplaceQuery = true
+        }
+        if (rawFilter !== this.filter) shouldReplaceQuery = true
+        if (shouldReplaceQuery) {
+          this.$router.replace({ query: cleanQuery })
+          return
+        }
+
+        this.applyFilterStateFromFilter(this.filter, nextType)
         this.searchmethod()
       }
     }
   },
   methods: {
-    applyFilterStateFromFilter(filter) {
+    applyFilterStateFromFilter(filter, type = this.search_type) {
       const state = {
         timeFilter: 'all',
         citeFilter: 0,
         langFilter: 'all',
         journalFilter: 0,
+        institutionTypeFilter: 'all',
+        institutionRegionFilter: 'all',
+        institutionWorksFilter: 'all',
+        institutionConceptFilter: 'all',
         search_start_time: RECENT_2_START_YEAR,
         search_end_time: CURRENT_YEAR,
         filte_count_value: this.filte_count_value,
         advancedFilterParts: []
       }
 
+      const nType = Number(type)
       filterParts(filter).forEach((part) => {
         if (part.startsWith('publication_year:')) {
           Object.assign(state, parseTimeFilter(part))
@@ -532,6 +767,17 @@ export default {
           state.filte_count_value = toPositiveInteger(part.slice('cited_by_count:>'.length), state.filte_count_value)
         } else if (part.startsWith('language:')) {
           state.langFilter = part.slice('language:'.length) || 'all'
+        } else if (nType === 4 && part.startsWith('type:')) {
+          state.institutionTypeFilter = part.slice('type:'.length) || 'all'
+        } else if (nType === 4 && (part.startsWith('country_code:') || part.startsWith('region:'))) {
+          state.institutionRegionFilter = part
+        } else if (nType === 4 && part.startsWith('works_count:>')) {
+          state.institutionWorksFilter = INSTITUTION_WORKS.some((opt) => opt.value === part) ? part : 'all'
+          if (state.institutionWorksFilter === 'all') state.advancedFilterParts.push(part)
+        } else if (nType === 4 && part.startsWith('concepts.search:')) {
+          const concept = decodeURIComponent(part.slice('concepts.search:'.length))
+          state.institutionConceptFilter = INSTITUTION_CONCEPTS.some((opt) => opt.value === concept) ? concept : 'all'
+          if (state.institutionConceptFilter === 'all') state.advancedFilterParts.push(part)
         } else if (part === 'type:journal') {
           state.journalFilter = 1
         } else if (part === 'type:repository') {
@@ -547,6 +793,10 @@ export default {
       this.citeFilter = state.citeFilter
       this.langFilter = state.langFilter
       this.journalFilter = state.journalFilter
+      this.institutionTypeFilter = state.institutionTypeFilter
+      this.institutionRegionFilter = state.institutionRegionFilter
+      this.institutionWorksFilter = state.institutionWorksFilter
+      this.institutionConceptFilter = state.institutionConceptFilter
       this.search_start_time = state.search_start_time
       this.search_end_time = state.search_end_time
       this.filte_count_value = state.filte_count_value
@@ -555,9 +805,11 @@ export default {
     buildFilter() {
       const type = Number(this.search_type)
       const parts = []
-      const timeFilter = buildTimeFilter(this.timeFilter, this.search_start_time, this.search_end_time)
-      if (timeFilter) parts.push(timeFilter)
-      if (this.citeFilter === 1) {
+      if (type === 1) {
+        const timeFilter = buildTimeFilter(this.timeFilter, this.search_start_time, this.search_end_time)
+        if (timeFilter) parts.push(timeFilter)
+      }
+      if (type !== 4 && this.citeFilter === 1) {
         const citeValue = toPositiveInteger(this.filte_count_value, 0)
         if (citeValue > 0) parts.push(`cited_by_count:>${citeValue}`)
       }
@@ -569,18 +821,35 @@ export default {
         else if (this.journalFilter === 2) parts.push('type:repository')
         else if (this.journalFilter === 3) parts.push('type:conference')
       }
+      if (type === 4) {
+        if (this.institutionTypeFilter !== 'all') parts.push(`type:${this.institutionTypeFilter}`)
+        if (this.institutionRegionFilter !== 'all') parts.push(this.institutionRegionFilter)
+        if (this.institutionWorksFilter !== 'all') parts.push(this.institutionWorksFilter)
+        if (this.institutionConceptFilter !== 'all') {
+          parts.push(`concepts.search:${encodeURIComponent(this.institutionConceptFilter)}`)
+        }
+      }
       parts.push(...this.advancedFilterParts)
       return parts.join(',')
     },
     submitMainSearch() {
+      const keyword = this.search.trim()
+      const previousKeyword = this.submittedSearch.trim()
+      if (!keyword || keyword !== previousKeyword) {
+        this.sort = defaultSortForSearchState(!!keyword)
+        this.quickSort = this.sort
+        this.activeSort = this.sort
+      }
       this.currentPage = 1
-      this.setQuery()
+      this.setQuery({ submitSearch: true })
     },
     setSearchTypeFromTab(type) {
+      const previousType = Number(this.search_type)
       this.search_type = Number(type)
-      this.sort = normalizeSortForType(this.sort, this.search_type)
+      this.sort = normalizeSortForType(this.sort, this.search_type, this.hasSubmittedSearch)
       this.quickSort = this.sort
       this.activeSort = this.sort
+      if (previousType !== this.search_type) this.resetFiltersForSearchType(this.search_type)
       this.currentPage = 1
       this.setQuery()
     },
@@ -614,16 +883,44 @@ export default {
       this.currentPage = 1
       this.setQuery()
     },
+    setInstitutionType(value) {
+      this.institutionTypeFilter = value
+      this.currentPage = 1
+      this.setQuery()
+    },
+    setInstitutionRegion(value) {
+      this.institutionRegionFilter = value
+      this.currentPage = 1
+      this.setQuery()
+    },
+    setInstitutionWorks(value) {
+      this.institutionWorksFilter = value
+      this.currentPage = 1
+      this.setQuery()
+    },
+    setInstitutionConcept(value) {
+      this.institutionConceptFilter = value
+      this.currentPage = 1
+      this.setQuery()
+    },
     setSort(value) {
-      this.sort = normalizeSortForType(value, this.search_type)
+      this.sort = normalizeSortForType(value, this.search_type, this.hasSubmittedSearch)
       this.activeSort = this.sort
       this.quickSort = this.sort
       this.currentPage = 1
       this.setQuery()
     },
     submitAdvancedSearch() {
+      if (this.isInstitutionSearch) {
+        const data = this.institutionAdvancedForm
+        this.institutionTypeFilter = data.type || 'all'
+        this.advancedFilterParts = buildInstitutionAdvancedFilterParts(data)
+        this.currentPage = 1
+        this.setQuery()
+        return
+      }
       const data = this.advancedSearchForm
-      if (data.start_time && data.end_time) {
+      if (this.showPublicationTimeFilter && data.start_time && data.end_time) {
         this.timeFilter = 'custom'
         this.search_start_time = data.start_time
         this.search_end_time = data.end_time
@@ -632,12 +929,15 @@ export default {
       this.currentPage = 1
       this.setQuery()
     },
-    clearAll() {
-      this.filter = ''
+    resetFiltersForSearchType(type) {
       this.timeFilter = 'all'
       this.citeFilter = 0
       this.langFilter = 'all'
       this.journalFilter = 0
+      this.institutionTypeFilter = 'all'
+      this.institutionRegionFilter = 'all'
+      this.institutionWorksFilter = 'all'
+      this.institutionConceptFilter = 'all'
       this.advancedFilterParts = []
       this.advancedSearchForm = {
         author: '',
@@ -647,22 +947,42 @@ export default {
         keyword: '',
         is_key_title: true
       }
+      this.institutionAdvancedForm = {
+        name: '',
+        region: '',
+        type: 'all',
+        concept: '',
+        partner: '',
+        minWorks: ''
+      }
       this.search_start_time = RECENT_2_START_YEAR
       this.search_end_time = CURRENT_YEAR
+      if (Number(type) === 4) {
+        this.citeFilter = 0
+      }
+    },
+    clearAll() {
+      this.filter = ''
+      this.resetFiltersForSearchType(this.search_type)
       this.currentPage = 1
       this.setQuery()
     },
-    setQuery() {
+    setQuery(options = {}) {
       this.filter = this.buildFilter()
-      const keyword = this.search.trim()
+      const keyword = options.submitSearch ? this.search.trim() : this.submittedSearch.trim()
+      const hasSubmittedSearch = !!keyword
+      this.sort = normalizeSortForType(this.sort, this.search_type, hasSubmittedSearch)
+      this.quickSort = this.sort
+      this.activeSort = this.sort
+      const defaultSort = defaultSortForSearchState(hasSubmittedSearch)
       const query = {
-        filter: this.filter,
-        sort: this.sort,
         per_page: String(this.itemsPerPage),
         page: String(this.currentPage),
         cursor: '',
         search_type: this.search_type
       }
+      if (this.filter) query.filter = this.filter
+      if (this.sort && this.sort !== defaultSort) query.sort = this.sort
       if (keyword) query.search = keyword
       this.$router.push({ query })
     },
@@ -679,7 +999,7 @@ export default {
       this.displayLoading = true
       const requestId = ++this.searchRequestSeq
       const started = Date.now()
-      const submittedSearch = this.search.trim()
+      const submittedSearch = this.submittedSearch.trim()
       const params = {
         filter: this.filter,
         sort: this.sort,
@@ -701,7 +1021,6 @@ export default {
             (data.results || []).map((r) => ({ ...r, keyword: submittedSearch })),
             this.sort
           )
-          this.submittedSearch = submittedSearch
           const meta = data.meta || {}
           this.totalCount = meta.count || this.infoItems.length
           this.totalPages = meta.total_pages || Math.max(1, Math.ceil(this.totalCount / this.itemsPerPage))

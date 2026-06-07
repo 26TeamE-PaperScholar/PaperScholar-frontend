@@ -148,14 +148,74 @@ export const mockInstitutions = [
 
 export const findInstitution = (id) => mockInstitutions.find((i) => i.id === id) || null
 
+const EUROPE_COUNTRY_CODES = new Set(['AT', 'BE', 'CH', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'IT', 'NL', 'NO', 'PT', 'SE'])
+const APAC_COUNTRY_CODES = new Set(['AU', 'CN', 'HK', 'ID', 'IN', 'JP', 'KR', 'MY', 'NZ', 'SG', 'TH', 'TW'])
+
+function filterParts(filter) {
+  return String(filter || '').split(',').map((p) => p.trim()).filter(Boolean)
+}
+
+function decodedFilterValue(part, prefix) {
+  return decodeURIComponent(part.slice(prefix.length)).trim().toLowerCase()
+}
+
+function institutionHaystack(institution) {
+  return [
+    institution.display_name,
+    institution.display_name_alt,
+    institution.country,
+    institution.country_code,
+    institution.type,
+    institution.geo && institution.geo.city,
+    ...(institution.top_concepts || [])
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+}
+
 export const searchInstitutions = (params = {}) => {
   let list = [...mockInstitutions]
   const q = (params.search || '').trim().toLowerCase()
   if (q) {
     list = list.filter((i) =>
-      [i.display_name, i.display_name_alt, i.country].filter(Boolean).join(' ').toLowerCase().includes(q)
+      institutionHaystack(i).includes(q)
     )
   }
+  filterParts(params.filter).forEach((part) => {
+    if (part.startsWith('display_name.search:')) {
+      const term = decodedFilterValue(part, 'display_name.search:')
+      list = list.filter((i) =>
+        [i.display_name, i.display_name_alt].filter(Boolean).join(' ').toLowerCase().includes(term)
+      )
+    } else if (part.startsWith('country.search:')) {
+      const term = decodedFilterValue(part, 'country.search:')
+      list = list.filter((i) =>
+        [i.country, i.country_code, i.geo && i.geo.city].filter(Boolean).join(' ').toLowerCase().includes(term)
+      )
+    } else if (part.startsWith('country_code:')) {
+      const code = part.slice('country_code:'.length).trim().toUpperCase()
+      list = list.filter((i) => String(i.country_code || '').toUpperCase() === code)
+    } else if (part.startsWith('region:')) {
+      const region = part.slice('region:'.length).trim().toUpperCase()
+      const codes = region === 'EU' ? EUROPE_COUNTRY_CODES : (region === 'APAC' ? APAC_COUNTRY_CODES : null)
+      if (codes) list = list.filter((i) => codes.has(String(i.country_code || '').toUpperCase()))
+    } else if (part.startsWith('type:')) {
+      const type = part.slice('type:'.length).trim()
+      list = list.filter((i) => i.type === type)
+    } else if (part.startsWith('works_count:>')) {
+      const min = Number(part.slice('works_count:>'.length))
+      if (Number.isFinite(min)) list = list.filter((i) => (i.works_count || 0) > min)
+    } else if (part.startsWith('concepts.search:')) {
+      const term = decodedFilterValue(part, 'concepts.search:')
+      list = list.filter((i) =>
+        (i.top_concepts || []).join(' ').toLowerCase().includes(term)
+      )
+    } else if (part.startsWith('collaboration.search:')) {
+      const term = decodedFilterValue(part, 'collaboration.search:')
+      list = list.filter((i) => institutionHaystack(i).includes(term))
+    }
+  })
   const sort = params.sort || ''
   if (sort.startsWith('cited_by_count')) {
     list.sort((a, b) =>
@@ -164,6 +224,10 @@ export const searchInstitutions = (params = {}) => {
   } else if (sort.startsWith('works_count')) {
     list.sort((a, b) =>
       sort.endsWith('desc') ? b.works_count - a.works_count : a.works_count - b.works_count
+    )
+  } else if (sort.startsWith('display_name')) {
+    list.sort((a, b) =>
+      sort.endsWith('desc') ? b.display_name.localeCompare(a.display_name) : a.display_name.localeCompare(b.display_name)
     )
   } else {
     list.sort((a, b) => b.cited_by_count - a.cited_by_count)

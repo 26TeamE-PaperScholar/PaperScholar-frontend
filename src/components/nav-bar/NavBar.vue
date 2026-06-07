@@ -227,12 +227,9 @@ export default {
       this.$router.push({
         path: '/search_result',
         query: {
-          filter: '',
           search: keyword,
-          sort: '',
           per_page: '10',
           page: '1',
-          cursor: '',
           search_type: 1
         }
       })
